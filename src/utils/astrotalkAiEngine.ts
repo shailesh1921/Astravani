@@ -2,6 +2,7 @@ import { Astrologer, ConsultationIntake, ApiConfig, ChatMessage } from '../types
 import { calculateKundli } from './kundliEngine';
 import { ASTROLOGY_KNOWLEDGE_BASE, calculateMahaboteHouse, AstrologicalSutra } from '../data/astrologyKnowledgeBase';
 import { getCuratedHoroscope } from '../data/horoscopeDataset';
+import { findSpiritualGuidance } from '../data/spiritualNumerologyDataset';
 
 export async function generateAstrologerResponses(
   userMessage: string,
@@ -188,6 +189,24 @@ function generateDynamicMultiTurnLines(
   // ==========================================
   // PROGRESSIVE TURN-BASED CONVERSATION ENGINE
   // ==========================================
+
+  // --- DIRECT NUMEROLOGY & SPIRITUAL COUNSEL (dp1812/celestial-comprehensive-spiritual-ai Dataset) ---
+  if (turnIndex > 0) {
+    const spiritualMatch = findSpiritualGuidance(userMsg);
+    if (spiritualMatch && !hasAlreadySaid(spiritualMatch.substring(0, 30))) {
+      const parts = spiritualMatch
+        .split('\n\n')
+        .map(p => p.trim())
+        .filter(p => p.length > 0)
+        .slice(0, 3);
+      if (parts.length > 0) {
+        return [
+          `Ji ${firstName} ji, aapke is prashna par Vedic shastra aur ank-vidya (numerology) ka sanket:`,
+          ...parts
+        ];
+      }
+    }
+  }
 
   // --- TURN 0 / 1: Initial Chart Opening & Root Cause Inspection ---
   if (turnIndex <= 2) {
