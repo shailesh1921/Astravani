@@ -1,6 +1,6 @@
 import { Astrologer, ConsultationIntake, ApiConfig, ChatMessage } from '../types/astrotalk';
 import { calculateKundli } from './kundliEngine';
-import { ASTROLOGY_KNOWLEDGE_BASE } from '../data/astrologyKnowledgeBase';
+import { ASTROLOGY_KNOWLEDGE_BASE, calculateMahaboteHouse, AstrologicalSutra } from '../data/astrologyKnowledgeBase';
 
 export async function generateAstrologerResponses(
   userMessage: string,
@@ -235,55 +235,64 @@ function generateDynamicMultiTurnLines(
     ];
   }
 
-  // --- TURN 2 / 3: Deep Dasha Breakdown & Exact Timeline (Kaal Nirnaya) ---
-  if (turnIndex >= 3 && turnIndex <= 5) {
-    if (isMarriage || isLove) {
-      const candidates = [
-        [
-          `Dekhiye ${firstName} ji, samay ka chakka ab badal raha hai`,
-          `Jab Guru (Jupiter) ka gochar aapke rashi se tritiya aur saptam par prabhav dalega, tab rishta pakka hoga`,
-          `Sabse mazboot yog agle varsh February se August ke beech me ban raha hai`,
-          `Aane wala jeevansathi respectful, working background se aur aapke vicharo ko samman dene wala hoga`
-        ],
-        [
-          `Ek mahatvapoorna baat aur note kijiye, ${firstName} ji`,
-          `Aapki kundli me Navamsha (D9) chart me Shukra ki sthiti kalyankari hai`,
-          `Jo bhi vilamb ho raha tha, wo purva janma ke karmic bandhan ko chukta karne ke liye tha`,
-          `Pariwar ki sehmati ke saath shubh samachar aapko agle kuch mahino me prapt hoga`
-        ]
-      ];
-      return candidates[turnIndex % candidates.length];
-    }
+  // Calculate user's specific Mahabote House from the ingested TTS_Astro_data dataset
+  const mahaboteData = calculateMahaboteHouse(intake.dob);
+  const mahaboteHouseName = mahaboteData.rawDatasetMetadata?.house_name || 'Raja';
 
-    if (isCareer || isMoney) {
-      const candidates = [
-        [
-          `Ab aane wale time framework par aate hain, ${firstName} ji`,
-          `Aapki kundli me ${antarClean} ki sub-period agle 3 se 5 mahine me trigger ho rahi hai`,
-          `Is dauraan agar aap job switch, position upgrade, ya business expansion karenge toh 100% safalta milegi`,
-          `Pehle se behtar salary package aur authority aapko pradan hogi 📈`
-        ],
-        [
-          `Vittiya drishti (financial viewpoint) se ek vishesh baat dikh rahi hai`,
-          `Aapki kundli me 11ve bhav (labha sthana) ka swami ab shubh drishti de raha hai`,
-          `Purane atke hue paise ya ruka hua project clear hone ka samay shuru ho chuka hai`,
-          `Kisi nayi partnerhip ya nayi responsibility ke liye man bana lijiye`
-        ]
-      ];
-      return candidates[turnIndex % candidates.length];
-    }
-
-    // Default Turn 3
+  // --- TURN 2: Mahabote Graha Blueprint (TTS_Astro_data Integration) ---
+  if (turnIndex === 3 && !hasAlreadySaid('mahabote')) {
     return [
-      `Gehra aakalan karne par ek baat spasht dikhti hai, ${firstName} ji`,
-      `Aapki kundli me Jo grah ab tak dhyan aakarshit kar rahe the, unki drishti shant ho rahi hai`,
-      `Agle 90 se 120 dino me aapko khud mahsoos hoga ki rukawatein apne aap hat rahi hain`,
-      `Aap bas bina aalsya ke apne kartavya me lage rahiye, parinam uttam hoga`
+      `Ek vishesh shastriya bhed aapko batata hoon, ${firstName} ji`,
+      `Aapki janma tithi ke var-chakra (Mahabote Sutra) ke anusar aapka mool sthan '${mahaboteHouseName}' bhav me banta hai`,
+      `${mahaboteData.insightHindi}`,
+      `Iska prabhav aapke vartamaan dasha ke saath milkar aane wale samay me naye dwar kholega 🙏`
     ];
   }
 
-  // --- TURN 4+: Specific Tailored Remedies & Astrological Upayas ---
-  if (isRemedy || turnIndex >= 6) {
+  // --- TURN 3 / 4: Classical Sutra Deep Dive & Exact Timeline ---
+  if (turnIndex >= 4 && turnIndex <= 6) {
+    // Find an unused classical sutra from our rich ASTROLOGY_KNOWLEDGE_BASE
+    const relevantSutras = ASTROLOGY_KNOWLEDGE_BASE.filter(s => {
+      if (s.source === 'Mahabote (TTS_Astro_data)') return false;
+      if (isCareer && (s.topic === 'career' || s.topic === 'wealth')) return true;
+      if (isMarriage && (s.topic === 'marriage' || s.topic === 'manglik')) return true;
+      if (isMoney && s.topic === 'wealth') return true;
+      if (isManglik && s.topic === 'manglik') return true;
+      return true;
+    });
+
+    const unusedSutra = relevantSutras.find(s => !hasAlreadySaid(s.insightHindi.substring(0, 20)));
+
+    if (unusedSutra) {
+      return [
+        `Shaastra pramaan (${unusedSutra.source}) ke anusar aapki sthiti ka aakalan:`,
+        `${unusedSutra.insightHindi}`,
+        `Samay chakra sanket: ${unusedSutra.timingIndicator || 'Agle 3 se 6 mahine me shubh parinam.'}`,
+        `Aap is disha me prayas jaari rakhein, nishchit roop se safalta milegi 🌟`
+      ];
+    }
+
+    if (isMarriage || isLove) {
+      return [
+        `Dekhiye ${firstName} ji, samay ka chakka ab badal raha hai`,
+        `Jab Guru (Jupiter) ka gochar aapke rashi se tritiya aur saptam par prabhav dalega, tab rishta pakka hoga`,
+        `Sabse mazboot yog agle varsh February se August ke beech me ban raha hai`,
+        `Aane wala jeevansathi respectful, working background se aur aapke vicharo ko samman dene wala hoga`
+      ];
+    }
+
+    if (isCareer || isMoney) {
+      return [
+        `Ab aane wale time framework par aate hain, ${firstName} ji`,
+        `Aapki kundli me ${antarClean} ki sub-period agle 3 se 5 mahine me trigger ho rahi hai`,
+        `Is dauraan agar aap job switch, position upgrade, ya business expansion karenge toh 100% safalta milegi`,
+        `Pehle se behtar salary package aur authority aapko pradan hogi 📈`
+      ];
+    }
+  }
+
+  // --- TURN 7+: Specific Tailored Remedies & Astrological Upayas ---
+  if (isRemedy || turnIndex === 7) {
     const remedyLines = [
       `Aapke ${lagnaClean} Lagna aur ${rashiClean} Rashi ke anusaar sabse shreshtha upay ye hain:`,
       `1. Pratidin snan ke uprant ${kundli.luckyMantra} ka kam se kam 11 ya 21 baar jaap karein`,
@@ -291,12 +300,12 @@ function generateDynamicMultiTurnLines(
       `3. Guruvar ya Shaniwar ko pakshiyon ko daana aur kisi zarooratmand ko anna ka daan karein 🙏`
     ];
 
-    if (!hasAlreadySaid('luckyGemstone')) {
+    if (!hasAlreadySaid('luckyGemstone') && !hasAlreadySaid('jaap karein')) {
       return remedyLines;
     }
   }
 
-  // --- TURN 5+: Deep Personalized Guidance & Specific Nuances (Never Repeating) ---
+  // --- TURN 8+: Deep Personalized Guidance & Nuanced Spiritual Counsel ---
   const dynamicNuances = [
     [
       `Haan ${firstName} ji, aapke man ka sandeh main samajh sakta hoon`,
