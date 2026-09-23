@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { calculateKundli } from '../utils/kundliEngine';
 import { KundliData, Astrologer } from '../types/astrotalk';
-import { Sparkles, Calendar, Clock, MapPin, User, ShieldCheck, Gem, MessageSquare } from 'lucide-react';
+import { Sparkles, Calendar, Clock, MapPin, User, ShieldCheck, Gem, MessageSquare, Share2, Printer } from 'lucide-react';
 
 interface FreeKundliViewProps {
   onConsultKundli: (astrologer?: Astrologer) => void;
@@ -269,7 +269,7 @@ export const FreeKundliView: React.FC<FreeKundliViewProps> = ({ onConsultKundli 
               </table>
             </div>
 
-            {/* Auspicious Remedies Pill */}
+            {/* Action Bar: WhatsApp Share, Print PDF, and Consult Astrologer */}
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
@@ -282,12 +282,44 @@ export const FreeKundliView: React.FC<FreeKundliViewProps> = ({ onConsultKundli 
                 </p>
               </div>
 
-              <button
-                onClick={() => onConsultKundli()}
-                className="btn-astrotalk px-5 py-2 text-xs font-bold flex-shrink-0 cursor-pointer shadow-sm"
-              >
-                Get Full Kundli Reading
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = `🚩 *AstraVani Vedic Janam Kundli Report*\n\n` +
+                      `👤 *Name:* ${kundliResult.name}\n` +
+                      `♈ *Lagna (Ascendant):* ${kundliResult.lagnaSign}\n` +
+                      `🌙 *Moon Sign (Chandra Rashi):* ${kundliResult.chandraRashi}\n` +
+                      `☀️ *Sun Sign (Surya Rashi):* ${kundliResult.suryaRashi}\n` +
+                      `⭐ *Nakshatra:* ${kundliResult.nakshatra} (Pada ${kundliResult.nakshatraPada})\n` +
+                      `🪐 *Current Mahadasha:* ${kundliResult.mahadasha}\n` +
+                      `💎 *Lucky Gemstone:* ${kundliResult.luckyGemstone}\n\n` +
+                      `✨ Check your authentic Janam Kundli & Chat with Astrologers at: https://astravani.in`;
+                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                  }}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Share on WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                  title="Print or Save as PDF"
+                >
+                  <Printer className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Save PDF</span>
+                </button>
+
+                <button
+                  onClick={() => onConsultKundli()}
+                  className="btn-astrotalk px-4 py-2 text-xs font-bold flex-shrink-0 cursor-pointer shadow-sm"
+                >
+                  Consult Astrologer
+                </button>
+              </div>
             </div>
 
           </div>

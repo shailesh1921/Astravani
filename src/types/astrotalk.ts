@@ -54,7 +54,7 @@ export interface PaymentTransaction {
   amount: number;
   bonusCredit: number;
   totalCredited: number;
-  method: 'upi' | 'card' | 'netbanking' | 'razorpay';
+  method: 'cashfree' | 'razorpay' | 'upi' | 'card' | 'netbanking';
   status: 'success' | 'failed' | 'processing';
   timestamp: string;
   receiptId: string;
@@ -62,8 +62,11 @@ export interface PaymentTransaction {
 }
 
 export interface PaymentConfig {
-  gatewayProvider: 'razorpay' | 'direct';
-  razorpayKeyId: string;
+  gatewayProvider: 'cashfree' | 'razorpay' | 'direct';
+  cashfreeAppId?: string;
+  cashfreeSecretKey?: string;
+  cashfreeEnv?: 'sandbox' | 'production';
+  razorpayKeyId?: string;
   currency: 'INR';
 }
 

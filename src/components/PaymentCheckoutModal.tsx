@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { PaymentConfig, PaymentTransaction } from '../types/astrotalk';
 import { launchRazorpayCheckout } from '../utils/razorpayService';
+import { launchCashfreeCheckout } from '../utils/cashfreeService';
+import { sounds } from '../utils/audioEffects';
 import { 
   X, ShieldCheck, QrCode, CreditCard, Building2, Lock, 
-  CheckCircle2, ArrowRight, Smartphone, Sparkles, Loader2, Download 
+  CheckCircle2, ArrowRight, Smartphone, Sparkles, Loader2, Download, Zap 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -43,11 +45,45 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Launch official Cashfree Checkout
+  const handleLaunchCashfree = async () => {
+    setIsProcessing(true);
+    await launchCashfreeCheckout({
+      appId: paymentConfig.cashfreeAppId || import.meta.env.VITE_CASHFREE_APP_ID || '',
+      secretKey: paymentConfig.cashfreeSecretKey || import.meta.env.VITE_CASHFREE_SECRET_KEY || '',
+      env: paymentConfig.cashfreeEnv || 'sandbox',
+      amount: pack.pay,
+      userName: 'Shailesh Singh',
+      onSuccess: (paymentId) => {
+        setIsProcessing(false);
+        const txn: PaymentTransaction = {
+          id: paymentId,
+          amount: pack.pay,
+          bonusCredit: pack.get - pack.pay,
+          totalCredited: pack.get,
+          method: 'cashfree',
+          status: 'success',
+          timestamp: new Date().toLocaleString(),
+          receiptId: `rcpt_${Math.floor(100000 + Math.random() * 900000)}`,
+          paymentGatewayId: paymentId
+        };
+        setCompletedTxn(txn);
+        onPaymentSuccess(txn);
+        sounds.playSuccessChime();
+        confetti({ particleCount: 110, spread: 80, origin: { y: 0.6 } });
+      },
+      onFailure: (err) => {
+        setIsProcessing(false);
+        alert(err || 'Cashfree checkout was dismissed.');
+      }
+    });
+  };
+
   // Launch official Razorpay Checkout if user has configured their Key ID
   const handleLaunchRazorpay = async () => {
     setIsProcessing(true);
     await launchRazorpayCheckout({
-      keyId: paymentConfig.razorpayKeyId,
+      keyId: paymentConfig.razorpayKeyId || '',
       amountRupees: pack.pay,
       userName: 'Shailesh Singh',
       onSuccess: (paymentId) => {
@@ -65,6 +101,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
         };
         setCompletedTxn(txn);
         onPaymentSuccess(txn);
+        sounds.playSuccessChime();
         confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
       },
       onFailure: (err) => {
@@ -130,13 +167,13 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-extrabold text-white">AstroTalk Secure Payment</h3>
+                <h3 className="text-base font-extrabold text-white">AstraVani Secure Payment</h3>
                 <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-emerald-500/30">
                   <ShieldCheck className="w-3 h-3 text-emerald-400" />
                   256-bit SSL
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Trusted Indian Payment Gateway</p>
+              <p className="text-xs text-slate-400">Cashfree & NPCI Verified Payment Gateway</p>
             </div>
           </div>
 
@@ -166,6 +203,28 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                 <span className="text-sm font-bold text-slate-800 block mt-1">Instant Balance</span>
               </div>
             </div>
+
+            {/* Official Cashfree Gateway Banner */}
+            {paymentConfig.gatewayProvider === 'cashfree' || paymentConfig.cashfreeAppId ? (
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-300 rounded-xl p-3 flex items-center justify-between gap-3">
+                <div className="text-xs text-emerald-950">
+                  <span className="font-bold flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Cashfree Payments ({paymentConfig.cashfreeEnv === 'production' ? 'Live Mode' : 'Sandbox Test Mode'})</span>
+                  </span>
+                  <span className="text-[11px] text-emerald-700 block">0% setup fee instant checkout with UPI, GPay, PhonePe & Cards.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLaunchCashfree}
+                  disabled={isProcessing}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow-xs flex items-center gap-1 cursor-pointer flex-shrink-0"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Launch Cashfree SDK</span>
+                </button>
+              </div>
+            ) : null}
 
             {/* Official Razorpay Key Detection Notice */}
             {paymentConfig.razorpayKeyId && paymentConfig.razorpayKeyId.startsWith('rzp_') ? (
@@ -457,7 +516,15 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
               <div className="pt-2">
                 <button
                   type="button"
-                  onClick={handleProcessDirectPayment}
+                  onClick={() => {
+                    if (paymentConfig.gatewayProvider === 'cashfree' || paymentConfig.cashfreeAppId) {
+                      handleLaunchCashfree();
+                    } else if (paymentConfig.gatewayProvider === 'razorpay' && paymentConfig.razorpayKeyId) {
+                      handleLaunchRazorpay();
+                    } else {
+                      handleProcessDirectPayment();
+                    }
+                  }}
                   disabled={isProcessing}
                   className="btn-astrotalk w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md"
                 >

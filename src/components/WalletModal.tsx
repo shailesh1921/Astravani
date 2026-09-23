@@ -39,9 +39,14 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   const [tempModel, setTempModel] = useState(apiConfig.model);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // Cashfree Gateway state (Default & Recommended)
+  const [tempCfAppId, setTempCfAppId] = useState(paymentConfig.cashfreeAppId || import.meta.env.VITE_CASHFREE_APP_ID || '');
+  const [tempCfSecret, setTempCfSecret] = useState(paymentConfig.cashfreeSecretKey || import.meta.env.VITE_CASHFREE_SECRET_KEY || '');
+  const [tempCfEnv, setTempCfEnv] = useState<'sandbox' | 'production'>(paymentConfig.cashfreeEnv || 'sandbox');
+  const [tempGatewayProvider, setTempGatewayProvider] = useState<'cashfree' | 'razorpay' | 'direct'>(paymentConfig.gatewayProvider || 'cashfree');
+  
   // Razorpay Gateway state
   const [tempRzpKey, setTempRzpKey] = useState(paymentConfig.razorpayKeyId || '');
-  const [tempRzpProvider, setTempRzpProvider] = useState<'razorpay' | 'direct'>(paymentConfig.gatewayProvider || 'razorpay');
   const [savedGatewaySuccess, setSavedGatewaySuccess] = useState(false);
 
   if (!isOpen) return null;
@@ -67,7 +72,10 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   const handleSaveGateway = (e: React.FormEvent) => {
     e.preventDefault();
     onUpdatePaymentConfig({
-      gatewayProvider: tempRzpProvider,
+      gatewayProvider: tempGatewayProvider,
+      cashfreeAppId: tempCfAppId.trim(),
+      cashfreeSecretKey: tempCfSecret.trim(),
+      cashfreeEnv: tempCfEnv,
       razorpayKeyId: tempRzpKey.trim(),
       currency: 'INR'
     });
@@ -220,7 +228,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
           </div>
         )}
 
-        {/* TAB 3: PAYMENT GATEWAY SETTINGS (RAZORPAY) */}
+        {/* TAB 3: PAYMENT GATEWAY SETTINGS (CASHFREE & RAZORPAY) */}
         {activeTab === 'gateway' && (
           <form onSubmit={handleSaveGateway} className="p-5 sm:p-6 space-y-4 overflow-y-auto">
             <div>
@@ -229,65 +237,128 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 <h4 className="text-sm font-bold text-slate-900">Payment Gateway Configuration</h4>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Connect your real Indian payment gateway. We support official Razorpay Standard Checkout (UPI, Cards, NetBanking).
+                Configure your payment gateway. Cashfree Payments provides 0% setup fee, instant UPI & Card checkouts.
               </p>
             </div>
 
-            {/* Gateway Mode */}
+            {/* Gateway Mode Selection */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Preferred Gateway Mode</label>
-              <div className="grid grid-cols-2 gap-2">
+              <label className="block text-xs font-bold text-slate-700 mb-1">Select Gateway</label>
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
-                  onClick={() => setTempRzpProvider('razorpay')}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl border transition ${
-                    tempRzpProvider === 'razorpay'
+                  onClick={() => setTempGatewayProvider('cashfree')}
+                  className={`py-2 px-2 text-xs font-bold rounded-xl border transition text-center ${
+                    tempGatewayProvider === 'cashfree'
                       ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
-                      : 'bg-slate-50 border-slate-200 text-slate-700'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  Razorpay (Official SDK)
+                  Cashfree (Active)
                 </button>
                 <button
                   type="button"
-                  onClick={() => setTempRzpProvider('direct')}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl border transition ${
-                    tempRzpProvider === 'direct'
+                  onClick={() => setTempGatewayProvider('razorpay')}
+                  className={`py-2 px-2 text-xs font-bold rounded-xl border transition text-center ${
+                    tempGatewayProvider === 'razorpay'
                       ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
-                      : 'bg-slate-50 border-slate-200 text-slate-700'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  Interactive UPI & Cards
+                  Razorpay SDK
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTempGatewayProvider('direct')}
+                  className={`py-2 px-2 text-xs font-bold rounded-xl border transition text-center ${
+                    tempGatewayProvider === 'direct'
+                      ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  Direct UPI / QR
                 </button>
               </div>
             </div>
 
-            {/* Razorpay Key ID */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Razorpay Key ID (Test or Live)
-              </label>
-              <input
-                type="text"
-                value={tempRzpKey}
-                onChange={(e) => setTempRzpKey(e.target.value)}
-                placeholder="rzp_test_... or rzp_live_..."
-                className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 text-slate-900"
-              />
-              <p className="text-[11px] text-slate-400 mt-1">
-                Get your free Key ID instantly from <a href="https://dashboard.razorpay.com/#/access/api_keys" target="_blank" rel="noreferrer" className="text-amber-600 underline inline-flex items-center gap-0.5">Razorpay Dashboard <ExternalLink className="w-2.5 h-2.5" /></a>.
-              </p>
-            </div>
+            {/* Cashfree Fields */}
+            {tempGatewayProvider === 'cashfree' && (
+              <div className="space-y-3 bg-amber-50/50 p-4 rounded-xl border border-amber-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-900">Cashfree Environment</span>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setTempCfEnv('sandbox')}
+                      className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition ${
+                        tempCfEnv === 'sandbox'
+                          ? 'bg-emerald-600 text-white border-emerald-600'
+                          : 'bg-white text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      Test Sandbox
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTempCfEnv('production')}
+                      className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition ${
+                        tempCfEnv === 'production'
+                          ? 'bg-emerald-600 text-white border-emerald-600'
+                          : 'bg-white text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      Live Production
+                    </button>
+                  </div>
+                </div>
 
-            {/* Step-by-Step Guide */}
-            <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 text-xs space-y-1 text-slate-700">
-              <span className="font-bold text-amber-900 block">How to get a Razorpay Key in 2 minutes:</span>
-              <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-slate-600">
-                <li>Sign up at <span className="font-mono">razorpay.com</span></li>
-                <li>Go to <strong>Settings → API Keys → Generate Key</strong></li>
-                <li>Copy your <strong>Key ID</strong> (starts with <span className="font-mono">rzp_test_</span>) and paste here</li>
-              </ol>
-            </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Cashfree App ID (Client ID)
+                  </label>
+                  <input
+                    type="text"
+                    value={tempCfAppId}
+                    onChange={(e) => setTempCfAppId(e.target.value)}
+                    placeholder="TEST... or CF..."
+                    className="w-full px-3 py-1.5 text-xs font-mono bg-white border border-slate-200 rounded-lg focus:border-amber-500 text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Cashfree Secret Key
+                  </label>
+                  <input
+                    type="password"
+                    value={tempCfSecret}
+                    onChange={(e) => setTempCfSecret(e.target.value)}
+                    placeholder="cfsk_..."
+                    className="w-full px-3 py-1.5 text-xs font-mono bg-white border border-slate-200 rounded-lg focus:border-amber-500 text-slate-900"
+                  />
+                </div>
+
+                <p className="text-[11px] text-slate-500">
+                  Your sandbox keys are loaded and ready. Once Cashfree completes document approval, toggle to <strong>Live Production</strong> and paste your live keys.
+                </p>
+              </div>
+            )}
+
+            {/* Razorpay Key ID */}
+            {tempGatewayProvider === 'razorpay' && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Razorpay Key ID (Test or Live)
+                </label>
+                <input
+                  type="text"
+                  value={tempRzpKey}
+                  onChange={(e) => setTempRzpKey(e.target.value)}
+                  placeholder="rzp_test_... or rzp_live_..."
+                  className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 text-slate-900"
+                />
+              </div>
+            )}
 
             <div className="pt-2">
               <button

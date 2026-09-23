@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { calculateGunaMilan } from '../utils/gunaMilanEngine';
 import { GunaMilanResult, Astrologer } from '../types/astrotalk';
-import { HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, MessageSquare, ShieldCheck } from 'lucide-react';
+import { HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, MessageSquare, ShieldCheck, Share2, Printer } from 'lucide-react';
 
 interface KundliMatchingViewProps {
   onConsultMatch: (astrologer?: Astrologer) => void;
@@ -176,16 +176,43 @@ export const KundliMatchingView: React.FC<KundliMatchingViewProps> = ({ onConsul
                 </div>
               </div>
 
-              {/* Consultation CTA */}
-              <div className="text-center md:text-right flex-shrink-0">
+              {/* Consultation & Share CTAs */}
+              <div className="flex flex-col sm:flex-row md:flex-col items-center md:items-end gap-2 flex-shrink-0">
                 <button
                   onClick={() => onConsultMatch()}
-                  className="btn-astrotalk px-5 py-2.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md mx-auto md:ml-auto"
+                  className="btn-astrotalk px-5 py-2.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md w-full sm:w-auto"
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>Talk to Marriage Astrologer</span>
                 </button>
-                <p className="text-[10px] text-slate-400 mt-1.5">First minute consultation is FREE</p>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = `🚩 *AstraVani Kundli Milan Report*\n\n` +
+                        `💍 *Match:* ${matchingResult.boyName} & ${matchingResult.girlName}\n` +
+                        `⭐ *Guna Score:* ${matchingResult.totalScore} / 36 (${matchingResult.percentage}%)\n` +
+                        `📜 *Verdict:* ${matchingResult.verdict}\n` +
+                        `🛡️ *Manglik Status:* ${matchingResult.manglikStatus}\n\n` +
+                        `✨ Check 36-Guna Marriage Compatibility free on AstraVani: https://astravani.in`;
+                      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                    }}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold flex items-center gap-1 transition shadow-xs cursor-pointer"
+                  >
+                    <Share2 className="w-3 h-3" />
+                    <span>WhatsApp Share</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-[11px] font-bold flex items-center gap-1 transition shadow-xs cursor-pointer"
+                  >
+                    <Printer className="w-3 h-3 text-slate-500" />
+                    <span>Save PDF</span>
+                  </button>
+                </div>
               </div>
 
             </div>

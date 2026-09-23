@@ -10,6 +10,7 @@ import { KundliMatchingView } from './components/KundliMatchingView';
 import { DailyHoroscopeView } from './components/DailyHoroscopeView';
 import { KundliIntakeModal } from './components/KundliIntakeModal';
 import { AstrologerChatModal } from './components/AstrologerChatModal';
+import { AstrologerCallModal } from './components/AstrologerCallModal';
 import { WalletModal } from './components/WalletModal';
 import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
 import { AstrotalkFooter } from './components/AstrotalkFooter';
@@ -26,15 +27,20 @@ export const App: React.FC = () => {
     return saved ? parseInt(saved, 10) : 100;
   });
 
-  // Payment configuration (Razorpay / Direct)
+  // Payment configuration (Cashfree / Razorpay / Direct)
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => {
     const saved = localStorage.getItem('astrotalk_payment_config');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { 
+        const parsed = JSON.parse(saved);
+        if (parsed.cashfreeAppId) return parsed;
+      } catch (e) {}
     }
     return {
-      gatewayProvider: 'razorpay',
-      razorpayKeyId: '',
+      gatewayProvider: 'cashfree',
+      cashfreeAppId: import.meta.env.VITE_CASHFREE_APP_ID || '',
+      cashfreeSecretKey: import.meta.env.VITE_CASHFREE_SECRET_KEY || '',
+      cashfreeEnv: 'sandbox',
       currency: 'INR'
     };
   });
@@ -66,6 +72,7 @@ export const App: React.FC = () => {
   const [isIntakeOpen, setIsIntakeOpen] = useState(false);
   const [isCallMode, setIsCallMode] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isCallOpen, setIsCallOpen] = useState(false);
   const [currentIntake, setCurrentIntake] = useState<ConsultationIntake | null>(null);
 
   // Wallet & Payment Checkout Modal states
@@ -111,7 +118,11 @@ export const App: React.FC = () => {
   const handleIntakeSubmit = (intake: ConsultationIntake) => {
     setCurrentIntake(intake);
     setIsIntakeOpen(false);
-    setIsChatOpen(true);
+    if (isCallMode) {
+      setIsCallOpen(true);
+    } else {
+      setIsChatOpen(true);
+    }
   };
 
   const handleDeductWallet = (amount: number) => {
@@ -225,6 +236,26 @@ export const App: React.FC = () => {
             setIsWalletOpen(true);
           }}
           apiConfig={apiConfig}
+        />
+      )}
+
+      {/* Voice Call Consultation Modal */}
+      {selectedAstrologer && currentIntake && (
+        <AstrologerCallModal
+          astrologer={selectedAstrologer}
+          intake={currentIntake}
+          isOpen={isCallOpen}
+          onClose={() => setIsCallOpen(false)}
+          walletBalance={walletBalance}
+          onDeductWallet={handleDeductWallet}
+          onOpenRecharge={() => {
+            setWalletTab('wallet');
+            setIsWalletOpen(true);
+          }}
+          onSwitchToChat={() => {
+            setIsCallOpen(false);
+            setIsChatOpen(true);
+          }}
         />
       )}
 
