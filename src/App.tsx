@@ -13,6 +13,7 @@ import { AstrologerChatModal } from './components/AstrologerChatModal';
 import { WalletModal } from './components/WalletModal';
 import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
 import { AstrotalkFooter } from './components/AstrotalkFooter';
+import { CompliancePolicyModal, PolicyTab } from './components/CompliancePolicyModal';
 
 export const App: React.FC = () => {
   // Navigation & View state
@@ -72,6 +73,10 @@ export const App: React.FC = () => {
   const [walletTab, setWalletTab] = useState<'wallet' | 'gateway' | 'api' | 'history'>('wallet');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedPack, setSelectedPack] = useState<{ pay: number; get: number; tag: string; bonus: string } | null>(null);
+  
+  // Legal & Compliance Policy Modal states
+  const [isPolicyOpen, setIsPolicyOpen] = useState(false);
+  const [policyTab, setPolicyTab] = useState<PolicyTab>('terms');
 
   // Persistence effects
   useEffect(() => {
@@ -249,7 +254,21 @@ export const App: React.FC = () => {
       )}
 
       {/* Astrotalk Footer */}
-      <AstrotalkFooter onSelectNav={(tab) => setActiveTab(tab)} />
+      <AstrotalkFooter 
+        onSelectNav={(tab) => setActiveTab(tab)} 
+        onOpenPolicy={(tab) => {
+          setPolicyTab(tab);
+          setIsPolicyOpen(true);
+        }}
+      />
+
+      {/* Legal & Compliance Policy Modal for Payment Gateway (Cashfree/Razorpay) Verification */}
+      <CompliancePolicyModal
+        isOpen={isPolicyOpen}
+        onClose={() => setIsPolicyOpen(false)}
+        activeTab={policyTab}
+        onTabChange={(tab) => setPolicyTab(tab)}
+      />
 
     </div>
   );

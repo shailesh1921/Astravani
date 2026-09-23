@@ -1,11 +1,13 @@
 import React from 'react';
-import { ShieldCheck, Lock, Award, Heart, Sparkles } from 'lucide-react';
+import { ShieldCheck, Lock, Award, Sparkles } from 'lucide-react';
+import { PolicyTab } from './CompliancePolicyModal';
 
 interface AstrotalkFooterProps {
   onSelectNav: (tab: string) => void;
+  onOpenPolicy: (tab: PolicyTab) => void;
 }
 
-export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav }) => {
+export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav, onOpenPolicy }) => {
   return (
     <footer className="bg-slate-900 text-slate-300 pt-12 pb-8 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,11 +65,11 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav })
                 ॐ
               </div>
               <span className="text-lg font-black text-white tracking-tight">
-                Astro<span className="text-amber-400">Talk</span>
+                Astra<span className="text-amber-400">Vani</span>
               </span>
             </div>
             <p className="text-slate-400 leading-relaxed">
-              AstroTalk is India's most trusted online astrology portal providing authentic Vedic Jyotish, Tarot, and Numerology guidance. All astrologer personas operate via an intelligent multi-persona engine or your connected API key.
+              AstraVani (<a href="https://astravani.in" className="text-amber-400 hover:underline">astravani.in</a>) is India's trusted online Vedic astrology portal providing genuine Jyotish, Kundli Milan, and Tarot consultations powered by experienced astrologers and multi-persona AI.
             </p>
           </div>
 
@@ -123,14 +125,32 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav })
           {/* Col 4: Trust & Policies */}
           <div>
             <h5 className="text-white font-bold uppercase tracking-wider mb-3 text-[11px]">
-              Corporate & Trust
+              Corporate & Legal Policies
             </h5>
             <ul className="space-y-2 text-slate-400">
-              <li>Terms & Conditions</li>
-              <li>Privacy Policy</li>
-              <li>Refund & Cancellation Policy</li>
-              <li>Astrologer Registration</li>
-              <li>24x7 Customer Care: support@astrotalk.com</li>
+              <li>
+                <button onClick={() => onOpenPolicy('terms')} className="hover:text-amber-400 transition cursor-pointer">
+                  Terms & Conditions
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onOpenPolicy('privacy')} className="hover:text-amber-400 transition cursor-pointer">
+                  Privacy Policy
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onOpenPolicy('refund')} className="hover:text-amber-400 transition cursor-pointer">
+                  Refund & Cancellation Policy
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onOpenPolicy('contact')} className="hover:text-amber-400 transition cursor-pointer">
+                  Contact Us & Business Info
+                </button>
+              </li>
+              <li className="text-amber-400/90 font-medium">
+                Customer Care: support@astravani.in
+              </li>
             </ul>
           </div>
 
@@ -138,9 +158,9 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav })
 
         {/* Bottom Disclaimers */}
         <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-          <p>© 2026 AstroTalk Online Astrology Private Limited. All rights reserved.</p>
+          <p>© 2026 AstraVani (astravani.in). Operated by Shailesh Singh. All rights reserved.</p>
           <p className="text-center md:text-right max-w-lg">
-            Disclaimer: Astrology is an ancient empirical science and predictive study. Insights provided are intended for self-guidance and reflection.
+            Disclaimer: Astrology is an empirical spiritual science and predictive study. Insights provided are intended for self-guidance and personal reflection.
           </p>
         </div>
 
@@ -148,3 +168,4 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav })
     </footer>
   );
 };
+
