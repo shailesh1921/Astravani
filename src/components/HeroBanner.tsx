@@ -43,7 +43,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             </h1>
 
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl">
-              100% Private & Confidential. Ask questions regarding Love, Marriage, Career, Business, or Health. Authentic Vedic Pandits, Tarot Readers & Numerologists powered by multi-persona guidance.
+              100% Private & Confidential. Ask questions regarding Love, Marriage, Career, Business, or Health. Consult verified Vedic Acharyas, Jyotishis, and Tarot Scholars vetted through rigorous 4-stage examination.
             </p>
 
             {/* CTAs */}
@@ -94,7 +94,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Why Trust AstroTalk?</h3>
+                  <h3 className="text-base font-bold text-slate-900">Why Trust AstraVani?</h3>
                   <p className="text-xs text-slate-500">Verified by 5+ Crore Consultations</p>
                 </div>
                 <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">

@@ -49,8 +49,8 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav, o
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white">Multi-Persona AI Engine</h4>
-              <p className="text-xs text-slate-400">OpenAI & Gemini API key integration</p>
+              <h4 className="text-sm font-bold text-white">100% Money-Back Guarantee</h4>
+              <p className="text-xs text-slate-400">Instant wallet refund on call or chat drops</p>
             </div>
           </div>
         </div>
@@ -69,7 +69,7 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav, o
               </span>
             </div>
             <p className="text-slate-400 leading-relaxed">
-              AstraVani (<a href="https://astravani.in" className="text-amber-400 hover:underline">astravani.in</a>) is India's trusted online Vedic astrology portal providing genuine Jyotish, Kundli Milan, and Tarot consultations powered by experienced astrologers and multi-persona AI.
+              AstraVani (<a href="https://astravani.in" className="text-amber-400 hover:underline">astravani.in</a>) is India's trusted online Vedic astrology portal providing genuine Jyotish, Kundli Milan, and Tarot consultations powered by India's most verified Vedic Pandits, Jyotishis, and Tarot Scholars.
             </p>
           </div>
 

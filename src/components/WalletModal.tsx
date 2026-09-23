@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ApiConfig, PaymentConfig, PaymentTransaction } from '../types/astrotalk';
 import { 
-  X, Wallet, Sparkles, Check, KeyRound, Eye, EyeOff, 
-  ShieldCheck, CreditCard, History, Download, ExternalLink 
+  X, Wallet, Sparkles, Check, 
+  CreditCard, History, Download, ExternalLink, ShieldCheck 
 } from 'lucide-react';
 
 interface WalletModalProps {
@@ -13,9 +13,9 @@ interface WalletModalProps {
   transactions: PaymentTransaction[];
   paymentConfig: PaymentConfig;
   onUpdatePaymentConfig: (config: PaymentConfig) => void;
-  apiConfig: ApiConfig;
-  onUpdateApiConfig: (config: ApiConfig) => void;
-  initialTab?: 'wallet' | 'gateway' | 'api' | 'history';
+  apiConfig?: ApiConfig;
+  onUpdateApiConfig?: (config: ApiConfig) => void;
+  initialTab?: 'wallet' | 'gateway' | 'history';
 }
 
 export const WalletModal: React.FC<WalletModalProps> = ({
@@ -26,18 +26,9 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   transactions,
   paymentConfig,
   onUpdatePaymentConfig,
-  apiConfig,
-  onUpdateApiConfig,
   initialTab = 'wallet'
 }) => {
-  const [activeTab, setActiveTab] = useState<'wallet' | 'gateway' | 'api' | 'history'>(initialTab);
-  
-  // AI Key state
-  const [showKey, setShowKey] = useState(false);
-  const [tempKey, setTempKey] = useState(apiConfig.apiKey);
-  const [tempProvider, setTempProvider] = useState<'gemini' | 'openai' | 'local'>(apiConfig.provider);
-  const [tempModel, setTempModel] = useState(apiConfig.model);
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'wallet' | 'gateway' | 'history'>(initialTab);
 
   // Cashfree Gateway state (Default & Recommended)
   const [tempCfAppId, setTempCfAppId] = useState(paymentConfig.cashfreeAppId || import.meta.env.VITE_CASHFREE_APP_ID || '');
@@ -57,17 +48,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     { pay: 250, get: 500, tag: 'Super Saver', bonus: '100% EXTRA' },
     { pay: 500, get: 1100, tag: 'Mega Pack', bonus: '120% EXTRA' },
   ];
-
-  const handleSaveApi = (e: React.FormEvent) => {
-    e.preventDefault();
-    onUpdateApiConfig({
-      provider: tempProvider,
-      apiKey: tempKey.trim(),
-      model: tempModel
-    });
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2500);
-  };
 
   const handleSaveGateway = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,17 +71,16 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 sm:p-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
             {[
-              { id: 'wallet', label: 'Recharge', icon: Wallet },
-              { id: 'history', label: 'History', icon: History },
+              { id: 'wallet', label: 'Recharge Wallet', icon: Wallet },
+              { id: 'history', label: 'Transaction History', icon: History },
               { id: 'gateway', label: 'Payment Gateway', icon: CreditCard },
-              { id: 'api', label: 'AI Settings', icon: KeyRound },
             ].map((t) => {
               const Icon = t.icon;
               return (
                 <button
                   key={t.id}
                   onClick={() => setActiveTab(t.id as any)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer flex-shrink-0 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer flex-shrink-0 ${
                     activeTab === t.id
                       ? 'bg-white text-slate-900 shadow-sm'
                       : 'text-white/80 hover:bg-white/10'
@@ -374,120 +353,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                   <>
                     <Sparkles className="w-4 h-4" />
                     <span>Save Payment Settings</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* TAB 4: AI SETTINGS */}
-        {activeTab === 'api' && (
-          <form onSubmit={handleSaveApi} className="p-5 sm:p-6 space-y-4 overflow-y-auto">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <h4 className="text-sm font-bold text-slate-900">AI Consultation Engine</h4>
-              </div>
-              <p className="text-xs text-slate-500">
-                Connect your OpenAI or Google Gemini API Key. Each astrologer persona will query the model with authentic Vedic scholar instructions.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">AI Provider</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTempProvider('gemini');
-                    setTempModel('gemini-1.5-flash');
-                  }}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl border transition ${
-                    tempProvider === 'gemini'
-                      ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
-                      : 'bg-slate-50 border-slate-200 text-slate-700'
-                  }`}
-                >
-                  Google Gemini (Recommended)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTempProvider('openai');
-                    setTempModel('gpt-4o-mini');
-                  }}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl border transition ${
-                    tempProvider === 'openai'
-                      ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
-                      : 'bg-slate-50 border-slate-200 text-slate-700'
-                  }`}
-                >
-                  OpenAI (GPT-4o)
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                {tempProvider === 'gemini' ? 'Gemini API Key' : 'OpenAI API Key'}
-              </label>
-              <div className="relative">
-                <input
-                  type={showKey ? 'text' : 'password'}
-                  value={tempKey}
-                  onChange={(e) => setTempKey(e.target.value)}
-                  placeholder={tempProvider === 'gemini' ? 'AIzaSy...' : 'sk-...'}
-                  className="w-full pr-10 pl-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 text-slate-800"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                >
-                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <p className="text-[10px] text-slate-400 mt-1">
-                Leave blank to use our built-in intelligent multi-persona astrological engine.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Model Name</label>
-              <select
-                value={tempModel}
-                onChange={(e) => setTempModel(e.target.value)}
-                className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 text-slate-800"
-              >
-                {tempProvider === 'gemini' ? (
-                  <>
-                    <option value="gemini-1.5-flash">gemini-1.5-flash (Fast & Cost Effective)</option>
-                    <option value="gemini-2.0-flash">gemini-2.0-flash (Ultra Low Latency)</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="gpt-4o-mini">gpt-4o-mini (Smart & Fast)</option>
-                    <option value="gpt-4o">gpt-4o (Deep Reasoning)</option>
-                  </>
-                )}
-              </select>
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                className="btn-astrotalk w-full py-2.5 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-              >
-                {savedSuccess ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    <span>Settings Saved Successfully!</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>Save AI Configuration</span>
                   </>
                 )}
               </button>

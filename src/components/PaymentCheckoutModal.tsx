@@ -557,7 +557,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
             <div>
               <h3 className="text-xl font-black text-slate-900">Payment Successful!</h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Your AstroTalk wallet has been credited with ₹{completedTxn.totalCredited}.
+                Your AstraVani wallet has been credited with ₹{completedTxn.totalCredited}.
               </p>
             </div>
 

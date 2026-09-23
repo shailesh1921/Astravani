@@ -77,7 +77,7 @@ export const App: React.FC = () => {
 
   // Wallet & Payment Checkout Modal states
   const [isWalletOpen, setIsWalletOpen] = useState(false);
-  const [walletTab, setWalletTab] = useState<'wallet' | 'gateway' | 'api' | 'history'>('wallet');
+  const [walletTab, setWalletTab] = useState<'wallet' | 'gateway' | 'history'>('wallet');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedPack, setSelectedPack] = useState<{ pay: number; get: number; tag: string; bonus: string } | null>(null);
   
@@ -159,10 +159,6 @@ export const App: React.FC = () => {
         walletBalance={walletBalance}
         onOpenWallet={() => {
           setWalletTab('wallet');
-          setIsWalletOpen(true);
-        }}
-        onOpenSettings={() => {
-          setWalletTab('api');
           setIsWalletOpen(true);
         }}
         activeTab={activeTab}
