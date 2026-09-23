@@ -11,7 +11,34 @@ export async function generateAstrologerResponses(
   chatHistory: ChatMessage[],
   apiConfig: ApiConfig
 ): Promise<string[]> {
-  // If user provided a live Gemini or OpenAI API key, attempt live AI generation
+  const kundli = calculateKundli(intake.name, intake.gender, intake.dob, intake.tob, intake.pob);
+
+  // 1. Try zero-config Serverless Backend AI endpoint (/api/astrologer-chat)
+  try {
+    const serverRes = await fetch('/api/astrologer-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userMessage,
+        astrologer,
+        intake,
+        kundli,
+        chatHistory: chatHistory.slice(-6)
+      })
+    });
+
+    if (serverRes.ok) {
+      const json = await serverRes.json();
+      if (json.success && Array.isArray(json.lines) && json.lines.length > 0) {
+        return json.lines;
+      }
+    }
+  } catch (err) {
+    // If running in purely local Vite without Vercel serverless or offline, proceed to fallback
+    // Silently continue
+  }
+
+  // 2. If user provided a custom live Gemini or OpenAI API key in client settings, try that
   if (apiConfig.apiKey && apiConfig.apiKey.trim().length > 10) {
     try {
       if (apiConfig.provider === 'gemini') {
@@ -22,11 +49,11 @@ export async function generateAstrologerResponses(
         if (lines && lines.length > 0) return lines;
       }
     } catch (err) {
-      console.warn('External API call failed, falling back to dynamic multi-turn engine:', err);
+      console.warn('External client API call failed, falling back to dynamic multi-turn engine:', err);
     }
   }
 
-  // Solution 3: Dynamic Multi-Turn Astrological Synthesis with Anti-Repetition Memory
+  // 3. Robust Client-Side High-Accuracy Vedic Engine (Always instant, zero-failure)
   return generateDynamicMultiTurnLines(userMessage, astrologer, intake, chatHistory);
 }
 

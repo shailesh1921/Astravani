@@ -18,6 +18,17 @@ export interface Astrologer {
   greetingEnglish: string;
   personaType: 'vedic' | 'tarot' | 'numerology' | 'nadi' | 'lal_kitab' | 'western';
   expertiseBadges: string[];
+  voiceBlessingText?: string;
+  reviews?: AstrologerReview[];
+}
+
+export interface AstrologerReview {
+  id: string;
+  userName: string;
+  city: string;
+  rating: number;
+  timeAgo: string;
+  comment: string;
 }
 
 export interface ConsultationIntake {

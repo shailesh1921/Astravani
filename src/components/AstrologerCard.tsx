@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Astrologer } from '../types/astrotalk';
-import { Star, ShieldCheck, MessageSquare, PhoneCall, Award, Globe } from 'lucide-react';
+import { Star, ShieldCheck, MessageSquare, PhoneCall, Award, Globe, Volume2, VolumeX } from 'lucide-react';
+import { playPanditVoiceSample, stopPanditVoice } from '../utils/panditVoiceBlessing';
 
 interface AstrologerCardProps {
   astrologer: Astrologer;
@@ -13,6 +14,21 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
   onInitiateChat,
   onInitiateCall
 }) => {
+  const [isPlayingVoice, setIsPlayingVoice] = useState(false);
+
+  const handleToggleVoice = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isPlayingVoice) {
+      stopPanditVoice();
+      setIsPlayingVoice(false);
+    } else {
+      setIsPlayingVoice(true);
+      playPanditVoiceSample(astrologer.name, astrologer.voiceBlessingText, () => {
+        setIsPlayingVoice(false);
+      });
+    }
+  };
+
   return (
     <div className="at-card p-4 sm:p-5 flex flex-col justify-between relative group hover:border-amber-400">
       
@@ -28,7 +44,7 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
       </div>
 
       {/* Main Body: Avatar + Details */}
-      <div className="flex gap-4 items-start mb-4">
+      <div className="flex gap-4 items-start mb-2">
         
         {/* Avatar with Status & Rating */}
         <div className="relative flex-shrink-0">
@@ -83,9 +99,49 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
             </span>
           </div>
 
+          {/* Voice Sample Preview Button */}
+          <div className="mt-2">
+            <button
+              onClick={handleToggleVoice}
+              className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                isPlayingVoice
+                  ? 'bg-amber-100 border-amber-400 text-amber-900 animate-pulse'
+                  : 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-800'
+              }`}
+              title="Listen to Pandit Ji's authentic voice blessing"
+            >
+              {isPlayingVoice ? (
+                <>
+                  <VolumeX className="w-3 h-3 text-amber-700" />
+                  <span>Blessing Playing...</span>
+                  <span className="flex items-end gap-0.5 h-3 ml-0.5">
+                    <span className="w-1 h-2 bg-amber-600 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="w-1 h-3 bg-amber-600 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="w-1 h-2 bg-amber-600 rounded-full animate-bounce [animation-delay:300ms]" />
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Volume2 className="w-3 h-3 text-amber-600" />
+                  <span>Listen Voice 🔊</span>
+                </>
+              )}
+            </button>
+          </div>
+
         </div>
 
       </div>
+
+      {/* Verified Review Snippet */}
+      {astrologer.reviews && astrologer.reviews.length > 0 && (
+        <div className="my-2 px-2.5 py-1.5 bg-amber-50/60 rounded-xl border border-amber-200/70 text-[11px] text-stone-600 flex items-start gap-1.5">
+          <Star className="w-3 h-3 text-amber-500 fill-amber-400 flex-shrink-0 mt-0.5" />
+          <p className="line-clamp-1 italic text-[10.5px]">
+            "{astrologer.reviews[0].comment}" — <span className="font-bold text-stone-800 not-italic">{astrologer.reviews[0].userName} ({astrologer.reviews[0].city})</span>
+          </p>
+        </div>
+      )}
 
       {/* Pricing and Action CTAs */}
       <div className="border-t border-slate-100 pt-3 flex items-center justify-between gap-2">

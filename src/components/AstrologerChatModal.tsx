@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Astrologer, ConsultationIntake, ChatMessage, ApiConfig } from '../types/astrotalk';
 import { generateAstrologerResponses } from '../utils/astrotalkAiEngine';
 import { calculateKundli } from '../utils/kundliEngine';
+import { NorthIndianKundliChart } from './NorthIndianKundliChart';
 import { 
   Send, PhoneOff, ShieldCheck, Clock, Wallet, Star, Sparkles, 
-  Check, CheckCheck, ScrollText, Volume2, VolumeX, X, Paperclip, Mic 
+  Check, CheckCheck, ScrollText, Volume2, VolumeX, X, Paperclip, Mic,
+  Share2, Printer, AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -344,6 +346,22 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
           </div>
         )}
 
+        {/* Low Balance Alert Banner */}
+        {secondsElapsed >= 60 && walletBalance < astrologer.pricePerMin && !isSessionEnded && (
+          <div className="bg-red-50 text-red-900 px-4 py-1.5 text-center text-xs font-bold flex items-center justify-between gap-2 border-b border-red-200 animate-in fade-in">
+            <span className="flex items-center gap-1.5 text-left text-[11px] sm:text-xs">
+              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              <span>Low Balance: ₹{walletBalance} left (Less than 1 min). Please recharge to keep chat live.</span>
+            </span>
+            <button
+              onClick={onOpenRecharge}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] px-3 py-1 rounded-lg transition shadow-xs cursor-pointer flex-shrink-0"
+            >
+              Recharge Now ⚡
+            </button>
+          </div>
+        )}
+
         {/* MAIN BODY: Chat Canvas + Unique Kundli Slide Drawer */}
         <div className="flex-1 flex overflow-hidden relative">
           
@@ -465,31 +483,9 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
                 </div>
               </div>
 
-              {/* North Indian Lagna Chart Mini SVG */}
-              <div className="bg-[#FFFDF7] border border-amber-400 rounded-xl p-2">
-                <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wide block mb-1 text-center">
-                  North Indian Lagna Chart
-                </span>
-                <div className="aspect-square relative max-w-[200px] mx-auto">
-                  <svg viewBox="0 0 200 200" className="w-full h-full stroke-amber-500 stroke-[1.2] fill-none">
-                    <rect x="0" y="0" width="200" height="200" />
-                    <line x1="0" y1="0" x2="200" y2="200" />
-                    <line x1="0" y1="200" x2="200" y2="0" />
-                    <polygon points="100,0 200,100 100,200 0,100" />
-                  </svg>
-                  <div className="absolute top-[25%] left-[50%] -translate-x-1/2 -translate-y-1/2 text-center text-[10px] font-extrabold text-slate-900">
-                    1 (Lagna)
-                  </div>
-                  <div className="absolute top-[50%] left-[25%] -translate-x-1/2 -translate-y-1/2 text-center text-[9px] font-bold text-slate-800">
-                    4
-                  </div>
-                  <div className="absolute bottom-[25%] left-[50%] -translate-x-1/2 translate-y-1/2 text-center text-[9px] font-bold text-slate-800">
-                    7
-                  </div>
-                  <div className="absolute top-[50%] right-[25%] translate-x-1/2 -translate-y-1/2 text-center text-[9px] font-bold text-slate-800">
-                    10
-                  </div>
-                </div>
+              {/* Authentic North Indian Lagna Chart */}
+              <div className="w-full">
+                <NorthIndianKundliChart kundli={userKundli} />
               </div>
 
               {/* Gemstone Recommendation */}
@@ -626,12 +622,32 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
               ))}
             </div>
 
-            <div className="pt-2 flex justify-center gap-3">
+            {/* Action Buttons: WhatsApp Share, Print Slip, Return */}
+            <div className="pt-2 flex flex-wrap justify-center gap-2.5">
+              <button
+                onClick={() => {
+                  const summaryText = `*AstraVani Consultation Summary*\nAstrologer: ${astrologer.name}\nClient: ${intake.name}\nLagna: ${userKundli.lagnaSign}\nRashi: ${userKundli.chandraRashi}\nLucky Gemstone: ${userKundli.luckyGemstone}\nDuration: ${formatTimer(secondsElapsed)} mins\nConsult online at https://astravani.in`;
+                  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(summaryText)}`, '_blank');
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share on WhatsApp</span>
+              </button>
+
+              <button
+                onClick={() => window.print()}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 border border-slate-300 shadow-xs cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print Certified Slip</span>
+              </button>
+
               <button
                 onClick={onClose}
-                className="btn-astrotalk px-6 py-2 text-xs font-bold cursor-pointer"
+                className="btn-astrotalk px-5 py-2 text-xs font-bold cursor-pointer"
               >
-                Close & Return to Astrologers
+                Close & Return
               </button>
             </div>
           </div>

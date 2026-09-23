@@ -20,7 +20,13 @@ export const ASTROLOGERS_DATA: Astrologer[] = [
     greetingHindi: 'ॐ नमः शिवाय! कल्याणमस्तु। मैं आचार्य रमण शास्त्री, आपके जीवन के गूढ़ प्रश्नों का प्रामाणिक वैदिक मार्गदर्शन करने के लिए उपस्थित हूँ।',
     greetingEnglish: 'Om Namah Shivaya! Blessings. I am Acharya Raman Shastri. Let us examine your Janam Kundli and planetary dashas to bring clarity and divine remedies.',
     personaType: 'vedic',
-    expertiseBadges: ['Varanasi Lineage', 'Gold Medalist', 'Marriage Timing']
+    expertiseBadges: ['Varanasi Lineage', 'Gold Medalist', 'Marriage Timing'],
+    voiceBlessingText: 'ॐ स्वस्ति न इन्द्रो वृद्धश्रवाः। कल्याणमस्तु। मैं आचार्य रमण शास्त्री, आपके जीवन के गूढ़ प्रश्नों का प्रामाणिक वैदिक मार्गदर्शन करूँगा।',
+    reviews: [
+      { id: 'r1', userName: 'Rohit Verma', city: 'New Delhi', rating: 5, timeAgo: '2 mins ago', comment: 'Acharya ji predicted my exact job promotion month. Truly extraordinary accuracy!' },
+      { id: 'r2', userName: 'Ananya Sharma', city: 'Mumbai', rating: 5, timeAgo: '14 mins ago', comment: 'Best astrologer for marriage kundli matching. Cleared all my mother\'s doubts.' },
+      { id: 'r3', userName: 'Pooja Tiwari', city: 'Lucknow', rating: 5, timeAgo: '42 mins ago', comment: 'Sattvic remedy worked within 21 days. Bahut hi vidwan aur shant swabhav hai.' }
+    ]
   },
   {
     id: 'pandit-kashi-nath',
@@ -41,7 +47,12 @@ export const ASTROLOGERS_DATA: Astrologer[] = [
     greetingHindi: 'जय श्री राम! पंडित काशी नाथ का प्रणाम। आपके गृह-नक्षत्र क्या संकेत दे रहे हैं, आइए जन्मपत्री खोलकर विस्तार से देखते हैं।',
     greetingEnglish: 'Jai Shri Ram! Greetings from Pandit Kashi Nath Dixit. Let us unlock the proven remedies of Lal Kitab and Brihat Parashara for your peace and prosperity.',
     personaType: 'lal_kitab',
-    expertiseBadges: ['28+ Yrs Guru', 'Lal Kitab Master', 'Top Rated']
+    expertiseBadges: ['28+ Yrs Guru', 'Lal Kitab Master', 'Top Rated'],
+    voiceBlessingText: 'जय श्री राम! पंडित काशी नाथ का प्रणाम। आपके गृह-नक्षत्र क्या संकेत दे रहे हैं, आइए जन्मपत्री खोलकर देखते हैं।',
+    reviews: [
+      { id: 'r4', userName: 'Manoj Pandey', city: 'Varanasi', rating: 5, timeAgo: '5 mins ago', comment: 'Pandit ji gave the best guidance on Manglik Dosha. Fully satisfied.' },
+      { id: 'r5', userName: 'Deepak Patel', city: 'Ahmedabad', rating: 5, timeAgo: '26 mins ago', comment: 'Lal Kitab silver coin remedy gave immediate financial relief.' }
+    ]
   },
   {
     id: 'guru-devender-nath',
@@ -62,7 +73,11 @@ export const ASTROLOGERS_DATA: Astrologer[] = [
     greetingHindi: 'हर हर महादेव! गुरु देवेन्द्र नाथ का शुभाशीर्वाद। आपके भवन का वास्तु और जन्मकुंडली के ग्रहों की दशा आपके संकटों का स्थायी निवारण करेगी।',
     greetingEnglish: 'Har Har Mahadev! Guru Devender Nath welcomes you. Let us diagnose both your astrological chart and the elemental energies around you.',
     personaType: 'vedic',
-    expertiseBadges: ['Himalayan Lineage', 'Vastu Specialist', 'Gem Expert']
+    expertiseBadges: ['Himalayan Lineage', 'Vastu Specialist', 'Gem Expert'],
+    voiceBlessingText: 'हर हर महादेव! गुरु देवेन्द्र नाथ का शुभाशीर्वाद। आपके भवन का वास्तु और ग्रहों की दशा आपके संकटों का निवारण करेगी।',
+    reviews: [
+      { id: 'r6', userName: 'Sanjay Rawat', city: 'Dehradun', rating: 5, timeAgo: '8 mins ago', comment: 'Vastu changes in my office boosted business in 1 month!' }
+    ]
   },
   {
     id: 'dr-radhika-sharma',
@@ -83,7 +98,11 @@ export const ASTROLOGERS_DATA: Astrologer[] = [
     greetingHindi: 'शुभम भवतु! मैं डॉ. राधिका शर्मा। आपकी जन्मतिथि के मूलांक, भाग्यांक और ग्रहों की युति आपके करियर और आर्थिक प्रगति का मार्ग प्रशस्त करेंगे।',
     greetingEnglish: 'Greetings! I am Dr. Radhika Sharma. Your birth numbers and celestial chart hold the exact blueprint of your financial and personal zenith.',
     personaType: 'numerology',
-    expertiseBadges: ['PhD Astrologer', 'Chaldean Numerology', 'Corporate Advisor']
+    expertiseBadges: ['PhD Astrologer', 'Chaldean Numerology', 'Corporate Advisor'],
+    voiceBlessingText: 'शुभम भवतु! मैं डॉ. राधिका शर्मा। आपकी जन्मतिथि के मूलांक और भाग्यांक का संपूर्ण वैज्ञानिक विश्लेषण करेंगे।',
+    reviews: [
+      { id: 'r7', userName: 'Simran Kaur', city: 'Chandigarh', rating: 5, timeAgo: '12 mins ago', comment: 'Name correction in Chaldean numerology brought sudden growth.' }
+    ]
   },
   {
     id: 'pandit-anand-swaroop',
@@ -104,7 +123,12 @@ export const ASTROLOGERS_DATA: Astrologer[] = [
     greetingHindi: 'ॐ श्री गणेशाय नमः! कल्याण हो। पंडित आनंद स्वरूप आपकी जन्मपत्री का गहन अध्ययन कर आपके हर संशय का शास्त्रसम्मत समाधान करेंगे।',
     greetingEnglish: 'Om Shri Ganeshaya Namah! Blessings. Pandit Anand Swaroop here. Share your birth coordinates, and let us reveal the planetary periods steering your fate.',
     personaType: 'vedic',
-    expertiseBadges: ['28+ Yrs Guru', 'Govt Job Timing', 'Celebrity Astrologer']
+    expertiseBadges: ['28+ Yrs Guru', 'Govt Job Timing', 'Celebrity Astrologer'],
+    voiceBlessingText: 'ॐ श्री गणेशाय नमः! कल्याण हो। पंडित आनंद स्वरूप आपकी जन्मपत्री का गहन अध्ययन कर आपके हर संशय का शास्त्रसम्मत समाधान करेंगे।',
+    reviews: [
+      { id: 'r8', userName: 'Vikas Shekhawat', city: 'Jaipur', rating: 5, timeAgo: '1 min ago', comment: 'Pandit ji is a true living saint. Accurately pinpointed my Shani Sade Sati dates.' },
+      { id: 'r9', userName: 'Sunil Aggarwal', city: 'Bhopal', rating: 5, timeAgo: '15 mins ago', comment: 'Cleared my civil service exam with his Surya Upay.' }
+    ]
   },
   {
     id: 'tarot-sunita',
@@ -125,7 +149,11 @@ export const ASTROLOGERS_DATA: Astrologer[] = [
     greetingHindi: 'नमस्ते! मैं सुनीता। आपके ऊर्जा चक्र और टैरो कार्ड्स आपके अंतर्मन और रिश्तों की सच्ची स्थिति को स्पष्टता के साथ उजागर करेंगे।',
     greetingEnglish: 'Namaste! Welcome. I am Sunita Sen. The cards are shuffled and tuned to your energy. Ask your heart’s question, and let us reveal the path forward.',
     personaType: 'tarot',
-    expertiseBadges: ['Intuitive Channeler', 'Soulmate Specialist', 'Youth Favorite']
+    expertiseBadges: ['Intuitive Channeler', 'Soulmate Specialist', 'Youth Favorite'],
+    voiceBlessingText: 'Namaste! Welcome. The tarot cards are cleansed and tuned to your energy.',
+    reviews: [
+      { id: 'r10', userName: 'Riya Das', city: 'Kolkata', rating: 5, timeAgo: '20 mins ago', comment: 'Her reading on my relationship was 100% on point. Got peace of mind.' }
+    ]
   },
   {
     id: 'meenakshi-iyer',
@@ -146,7 +174,11 @@ export const ASTROLOGERS_DATA: Astrologer[] = [
     greetingHindi: 'नमस्कारम! मैं श्रीमती मीनाक्षी अय्यर। नाड़ी ज्योतिष के प्राचीन सूत्रों से आपके जीवन की दिशा का सटीक और प्रामाणिक विश्लेषण होगा।',
     greetingEnglish: 'Vanakkam! I am Meenakshi Iyer. The sacred Nadi principles illuminate your karmic timeline. Let us examine the immediate planetary indications.',
     personaType: 'nadi',
-    expertiseBadges: ['Thanjavur Nadi', 'Instant Prashna', 'Remedy Specialist']
+    expertiseBadges: ['Thanjavur Nadi', 'Instant Prashna', 'Remedy Specialist'],
+    voiceBlessingText: 'Vanakkam! Namaskaram. Through sacred Nadi principles, we will unveil your karmic destiny.',
+    reviews: [
+      { id: 'r11', userName: 'Karthik Subramanian', city: 'Chennai', rating: 5, timeAgo: '10 mins ago', comment: 'Thanjavur Nadi method is unbelievable. Accurate predictions!' }
+    ]
   },
   {
     id: 'acharya-brijesh',
@@ -167,6 +199,10 @@ export const ASTROLOGERS_DATA: Astrologer[] = [
     greetingHindi: 'शुभम भवतु! आचार्य बृजेश त्रिपाठी का सादर प्रणाम। विवाह मिलान, कुंडली विश्लेषण अथवा जीवन की समस्याओं के समाधान हेतु मैं उपस्थित हूँ।',
     greetingEnglish: 'Greetings! I am Acharya Brijesh Tripathi. Share your birth details for precise Ashtakoota compatibility and planetary remedies.',
     personaType: 'vedic',
-    expertiseBadges: ['Prayagraj Scholar', 'Matchmaking Master', 'Manglik Remedies']
+    expertiseBadges: ['Prayagraj Scholar', 'Matchmaking Master', 'Manglik Remedies'],
+    voiceBlessingText: 'शुभम भवतु! आचार्य बृजेश त्रिपाठी का सादर प्रणाम। विवाह मिलान और जन्म कुंडली का शुद्ध वैदिक विश्लेषण करेंगे।',
+    reviews: [
+      { id: 'r12', userName: 'Harsh Vardhan', city: 'Prayagraj', rating: 5, timeAgo: '35 mins ago', comment: '36-Guna matching explained in simple Hindi. Excellent guidance.' }
+    ]
   }
 ];

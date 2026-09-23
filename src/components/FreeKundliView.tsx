@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { calculateKundli } from '../utils/kundliEngine';
+import { NorthIndianKundliChart } from './NorthIndianKundliChart';
 import { KundliData, Astrologer } from '../types/astrotalk';
 import { Sparkles, Calendar, Clock, MapPin, User, ShieldCheck, Gem, MessageSquare, Share2, Printer } from 'lucide-react';
 
@@ -179,62 +180,9 @@ export const FreeKundliView: React.FC<FreeKundliViewProps> = ({ onConsultKundli 
               </div>
             </div>
 
-            {/* North Indian Kundli Chart (Diamond SVG) */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-at-card">
-              <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
-                <span>Lagna Chart (लग्न कुण्डली - North Indian Style)</span>
-                <span className="text-xs text-amber-600 font-semibold">Vedic Sidereal</span>
-              </h4>
-
-              <div className="max-w-md mx-auto aspect-square relative bg-[#FFFDF7] border-2 border-amber-500 rounded-xl p-2 shadow-inner">
-                {/* SVG Geometric Lines for North Indian Diamond Chart */}
-                <svg viewBox="0 0 300 300" className="w-full h-full stroke-amber-500 stroke-[1.5] fill-none">
-                  {/* Outer box */}
-                  <rect x="0" y="0" width="300" height="300" />
-                  {/* Diagonals */}
-                  <line x1="0" y1="0" x2="300" y2="300" />
-                  <line x1="0" y1="300" x2="300" y2="0" />
-                  {/* Diamond */}
-                  <polygon points="150,0 300,150 150,300 0,150" />
-                </svg>
-
-                {/* House Content Overlays */}
-                {/* House 1 (Top Center Diamond) */}
-                <div className="absolute top-[25%] left-[50%] -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                  <span className="text-[10px] font-bold text-amber-700 block">1 (Lagna)</span>
-                  <span className="text-xs font-extrabold text-slate-900">{kundliResult.housePlacements[0]?.planets.join(', ') || '—'}</span>
-                </div>
-
-                {/* House 2 (Top Left Triangular) */}
-                <div className="absolute top-[12%] left-[28%] -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                  <span className="text-[9px] font-semibold text-slate-500 block">2</span>
-                  <span className="text-[11px] font-bold text-slate-800">{kundliResult.housePlacements[1]?.planets.join(', ') || ''}</span>
-                </div>
-
-                {/* House 12 (Top Right Triangular) */}
-                <div className="absolute top-[12%] right-[28%] translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                  <span className="text-[9px] font-semibold text-slate-500 block">12</span>
-                  <span className="text-[11px] font-bold text-slate-800">{kundliResult.housePlacements[11]?.planets.join(', ') || ''}</span>
-                </div>
-
-                {/* House 4 (Center Left Diamond) */}
-                <div className="absolute top-[50%] left-[25%] -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                  <span className="text-[10px] font-bold text-amber-700 block">4</span>
-                  <span className="text-xs font-extrabold text-slate-900">{kundliResult.housePlacements[3]?.planets.join(', ') || '—'}</span>
-                </div>
-
-                {/* House 7 (Bottom Center Diamond) */}
-                <div className="absolute bottom-[25%] left-[50%] -translate-x-1/2 translate-y-1/2 text-center pointer-events-none">
-                  <span className="text-[10px] font-bold text-amber-700 block">7 (Kalatra)</span>
-                  <span className="text-xs font-extrabold text-slate-900">{kundliResult.housePlacements[6]?.planets.join(', ') || '—'}</span>
-                </div>
-
-                {/* House 10 (Center Right Diamond) */}
-                <div className="absolute top-[50%] right-[25%] translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                  <span className="text-[10px] font-bold text-amber-700 block">10 (Karma)</span>
-                  <span className="text-xs font-extrabold text-slate-900">{kundliResult.housePlacements[9]?.planets.join(', ') || '—'}</span>
-                </div>
-              </div>
+            {/* North Indian Kundli Chart (Authentic Vedic Diamond SVG) */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-at-card flex flex-col items-center">
+              <NorthIndianKundliChart kundli={kundliResult} className="w-full" />
             </div>
 
             {/* Planetary Positions Table */}
