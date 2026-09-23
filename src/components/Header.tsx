@@ -45,12 +45,12 @@ export const Header: React.FC<HeaderProps> = ({
             <div>
               <div className="flex items-center gap-1">
                 <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-                  Astro<span className="text-amber-500">Talk</span>
+                  Astra<span className="text-amber-500">Vani</span>
                 </span>
                 <ShieldCheck className="w-4 h-4 text-emerald-500 fill-emerald-100" />
               </div>
               <p className="text-[10px] text-slate-500 font-medium tracking-wide hidden sm:block">
-                India's Most Trusted Astrology Portal
+                Sacred Vedic Astrology • astravani.in
               </p>
             </div>
           </div>
