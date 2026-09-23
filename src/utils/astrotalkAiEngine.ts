@@ -1,6 +1,7 @@
 import { Astrologer, ConsultationIntake, ApiConfig, ChatMessage } from '../types/astrotalk';
 import { calculateKundli } from './kundliEngine';
 import { ASTROLOGY_KNOWLEDGE_BASE, calculateMahaboteHouse, AstrologicalSutra } from '../data/astrologyKnowledgeBase';
+import { getCuratedHoroscope } from '../data/horoscopeDataset';
 
 export async function generateAstrologerResponses(
   userMessage: string,
@@ -291,8 +292,21 @@ function generateDynamicMultiTurnLines(
     }
   }
 
-  // --- TURN 7+: Specific Tailored Remedies & Astrological Upayas ---
-  if (isRemedy || turnIndex === 7) {
+  // --- TURN 5 / 6: Cosmic Rashi Transit Guidance (karthiksagarn/astro_horoscope Dataset) ---
+  if (turnIndex >= 5 && turnIndex <= 7 && !hasAlreadySaid('grah-gochar')) {
+    const horoCat = (isCareer || isMoney) ? 'career' : (isLove || isMarriage) ? 'love' : 'general';
+    const horoPrediction = getCuratedHoroscope(rashiClean, horoCat, turnIndex + (firstName.length * 3));
+    if (horoPrediction && !hasAlreadySaid(horoPrediction.substring(0, 30))) {
+      return [
+        `Aapke ${rashiClean} rashi ke cosmic transit (grah-gochar) ka sanket bhi yahi kehta hai, ${firstName} ji:`,
+        `"${horoPrediction}"`,
+        `Is sakaratmak urja par vishwas rakhein, aane wala samay aapke paksh me jud raha hai 🌿`
+      ];
+    }
+  }
+
+  // --- TURN 8+: Specific Tailored Remedies & Astrological Upayas ---
+  if (isRemedy || turnIndex === 8) {
     const remedyLines = [
       `Aapke ${lagnaClean} Lagna aur ${rashiClean} Rashi ke anusaar sabse shreshtha upay ye hain:`,
       `1. Pratidin snan ke uprant ${kundli.luckyMantra} ka kam se kam 11 ya 21 baar jaap karein`,
