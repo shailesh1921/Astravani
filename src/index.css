@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #F8FAFC;
+    color: #0F172A;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Astrotalk Cards & Badges */
+.at-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.at-card:hover {
+  border-color: #FCD34D;
+  box-shadow: 0 10px 25px -4px rgba(245, 158, 11, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  transform: translateY(-2px);
+}
+
+/* Astrotalk Saffron Gradient Button */
+.btn-astrotalk {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+
+.btn-astrotalk:hover {
+  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-astrotalk-outline {
+  border: 1.5px solid #F59E0B;
+  color: #D97706;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  background-color: #FFFBEB;
+  transition: all 0.2s ease;
+}
+
+.btn-astrotalk-outline:hover {
+  background-color: #FEF3C7;
+  border-color: #D97706;
+}
+
+/* Custom Clean Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #F59E0B;
+}
+
+/* Pulsating online indicator */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.pulsing-online {
+  animation: pulse-ring 2s infinite cubic-bezier(0.455, 0.03, 0.515, 0.955);
+}
+
+/* Authentic Astrotalk Astrology Doodle Wallpaper */
+.astrotalk-chat-bg {
+  background-color: #EFE8DE;
+  background-image: radial-gradient(#d3c8b8 0.75px, transparent 0.75px), radial-gradient(#d3c8b8 0.75px, #EFE8DE 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+/* Astrotalk Chat Bubble Styles */
+.astrotalk-pandit-bubble {
+  background-color: #FFFFFF;
+  color: #1E293B;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.astrotalk-user-bubble {
+  background-color: #E7FED3;
+  color: #0F172A;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+

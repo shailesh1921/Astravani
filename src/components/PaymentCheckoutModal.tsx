@@ -1,0 +1,546 @@
+import React, { useState } from 'react';
+import { PaymentConfig, PaymentTransaction } from '../types/astrotalk';
+import { launchRazorpayCheckout } from '../utils/razorpayService';
+import { 
+  X, ShieldCheck, QrCode, CreditCard, Building2, Lock, 
+  CheckCircle2, ArrowRight, Smartphone, Sparkles, Loader2, Download 
+} from 'lucide-react';
+import confetti from 'canvas-confetti';
+
+interface PaymentCheckoutModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  pack: { pay: number; get: number; tag: string; bonus: string };
+  paymentConfig: PaymentConfig;
+  onPaymentSuccess: (transaction: PaymentTransaction) => void;
+}
+
+export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
+  isOpen,
+  onClose,
+  pack,
+  paymentConfig,
+  onPaymentSuccess
+}) => {
+  const [method, setMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
+  const [upiId, setUpiId] = useState('shailesh@upi');
+  const [selectedApp, setSelectedApp] = useState<'gpay' | 'phonepe' | 'paytm' | 'cred'>('gpay');
+  
+  // Card details
+  const [cardNumber, setCardNumber] = useState('4532 8920 1823 4901');
+  const [cardExpiry, setCardExpiry] = useState('08/29');
+  const [cardCvv, setCardCvv] = useState('782');
+  const [cardName, setCardName] = useState('Shailesh Singh');
+  
+  // Netbanking
+  const [selectedBank, setSelectedBank] = useState('HDFC Bank');
+
+  // Processing & Verification state
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showOtpScreen, setShowOtpScreen] = useState(false);
+  const [otpValue, setOtpValue] = useState('482910');
+  const [completedTxn, setCompletedTxn] = useState<PaymentTransaction | null>(null);
+
+  if (!isOpen) return null;
+
+  // Launch official Razorpay Checkout if user has configured their Key ID
+  const handleLaunchRazorpay = async () => {
+    setIsProcessing(true);
+    await launchRazorpayCheckout({
+      keyId: paymentConfig.razorpayKeyId,
+      amountRupees: pack.pay,
+      userName: 'Shailesh Singh',
+      onSuccess: (paymentId) => {
+        setIsProcessing(false);
+        const txn: PaymentTransaction = {
+          id: paymentId,
+          amount: pack.pay,
+          bonusCredit: pack.get - pack.pay,
+          totalCredited: pack.get,
+          method: 'razorpay',
+          status: 'success',
+          timestamp: new Date().toLocaleString(),
+          receiptId: `rcpt_${Math.floor(100000 + Math.random() * 900000)}`,
+          paymentGatewayId: paymentId
+        };
+        setCompletedTxn(txn);
+        onPaymentSuccess(txn);
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+      },
+      onFailure: (err) => {
+        setIsProcessing(false);
+        alert(err || 'Razorpay checkout was dismissed.');
+      }
+    });
+  };
+
+  // Direct Interactive Gateway Processing
+  const handleProcessDirectPayment = () => {
+    setIsProcessing(true);
+    
+    // If card payment, simulate authentic bank OTP verification
+    if (method === 'card') {
+      setTimeout(() => {
+        setIsProcessing(false);
+        setShowOtpScreen(true);
+      }, 1500);
+      return;
+    }
+
+    // For UPI / NetBanking, simulate instant capture
+    setTimeout(() => {
+      completeTransaction();
+    }, 2000);
+  };
+
+  const completeTransaction = () => {
+    setIsProcessing(false);
+    setShowOtpScreen(false);
+    const txnId = `pay_${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
+    const txn: PaymentTransaction = {
+      id: txnId,
+      amount: pack.pay,
+      bonusCredit: pack.get - pack.pay,
+      totalCredited: pack.get,
+      method: method,
+      status: 'success',
+      timestamp: new Date().toLocaleString(),
+      receiptId: `rcpt_${Math.floor(100000 + Math.random() * 900000)}`,
+      paymentGatewayId: `UPI_REF_${Date.now()}`
+    };
+
+    setCompletedTxn(txn);
+    onPaymentSuccess(txn);
+    confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
+  };
+
+  const handlePrintReceipt = () => {
+    window.print();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+        
+        {/* Gateway Header */}
+        <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-800 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+              ॐ
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-white">AstroTalk Secure Payment</h3>
+                <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-emerald-500/30">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                  256-bit SSL
+                </span>
+              </div>
+              <p className="text-xs text-slate-400">Trusted Indian Payment Gateway</p>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content Body */}
+        {!completedTxn ? (
+          <div className="p-4 sm:p-6 overflow-y-auto space-y-5">
+            
+            {/* Order Summary Ribbon */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+              <div>
+                <span className="text-xs font-semibold text-slate-600 block">Recharge Package</span>
+                <span className="text-xl font-black text-slate-900 block mt-0.5">Pay ₹{pack.pay}</span>
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md inline-block mt-1">
+                  100% Bonus: ₹{pack.get} Wallet Credit Added
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-[11px] text-slate-500 block">GST / Taxes: ₹0.00</span>
+                <span className="text-sm font-bold text-slate-800 block mt-1">Instant Balance</span>
+              </div>
+            </div>
+
+            {/* Official Razorpay Key Detection Notice */}
+            {paymentConfig.razorpayKeyId && paymentConfig.razorpayKeyId.startsWith('rzp_') ? (
+              <div className="bg-amber-100/70 border border-amber-300 rounded-xl p-3 flex items-center justify-between gap-3">
+                <div className="text-xs text-amber-950">
+                  <span className="font-bold block">⚡ Razorpay Key Configured</span>
+                  <span className="text-[11px] text-amber-800">You can trigger official Razorpay live checkout directly.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLaunchRazorpay}
+                  disabled={isProcessing}
+                  className="bg-slate-950 hover:bg-black text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow-xs flex items-center gap-1 cursor-pointer flex-shrink-0"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Launch Razorpay SDK</span>
+                </button>
+              </div>
+            ) : null}
+
+            {/* Payment Method Selector Tabs */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Choose Payment Method
+              </label>
+              
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMethod('upi')}
+                  className={`p-3 rounded-xl border-2 text-center transition cursor-pointer ${
+                    method === 'upi'
+                      ? 'border-amber-500 bg-amber-50/50 text-slate-900 shadow-xs'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                  }`}
+                >
+                  <QrCode className="w-5 h-5 mx-auto mb-1 text-amber-600" />
+                  <span className="text-xs font-bold block">UPI / QR Code</span>
+                  <span className="text-[9px] text-emerald-600 font-bold block">Instant</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMethod('card')}
+                  className={`p-3 rounded-xl border-2 text-center transition cursor-pointer ${
+                    method === 'card'
+                      ? 'border-amber-500 bg-amber-50/50 text-slate-900 shadow-xs'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5 mx-auto mb-1 text-blue-600" />
+                  <span className="text-xs font-bold block">Cards</span>
+                  <span className="text-[9px] text-slate-400 block">Visa/Master/RuPay</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMethod('netbanking')}
+                  className={`p-3 rounded-xl border-2 text-center transition cursor-pointer ${
+                    method === 'netbanking'
+                      ? 'border-amber-500 bg-amber-50/50 text-slate-900 shadow-xs'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                  }`}
+                >
+                  <Building2 className="w-5 h-5 mx-auto mb-1 text-purple-600" />
+                  <span className="text-xs font-bold block">NetBanking</span>
+                  <span className="text-[9px] text-slate-400 block">All Indian Banks</span>
+                </button>
+              </div>
+            </div>
+
+            {/* TAB 1: UPI / QR CODE */}
+            {method === 'upi' && (
+              <div className="space-y-4 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                
+                {/* Apps Selector */}
+                <div className="flex items-center justify-around gap-2 pb-3 border-b border-slate-200">
+                  {[
+                    { id: 'gpay', name: 'Google Pay', icon: '🟢' },
+                    { id: 'phonepe', name: 'PhonePe', icon: '🟣' },
+                    { id: 'paytm', name: 'Paytm', icon: '🔵' },
+                    { id: 'cred', name: 'CRED UPI', icon: '⚫' }
+                  ].map((app) => (
+                    <button
+                      key={app.id}
+                      type="button"
+                      onClick={() => setSelectedApp(app.id as any)}
+                      className={`flex flex-col items-center p-2 rounded-xl border transition ${
+                        selectedApp === app.id
+                          ? 'bg-white border-amber-500 shadow-xs font-bold text-slate-900'
+                          : 'border-transparent text-slate-600 hover:bg-white/60'
+                      }`}
+                    >
+                      <span className="text-lg">{app.icon}</span>
+                      <span className="text-[10px] mt-0.5">{app.name}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Simulated QR Code for Scan & Pay */}
+                <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                  <div className="w-28 h-28 bg-slate-900 p-2 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden shadow-xs">
+                    {/* SVG Stylized QR Matrix */}
+                    <svg viewBox="0 0 100 100" className="w-full h-full fill-white">
+                      <rect x="0" y="0" width="30" height="30" />
+                      <rect x="5" y="5" width="20" height="20" fill="#0F172A" />
+                      <rect x="8" y="8" width="14" height="14" />
+                      
+                      <rect x="70" y="0" width="30" height="30" />
+                      <rect x="75" y="5" width="20" height="20" fill="#0F172A" />
+                      <rect x="78" y="8" width="14" height="14" />
+
+                      <rect x="0" y="70" width="30" height="30" />
+                      <rect x="5" y="75" width="20" height="20" fill="#0F172A" />
+                      <rect x="8" y="78" width="14" height="14" />
+
+                      {/* Random data grid dots */}
+                      <rect x="40" y="10" width="8" height="8" />
+                      <rect x="52" y="10" width="8" height="8" />
+                      <rect x="40" y="24" width="8" height="8" />
+                      <rect x="40" y="40" width="20" height="20" />
+                      <rect x="10" y="45" width="10" height="10" />
+                      <rect x="75" y="45" width="15" height="8" />
+                      <rect x="65" y="70" width="10" height="20" />
+                      <rect x="80" y="75" width="10" height="15" />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="bg-amber-400 text-slate-950 text-[9px] font-black px-1 rounded shadow-sm">
+                        UPI
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-center sm:text-left space-y-1">
+                    <span className="text-xs font-bold text-slate-900 block">Scan QR Code using any UPI App</span>
+                    <p className="text-[11px] text-slate-500">
+                      Open GPay, PhonePe, Paytm, or BHIM and scan this QR code to complete payment of <strong className="text-slate-900">₹{pack.pay}</strong>.
+                    </p>
+                    <span className="text-[10px] text-emerald-600 font-bold block pt-1">
+                      ⚡ Auto-verifies immediately
+                    </span>
+                  </div>
+                </div>
+
+                {/* Or Enter UPI VPA ID */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Or Enter UPI ID / VPA
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      placeholder="e.g. yourname@okhdfcbank"
+                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-amber-500 font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleProcessDirectPayment}
+                      disabled={isProcessing}
+                      className="btn-astrotalk px-4 py-2 text-xs font-bold cursor-pointer"
+                    >
+                      {isProcessing ? 'Verifying...' : 'Pay ₹' + pack.pay}
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* TAB 2: CREDIT / DEBIT CARDS */}
+            {method === 'card' && !showOtpScreen && (
+              <div className="space-y-3 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Card Number</label>
+                  <div className="relative">
+                    <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(e.target.value)}
+                      placeholder="4532 8920 1823 4901"
+                      className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900 focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Expiry (MM/YY)</label>
+                    <input
+                      type="text"
+                      value={cardExpiry}
+                      onChange={(e) => setCardExpiry(e.target.value)}
+                      placeholder="08/29"
+                      className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900 focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">CVV / CVC</label>
+                    <div className="relative">
+                      <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="password"
+                        maxLength={3}
+                        value={cardCvv}
+                        onChange={(e) => setCardCvv(e.target.value)}
+                        placeholder="782"
+                        className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900 focus:border-amber-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Cardholder Name</label>
+                  <input
+                    type="text"
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    placeholder="Name on card"
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* CARD OTP VERIFICATION SCREEN */}
+            {showOtpScreen && (
+              <div className="bg-amber-50/80 border border-amber-300 rounded-2xl p-5 text-center space-y-3 animate-in fade-in">
+                <Smartphone className="w-8 h-8 text-amber-600 mx-auto" />
+                <h4 className="text-sm font-bold text-slate-900">Enter Bank 3D Secure OTP</h4>
+                <p className="text-xs text-slate-600">
+                  A one-time password has been dispatched to your bank registered mobile ending in <strong>•••• 8910</strong> for payment of <strong>₹{pack.pay}</strong>.
+                </p>
+
+                <div className="max-w-[200px] mx-auto">
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={otpValue}
+                    onChange={(e) => setOtpValue(e.target.value)}
+                    className="w-full tracking-widest text-center font-mono text-base font-bold bg-white border border-slate-300 rounded-xl p-2.5 focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="pt-2 flex justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={completeTransaction}
+                    className="btn-astrotalk px-6 py-2 text-xs font-bold cursor-pointer"
+                  >
+                    Confirm & Recharge ₹{pack.pay}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: NETBANKING */}
+            {method === 'netbanking' && (
+              <div className="space-y-3 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  Select Your Indian Bank
+                </label>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {['HDFC Bank', 'ICICI Bank', 'State Bank of India', 'Axis Bank', 'Kotak Mahindra', 'Punjab National Bank'].map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => setSelectedBank(b)}
+                      className={`p-2.5 text-xs font-semibold rounded-xl border transition text-left cursor-pointer ${
+                        selectedBank === b
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Submit Action Button */}
+            {!showOtpScreen && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleProcessDirectPayment}
+                  disabled={isProcessing}
+                  className="btn-astrotalk w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Contacting Bank Gateway...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      <span>Pay ₹{pack.pay} Securely & Get ₹{pack.get}</span>
+                    </>
+                  )}
+                </button>
+                <p className="text-[11px] text-center text-slate-500 mt-2">
+                  🔒 Verified by NPCI UPI & RBI Guidelines • 100% Refund Guarantee
+                </p>
+              </div>
+            )}
+
+          </div>
+        ) : (
+          /* PAYMENT SUCCESS RECEIPT SCREEN */
+          <div className="p-6 sm:p-8 text-center space-y-4 animate-in fade-in">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-xs">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+
+            <div>
+              <h3 className="text-xl font-black text-slate-900">Payment Successful!</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Your AstroTalk wallet has been credited with ₹{completedTxn.totalCredited}.
+              </p>
+            </div>
+
+            {/* Receipt Card */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left max-w-md mx-auto text-xs space-y-2">
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500">Transaction ID:</span>
+                <span className="font-mono font-bold text-slate-900">{completedTxn.id}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500">Receipt No:</span>
+                <span className="font-mono text-slate-700">{completedTxn.receiptId}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500">Amount Paid:</span>
+                <span className="font-bold text-slate-900">₹{completedTxn.amount}.00</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500">Promotional 100% Bonus:</span>
+                <span className="font-bold text-emerald-600">+₹{completedTxn.bonusCredit}.00</span>
+              </div>
+              <div className="flex justify-between font-extrabold text-sm pt-1 text-slate-900">
+                <span>Total Added to Wallet:</span>
+                <span className="text-emerald-700">₹{completedTxn.totalCredited}.00</span>
+              </div>
+            </div>
+
+            <div className="flex justify-center gap-3 pt-3">
+              <button
+                type="button"
+                onClick={handlePrintReceipt}
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Print Receipt</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-astrotalk px-6 py-2 text-xs font-bold cursor-pointer"
+              >
+                Done & Start Consultations
+              </button>
+            </div>
+
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
