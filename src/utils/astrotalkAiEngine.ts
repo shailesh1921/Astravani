@@ -67,6 +67,10 @@ async function callGeminiApiLines(
 ): Promise<string[]> {
   const kundli = calculateKundli(intake.name, intake.gender, intake.dob, intake.tob, intake.pob);
   
+  const curYear = new Date().getFullYear(); // e.g. 2026
+  const nxtYear = curYear + 1;
+  const futYear = curYear + 2;
+
   const systemPrompt = `You are ${astrologer.name} (${astrologer.title}) on AstraVani.
 Persona & Credentials:
 - Tradition: ${astrologer.personaType} (${astrologer.bio}).
@@ -74,12 +78,18 @@ Persona & Credentials:
 - User Details: Name: ${intake.name}, Gender: ${intake.gender}, DOB: ${intake.dob}, Time: ${intake.tob}, Place: ${intake.pob}, Topic: ${intake.topic}.
 - Calculated Chart: Lagna: ${kundli.lagnaSign}, Moon Sign: ${kundli.chandraRashi}, Sun Sign: ${kundli.suryaRashi}, Nakshatra: ${kundli.nakshatra}, Current Mahadasha: ${kundli.mahadasha}, Antardasha: ${kundli.antardasha}, Gemstone: ${kundli.luckyGemstone}.
 
+CRITICAL CALENDAR GROUND-TRUTH (YEAR ${curYear}):
+- TODAY'S YEAR IS ${curYear}.
+- ANY PREDICTIONS MUST BE FOR LATE ${curYear}, ${nxtYear}, OR ${futYear}.
+- NEVER STATE 2023, 2024, OR 2025 AS FUTURE DATES!
+
 CRITICAL STYLE DIRECTIVE (GENUINE INDIAN ASTROLOGER):
 Respond like a deeply respected, experienced Indian Pandit Ji chatting on WhatsApp/AstraVani in authentic, empathetic conversational Hindi/Hinglish.
 Break your response into 3 to 4 natural, conversational sentences separated by the exact delimiter "|||".
 Address the user respectfully (e.g., 'Haan ${intake.name} ji...', 'Aapki patrika me dekh pa raha hoon...').
 Give a realistic astrological timeline based on their dasha and 1 actionable sattvic remedy.
 NEVER repeat what you already said in previous messages. Keep each line punchy (10-18 words).`;
+
 
   const contents = [
     { role: 'user', parts: [{ text: `System Context:\n${systemPrompt}` }] },
@@ -177,27 +187,39 @@ Address user ${intake.name} naturally. Never repeat prior statements. Provide re
   return parseBubbles(text);
 }
 
+function sanitizeYears(str: string, curYear: number = 2026): string {
+  if (!str) return str;
+  const nxt = curYear + 1;
+  return str
+    .replace(/\b2024\b/g, `${curYear}`)
+    .replace(/\b2025\b/g, `${nxt}`);
+}
+
 function parseBubbles(text: string): string[] {
   if (!text) return [];
-  let chunks = text.split('|||').map((s: string) => s.trim()).filter(Boolean);
+  const curYear = new Date().getFullYear();
+  const cleanText = sanitizeYears(text, curYear);
+
+  let chunks = cleanText.split('|||').map((s: string) => sanitizeYears(s.trim(), curYear)).filter(Boolean);
   if (chunks.length >= 2) return chunks.slice(0, 4);
 
-  chunks = text.split(/\n\s*\n/).map((s: string) => s.trim()).filter(Boolean);
+  chunks = cleanText.split(/\n\s*\n/).map((s: string) => sanitizeYears(s.trim(), curYear)).filter(Boolean);
   if (chunks.length >= 2) return chunks.slice(0, 4);
 
-  const sentences = text.match(/[^.!?।\n]+[.!?।]+/g) || [text];
+  const sentences = cleanText.match(/[^.!?।\n]+[.!?।]+/g) || [cleanText];
   const merged: string[] = [];
   let curr = '';
   for (const s of sentences) {
     curr = curr ? curr + ' ' + s.trim() : s.trim();
     if (curr.split(' ').length >= 12) {
-      merged.push(curr);
+      merged.push(sanitizeYears(curr, curYear));
       curr = '';
     }
   }
-  if (curr) merged.push(curr);
-  return merged.length > 0 ? merged.slice(0, 4) : [text.trim()];
+  if (curr) merged.push(sanitizeYears(curr, curYear));
+  return merged.length > 0 ? merged.slice(0, 4) : [sanitizeYears(cleanText.trim(), curYear)];
 }
+
 
 
 /**

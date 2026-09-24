@@ -42,6 +42,12 @@ export default async function handler(req, res) {
     const antardasha = kundli?.antardasha || 'Saturn (Shani)';
     const gemstone = kundli?.luckyGemstone || 'Yellow Sapphire (Pukhraj)';
 
+    const now = new Date();
+    const currentYear = now.getFullYear(); // e.g. 2026
+    const nextYear = currentYear + 1; // 2027
+    const futureYear = currentYear + 2; // 2028
+    const currentDateStr = now.toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' });
+
     const systemPrompt = `You are ${astrologerName} (${astrologerTitle}), a deeply revered traditional Indian Vedic Pandit on AstraVani.
 Fluent in: ${astrologerLangs}. You are in a live 1-on-1 private consultation with ${firstName} ji.
 
@@ -52,16 +58,22 @@ USER KUNDLI CONTEXT:
 - Current Vimshottari Mahadasha: ${mahadasha}, Antardasha: ${antardasha}.
 - Shubh Gemstone: ${gemstone}.
 
+CRITICAL GROUND-TRUTH CALENDAR DIRECTIVE:
+- TODAY'S REAL CALENDAR DATE IS: ${currentDateStr} (Year: ${currentYear}).
+- ANY FUTURE PREDICTION MUST STRICTLY BE FOR LATE ${currentYear}, ${nextYear}, or ${futureYear} (e.g. "aane wale 6-8 mahino me (early ${nextYear})", "late ${currentYear} se ${nextYear} ke madhya tak").
+- ABSOLUTELY FORBIDDEN: NEVER mention 2023, 2024, or 2025 as the future! Mentioning 2024 or 2025 as future destroys client trust.
+
 CORE DIRECTIVES FOR ACCURATE VEDIC CONSULTATION:
 1. Language & Persona: Authentic, compassionate Indian Pandit speaking warm conversational Hindi/Hinglish (or the user's language if they ask in Tamil, Telugu, Gujarati, Bengali, Marathi, or English). Address them respectfully as "${firstName} ji".
-2. Direct Answer & Realistic Timeline: Answer the specific question directly (career, job, marriage, business, finances, health). State a clear, realistic timeframe (e.g., "aane wale 6-8 mahino me", "2025 ke madhya se") based on planetary transits (Guru/Shani gochar) and current dasha.
+2. Direct Answer & Realistic Timeline: Answer the specific question directly (career, job, marriage, business, finances, health). State a clear, realistic timeframe (e.g., "aane wale 6-8 mahino me (early ${nextYear})", "late ${currentYear} se ${nextYear} tak") based on planetary transits (Guru/Shani gochar) and current dasha.
 3. Authentic Vedic Analysis: Reference the relevant astrological house (e.g. 7th house for marriage, 10th house for career, 5th house for intellect/education, 2nd/11th for wealth). Give 1 practical, sattvic Vedic remedy (daan, mantra, or puja).
 4. WhatsApp Format: Output EXACTLY 3 to 4 short, distinct chat bubbles separated by "|||".
    Example:
    Pranam ${firstName} ji, aapki janmapatri ka dhyan se vishleshan kiya hai. |||
-   Aapke dasham bhav ke swami aur Guru ke gochar se aane wale 6-8 mahino me acchi pragati ke yog ban rahe hain. |||
+   Aapke dasham bhav ke swami aur Guru ke gochar se aane wale 6-8 mahino me (${nextYear} ke prarambh me) acchi pragati ke yog ban rahe hain. |||
    Shani ke prabhav ko santulit karne ke liye pratyek Shanivar ko til ke tel ka deepak jalayein aur Shani mantra ka jaap karein, shubh fal prapt hoga.
 5. Strict Rule: NEVER reveal you are an AI, language model, or bot. You are 100% a genuine Vedic Pandit on AstraVani.`;
+
 
     // Multi-key, multi-model failover cascade
     const cascade = [
@@ -198,27 +210,39 @@ CORE DIRECTIVES FOR ACCURATE VEDIC CONSULTATION:
   }
 }
 
+function sanitizeYears(str, curYear = 2026) {
+  if (!str) return str;
+  const nxt = curYear + 1;
+  return str
+    .replace(/\b2024\b/g, `${curYear}`)
+    .replace(/\b2025\b/g, `${nxt}`);
+}
+
 function splitIntoBubbles(text) {
   if (!text) return [];
+  const curYear = new Date().getFullYear();
+  const cleanText = sanitizeYears(text, curYear);
+
   // 1. Check for ||| delimiter
-  let chunks = text.split('|||').map(s => s.trim()).filter(Boolean);
+  let chunks = cleanText.split('|||').map(s => sanitizeYears(s.trim(), curYear)).filter(Boolean);
   if (chunks.length >= 2) return chunks.slice(0, 4);
 
   // 2. Check for double newlines
-  chunks = text.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+  chunks = cleanText.split(/\n\s*\n/).map(s => sanitizeYears(s.trim(), curYear)).filter(Boolean);
   if (chunks.length >= 2) return chunks.slice(0, 4);
 
   // 3. Sentence split for realistic WhatsApp bubbles
-  const sentences = text.match(/[^.!?।\n]+[.!?।]+/g) || [text];
+  const sentences = cleanText.match(/[^.!?।\n]+[.!?।]+/g) || [cleanText];
   const merged = [];
   let curr = '';
   for (const s of sentences) {
     curr = curr ? curr + ' ' + s.trim() : s.trim();
     if (curr.split(' ').length >= 12) {
-      merged.push(curr);
+      merged.push(sanitizeYears(curr, curYear));
       curr = '';
     }
   }
-  if (curr) merged.push(curr);
-  return merged.length > 0 ? merged.slice(0, 4) : [text.trim()];
+  if (curr) merged.push(sanitizeYears(curr, curYear));
+  return merged.length > 0 ? merged.slice(0, 4) : [sanitizeYears(cleanText.trim(), curYear)];
 }
+
