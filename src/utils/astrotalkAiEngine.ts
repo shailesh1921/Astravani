@@ -143,31 +143,62 @@ Address user ${intake.name} naturally. Never repeat prior statements. Provide re
     { role: 'user', content: userMessage }
   ];
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const isNvidia = apiKey.trim().startsWith('nvapi-');
+  const endpoint = isNvidia
+    ? 'https://integrate.api.nvidia.com/v1/chat/completions'
+    : 'https://api.openai.com/v1/chat/completions';
+  const targetModel = isNvidia
+    ? (modelName && modelName !== 'gpt-4o-mini' ? modelName : 'meta/llama-3.2-11b-vision-instruct')
+    : (modelName || 'gpt-4o-mini');
+
+  const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey.trim()}`
     },
     body: JSON.stringify({
-      model: modelName || 'gpt-4o-mini',
+      model: targetModel,
       messages,
-      max_tokens: 320,
-      temperature: 0.8
+      max_tokens: 350,
+      temperature: 0.75
     })
   });
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`OpenAI API Error: ${res.status} ${errText}`);
+    throw new Error(`AI API Error: ${res.status} ${errText}`);
   }
 
   const data = await res.json();
   const text = data.choices?.[0]?.message?.content;
-  if (!text) throw new Error('No text in OpenAI response');
+  if (!text) throw new Error('No text in AI response');
 
-  return text.split('|||').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+  return parseBubbles(text);
 }
+
+function parseBubbles(text: string): string[] {
+  if (!text) return [];
+  let chunks = text.split('|||').map((s: string) => s.trim()).filter(Boolean);
+  if (chunks.length >= 2) return chunks.slice(0, 4);
+
+  chunks = text.split(/\n\s*\n/).map((s: string) => s.trim()).filter(Boolean);
+  if (chunks.length >= 2) return chunks.slice(0, 4);
+
+  const sentences = text.match(/[^.!?।\n]+[.!?।]+/g) || [text];
+  const merged: string[] = [];
+  let curr = '';
+  for (const s of sentences) {
+    curr = curr ? curr + ' ' + s.trim() : s.trim();
+    if (curr.split(' ').length >= 12) {
+      merged.push(curr);
+      curr = '';
+    }
+  }
+  if (curr) merged.push(curr);
+  return merged.length > 0 ? merged.slice(0, 4) : [text.trim()];
+}
+
 
 /**
  * SOLUTION 3: Dynamic Multi-Turn Astrological Synthesis Engine
