@@ -53,6 +53,47 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     intake.pob
   );
 
+  const topicQuickChips = React.useMemo(() => {
+    switch (intake.topic) {
+      case 'Career & Job':
+        return [
+          'Career me promotion kab milega?',
+          'Government job ya private corporate?',
+          'Videsh (Foreign) yog kab banega?',
+          'Mere liye shubh ratna kaunsa hai?'
+        ];
+      case 'Marriage & Kundli':
+        return [
+          'Meri shaadi kab hogi aur kaisa partner milega?',
+          'Love marriage hogi ya arranged?',
+          'Kya kundli me Manglik dosha hai?',
+          'Vivah me deri ke kya upay hain?'
+        ];
+      case 'Love & Relationship':
+        return [
+          'Kya humara rishta shaadi tak pahuchega?',
+          'Partner ki sachhi feelings kya hain?',
+          'Misunderstanding door karne ka upay?',
+          'Prem sambandh me sthirta kab aayegi?'
+        ];
+      case 'Business & Money':
+        return [
+          'Vyavsay me safalta aur dhan labh kab hoga?',
+          'Karz mukti aur aarthik sthirta ka yog?',
+          'Property ya share market me nivesh?',
+          'Dhan aakarshan ke shubh upay?'
+        ];
+      default:
+        return [
+          'Ek baat bataiye meri shadi kab hogi?',
+          'Career me promotion kab milega?',
+          'Mere liye shubh ratna kaunsa hai?',
+          'Aage ka samay kaisa rahega?'
+        ];
+    }
+  }, [intake.topic]);
+
+
   // Play audio chime when message arrives
   const playChime = () => {
     if (isMuted) return;
@@ -368,12 +409,47 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
           {/* CHAT MESSAGES CANVAS with authentic astrological wallpaper */}
           <div 
             ref={chatContainerRef}
-            className="flex-1 astrotalk-chat-bg overflow-y-auto p-4 sm:p-6 space-y-2.5 flex flex-col relative"
+            className="flex-1 astrotalk-chat-bg overflow-y-auto p-3 sm:p-5 space-y-2.5 flex flex-col relative"
           >
             {/* System Info Banner */}
-            <div className="flex justify-center my-1">
-              <div className="bg-white/80 backdrop-blur-xs border border-amber-200 shadow-xs text-slate-700 text-[11px] px-3.5 py-1 rounded-full text-center font-medium">
-                🔒 100% Private Consultation with {astrologer.name} • Birth Data Synced
+            <div className="flex justify-center my-0.5">
+              <div className="bg-white/85 backdrop-blur-xs border border-amber-200/90 shadow-2xs text-slate-700 text-[11px] px-3.5 py-1 rounded-full text-center font-medium">
+                🔒 100% Private Consultation with {astrologer.name} • Birth Coordinates Synced
+              </div>
+            </div>
+
+            {/* Interactive Vedic Janam Kundli Synced Card in Chat Stream */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl p-3 shadow-xs max-w-lg mx-auto my-1 text-xs w-full">
+              <div className="flex items-center justify-between border-b border-amber-200/70 pb-1.5 mb-2">
+                <span className="font-black text-amber-950 flex items-center gap-1.5 text-xs">
+                  <Sparkles className="w-4 h-4 text-amber-600 fill-amber-500" />
+                  Vedic Birth Chart Synced ({intake.name.split(' ')[0]})
+                </span>
+                <button
+                  onClick={() => setShowKundliDrawer(true)}
+                  className="text-[11px] font-bold text-amber-800 hover:text-amber-950 bg-amber-200/60 hover:bg-amber-200 px-2.5 py-0.5 rounded-lg transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                >
+                  <ScrollText className="w-3.5 h-3.5 text-amber-700" />
+                  <span>View Diamond Chart</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5 text-center">
+                <div className="bg-white/90 rounded-xl p-1.5 border border-amber-100/80 shadow-2xs">
+                  <span className="text-[10px] text-slate-500 font-bold block">Lagna</span>
+                  <strong className="text-slate-900 text-xs">{userKundli.lagnaSign.split(' ')[0]}</strong>
+                </div>
+                <div className="bg-white/90 rounded-xl p-1.5 border border-amber-100/80 shadow-2xs">
+                  <span className="text-[10px] text-slate-500 font-bold block">Rashi</span>
+                  <strong className="text-slate-900 text-xs">{userKundli.chandraRashi.split(' ')[0]}</strong>
+                </div>
+                <div className="bg-white/90 rounded-xl p-1.5 border border-amber-100/80 shadow-2xs">
+                  <span className="text-[10px] text-slate-500 font-bold block">Nakshatra</span>
+                  <strong className="text-slate-900 text-xs truncate block">{userKundli.nakshatra.split(' ')[0]}</strong>
+                </div>
+                <div className="bg-white/90 rounded-xl p-1.5 border border-amber-100/80 shadow-2xs">
+                  <span className="text-[10px] text-slate-500 font-bold block">Mahadasha</span>
+                  <strong className="text-amber-800 text-xs">{userKundli.mahadasha.split(' ')[0]}</strong>
+                </div>
               </div>
             </div>
 
@@ -396,6 +472,13 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
                   key={msg.id}
                   className={`flex ${isUser ? 'justify-end' : 'justify-start'} items-end gap-2 animate-in fade-in duration-200`}
                 >
+                  {!isUser && (
+                    <img
+                      src={astrologer.avatarUrl}
+                      alt={astrologer.name}
+                      className="w-7 h-7 rounded-full object-cover border border-amber-300 shadow-2xs flex-shrink-0 mb-1"
+                    />
+                  )}
                   <div
                     className={`max-w-[85%] sm:max-w-[70%] px-3.5 py-2 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${
                       isUser
@@ -422,6 +505,11 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
             {/* WHATSAPP-STYLE REALISTIC TYPING INDICATOR BUBBLE */}
             {isTyping && (
               <div className="flex items-center gap-2 animate-in fade-in duration-200">
+                <img
+                  src={astrologer.avatarUrl}
+                  alt={astrologer.name}
+                  className="w-7 h-7 rounded-full object-cover border border-amber-300 shadow-2xs flex-shrink-0 mb-1"
+                />
                 <div className="astrotalk-pandit-bubble px-4 py-2.5 flex items-center gap-3 shadow-xs">
                   {/* WhatsApp Bouncing 3-Dots */}
                   <div className="flex items-center gap-1.5">
@@ -429,12 +517,13 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
                     <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce [animation-delay:200ms]" />
                     <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce [animation-delay:400ms]" />
                   </div>
-                  <span className="text-xs text-slate-500 font-medium italic">
-                    {astrologer.name.split(' ')[0]} is typing...
+                  <span className="text-xs text-slate-600 font-medium italic">
+                    {astrologer.name.split(' ')[0]} is analyzing your chart...
                   </span>
                 </div>
               </div>
             )}
+
 
             <div ref={messagesEndRef} />
           </div>
@@ -531,24 +620,19 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
         {/* QUICK QUESTION CHIPS */}
         {!isSessionEnded && (
           <div className="bg-[#EFE8DE] border-t border-slate-300/60 px-3 py-1.5 flex gap-1.5 overflow-x-auto no-scrollbar flex-shrink-0">
-            {[
-              'Ek baat bataiye meri shadi kab hogi?',
-              'Career me promotion kab milega?',
-              'Mere liye shubh ratna kaunsa hai?',
-              'Kya meri kundli me manglik dosha hai?',
-              'Vyavsay me safalta kab milegi?'
-            ].map((q) => (
+            {topicQuickChips.map((q) => (
               <button
                 key={q}
                 onClick={() => handleSendMessage(q)}
                 disabled={isTyping}
-                className="flex-shrink-0 text-[11px] font-semibold bg-white hover:bg-amber-50 text-slate-800 border border-slate-300 px-3 py-1 rounded-full transition disabled:opacity-50 cursor-pointer shadow-2xs"
+                className="flex-shrink-0 text-[11px] font-semibold bg-white hover:bg-amber-50 text-slate-800 border border-slate-300 px-3 py-1 rounded-full transition disabled:opacity-50 cursor-pointer shadow-2xs hover:border-amber-400"
               >
                 {q}
               </button>
             ))}
           </div>
         )}
+
 
         {/* BOTTOM INPUT BAR */}
         {!isSessionEnded ? (
