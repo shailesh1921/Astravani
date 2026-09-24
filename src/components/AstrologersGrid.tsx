@@ -48,13 +48,22 @@ export const AstrologersGrid: React.FC<AstrologersGridProps> = ({
     // Filter by category
     if (activeCategory !== 'all') {
       if (activeCategory === 'marriage') {
-        result = result.filter(a => a.specialties.some(s => s.toLowerCase().includes('milan') || s.toLowerCase().includes('relationship') || s.toLowerCase().includes('love')));
+        result = result.filter(a => a.specialties.some(s => {
+          const l = s.toLowerCase();
+          return l.includes('milan') || l.includes('relationship') || l.includes('love') || l.includes('marriage');
+        }));
       } else if (activeCategory === 'career') {
-        result = result.filter(a => a.specialties.some(s => s.toLowerCase().includes('career') || s.toLowerCase().includes('prashna') || s.toLowerCase().includes('numerology')));
+        result = result.filter(a => a.specialties.some(s => {
+          const l = s.toLowerCase();
+          return l.includes('career') || l.includes('prashna') || l.includes('wealth') || l.includes('job') || l.includes('business') || l.includes('money');
+        }));
+      } else if (activeCategory === 'lal_kitab') {
+        result = result.filter(a => a.personaType === 'lal_kitab' || a.specialties.some(s => s.toLowerCase().includes('lal kitab')));
       } else {
         result = result.filter(a => a.personaType === activeCategory || a.specialties.some(s => s.toLowerCase().includes(activeCategory)));
       }
     }
+
 
     // Sorting
     if (sortBy === 'popular') {
