@@ -18,19 +18,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { userMessage, astrologer, intake, kundli, chatHistory } = req.body || {};
+    const { userMessage, astrologer, intake, kundli, chatHistory, language } = req.body || {};
 
-    const nvidiaApiKey = process.env.NVIDIA_API_KEY?.trim();
+    const diffGemmaKey = process.env.NVIDIA_DIFFUSIONGEMMA_API_KEY?.trim();
+    const multiLangKey = process.env.NVIDIA_MULTILINGUAL_API_KEY?.trim();
+    const nvidiaKey = process.env.NVIDIA_API_KEY?.trim();
     const geminiApiKey = process.env.GEMINI_API_KEY?.trim();
 
-    if (!nvidiaApiKey && !geminiApiKey) {
-      // Graceful fallback to client-side Vedic engine if neither key is set
+    if (!diffGemmaKey && !multiLangKey && !nvidiaKey && !geminiApiKey) {
+      // Graceful fallback to client-side Vedic engine if no server keys are set
       return res.status(200).json({ success: false, fallback: true, message: 'Server API keys not configured' });
     }
 
     const firstName = (intake?.name?.split(' ')[0] || intake?.name || 'Jatak').trim();
     const astrologerName = astrologer?.name || 'Pt. Anand Swaroop';
     const astrologerTitle = astrologer?.title || 'Vedic Astrologer';
+    const astrologerLangs = (astrologer?.languages || ['Hindi', 'English']).join(', ');
     const lagnaSign = kundli?.lagnaSign || 'Aries (Mesha)';
     const moonSign = kundli?.chandraRashi || 'Taurus (Vrishabha)';
     const sunSign = kundli?.suryaRashi || 'Leo (Simha)';
@@ -39,20 +42,20 @@ export default async function handler(req, res) {
     const antardasha = kundli?.antardasha || 'Saturn (Shani)';
     const gemstone = kundli?.luckyGemstone || 'Yellow Sapphire (Pukhraj)';
 
-    const systemPrompt = `You are ${astrologerName} (${astrologerTitle}), a deeply revered and experienced traditional Indian Vedic Pandit on AstraVani.
-You are in a live 1-on-1 private consultation with ${firstName} ji.
+    const systemPrompt = `You are ${astrologerName} (${astrologerTitle}), a deeply revered traditional Indian Vedic Pandit on AstraVani.
+Fluent in: ${astrologerLangs}. You are in a live 1-on-1 private consultation with ${firstName} ji.
 
 USER KUNDLI CONTEXT:
 - Name: ${intake?.name}, Gender: ${intake?.gender}, DOB: ${intake?.dob}, Time: ${intake?.tob}, Place: ${intake?.pob}.
-- Consultation Topic: ${intake?.topic}.
+- Consultation Topic: ${intake?.topic || 'General Guidance'}.
 - Calculated Chart: Lagna: ${lagnaSign}, Chandra Rashi: ${moonSign}, Surya Rashi: ${sunSign}, Nakshatra: ${nakshatra}.
 - Current Vimshottari Mahadasha: ${mahadasha}, Antardasha: ${antardasha}.
 - Shubh Gemstone: ${gemstone}.
 
 CORE DIRECTIVES FOR ACCURATE VEDIC CONSULTATION:
-1. Persona: Authentic, compassionate Indian Pandit speaking warm conversational Hindi/Hinglish (e.g. "Haan ${firstName} ji, aapki kundli dekh raha hoon...", "Aapke saptam bhav me...").
-2. Answer user directly: Address the exact question (career, marriage, relationship, health, business). Provide a specific realistic timeframe/calendar range based on planetary transits (Guru/Shani gochar) and current dasha.
-3. Authentic Vedic Analysis: Reference the relevant astrological house (e.g. 7th house for marriage, 10th house for career, 5th house for intellect/progeny, 2nd/11th for wealth). Give 1 practical, sattvic remedy (daan, mantra, or puja).
+1. Language & Persona: Authentic, compassionate Indian Pandit speaking warm conversational Hindi/Hinglish (or the user's language if they ask in Tamil, Telugu, Gujarati, Bengali, Marathi, or English). Address them respectfully as "${firstName} ji".
+2. Direct Answer & Realistic Timeline: Answer the specific question directly (career, job, marriage, business, finances, health). State a clear, realistic timeframe (e.g., "aane wale 6-8 mahino me", "2025 ke madhya se") based on planetary transits (Guru/Shani gochar) and current dasha.
+3. Authentic Vedic Analysis: Reference the relevant astrological house (e.g. 7th house for marriage, 10th house for career, 5th house for intellect/education, 2nd/11th for wealth). Give 1 practical, sattvic Vedic remedy (daan, mantra, or puja).
 4. WhatsApp Format: Output EXACTLY 3 to 4 short, distinct chat bubbles separated by "|||".
    Example:
    Pranam ${firstName} ji, aapki janmapatri ka dhyan se vishleshan kiya hai. |||
@@ -60,60 +63,92 @@ CORE DIRECTIVES FOR ACCURATE VEDIC CONSULTATION:
    Shani ke prabhav ko santulit karne ke liye pratyek Shanivar ko til ke tel ka deepak jalayein aur Shani mantra ka jaap karein, shubh fal prapt hoga.
 5. Strict Rule: NEVER reveal you are an AI, language model, or bot. You are 100% a genuine Vedic Pandit on AstraVani.`;
 
+    // Multi-key, multi-model failover cascade
+    const cascade = [
+      // 1. Google DiffusionGemma (High-Accuracy Astrologer)
+      {
+        name: 'diffusiongemma',
+        key: diffGemmaKey || nvidiaKey,
+        model: 'google/diffusiongemma-26b-a4b-it',
+        timeout: 5000
+      },
+      // 2. Meta LLaMA 3.2 11B (Ultra-fast ~800ms)
+      {
+        name: 'llama-3.2-11b',
+        key: nvidiaKey || multiLangKey || diffGemmaKey,
+        model: 'meta/llama-3.2-11b-vision-instruct',
+        timeout: 6000
+      },
+      // 3. Multilingual Model (Regional languages)
+      {
+        name: 'multilingual-llama',
+        key: multiLangKey || nvidiaKey,
+        model: 'meta/llama-3.2-11b-vision-instruct',
+        timeout: 6000
+      },
+      // 4. DeepSeek Flash (fast probe)
+      {
+        name: 'deepseek-flash',
+        key: nvidiaKey,
+        model: 'deepseek-ai/deepseek-v4.1-flash',
+        timeout: 3000
+      },
+      // 5. Moonshot Kimi K3 (fast probe)
+      {
+        name: 'kimi-k3',
+        key: nvidiaKey,
+        model: 'moonshotai/kimi-k3',
+        timeout: 3000
+      }
+    ].filter(item => Boolean(item.key));
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...(chatHistory || []).slice(-6).map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+      })),
+      { role: 'user', content: userMessage }
+    ];
+
     let replyText = null;
+    let modelUsed = null;
 
-    // 1. Try NVIDIA NIM API if key is available
-    if (nvidiaApiKey) {
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...(chatHistory || []).slice(-6).map(m => ({
-          role: m.sender === 'user' ? 'user' : 'assistant',
-          content: m.text
-        })),
-        { role: 'user', content: userMessage }
-      ];
+    // Execute cascade across all NVIDIA NIM keys & models
+    for (const c of cascade) {
+      try {
+        const res = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${c.key}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: c.model,
+            messages,
+            temperature: 0.7,
+            max_tokens: 350
+          }),
+          signal: AbortSignal.timeout(c.timeout)
+        });
 
-      // Try fast reliable models on NVIDIA NIM
-      const nvidiaModels = [
-        'meta/llama-3.2-11b-vision-instruct',
-        'deepseek-ai/deepseek-v4.1-flash',
-        'moonshotai/kimi-k3'
-      ];
-
-      for (const model of nvidiaModels) {
-        try {
-          const timeout = model === 'meta/llama-3.2-11b-vision-instruct' ? 12000 : 4000;
-          const nvidiaRes = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${nvidiaApiKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model,
-              messages,
-              temperature: 0.7,
-              max_tokens: 350
-            }),
-            signal: AbortSignal.timeout(timeout)
-          });
-
-          if (nvidiaRes.ok) {
-            const data = await nvidiaRes.json();
-            const text = data.choices?.[0]?.message?.content;
-            if (text && text.trim().length > 10) {
-              replyText = text.trim();
-              break;
-            }
+        if (res.ok) {
+          const data = await res.json();
+          const content = data.choices?.[0]?.message?.content?.trim();
+          if (content && content.length > 10) {
+            replyText = content;
+            modelUsed = c.name;
+            break;
           }
-        } catch (nvidiaErr) {
-          // Model timed out or failed, try next model or fallback
-          console.warn(`NVIDIA model ${model} failed:`, nvidiaErr.message);
+        } else {
+          console.warn(`Cascade step ${c.name} failed with HTTP ${res.status}`);
         }
+      } catch (err) {
+        console.warn(`Cascade step ${c.name} skipped:`, err.message);
       }
     }
 
-    // 2. Fallback to Gemini API if NVIDIA didn't produce a response
+    // Fallback to Gemini 2.0 Flash if all NVIDIA models failed
     if (!replyText && geminiApiKey) {
       try {
         const contents = [
@@ -137,12 +172,13 @@ CORE DIRECTIVES FOR ACCURATE VEDIC CONSULTATION:
               temperature: 0.75
             }
           }),
-          signal: AbortSignal.timeout(10000)
+          signal: AbortSignal.timeout(6000)
         });
 
         if (geminiRes.ok) {
           const data = await geminiRes.json();
           replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          modelUsed = 'gemini-2.0-flash';
         }
       } catch (geminiErr) {
         console.warn('Gemini API fallback error:', geminiErr.message);
@@ -155,7 +191,7 @@ CORE DIRECTIVES FOR ACCURATE VEDIC CONSULTATION:
 
     // Parse into distinct WhatsApp bubbles
     const lines = splitIntoBubbles(replyText);
-    return res.status(200).json({ success: true, lines });
+    return res.status(200).json({ success: true, lines, modelUsed });
   } catch (error) {
     console.error('Error in /api/astrologer-chat:', error);
     return res.status(200).json({ success: false, fallback: true, error: error.message });
