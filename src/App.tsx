@@ -186,6 +186,9 @@ export const App: React.FC = () => {
               onExploreAstrologers={() => {
                 window.scrollTo({ top: 450, behavior: 'smooth' });
               }}
+              onInitiateChat={handleInitiateChat}
+              onSelectTab={(tab) => setActiveTab(tab)}
+              topAstrologer={ASTROLOGERS_DATA[0]}
             />
             <AstrologersGrid
               astrologers={ASTROLOGERS_DATA}

@@ -25,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
         <span className="bg-red-600 text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider animate-pulse">
           Free Offer
         </span>
-        <span>⚡ First Chat with Astrologer is FREE! (Valid for 5 Mins) | 4,500+ Verified Gurus Online ⚡</span>
+        <span>⚡ First Chat with Astrologer is FREE! (100% Free First Consultation) | 4,500+ Verified Gurus Online ⚡</span>
       </div>
 
       {/* Main Navbar */}
@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <ShieldCheck className="w-4 h-4 text-emerald-500 fill-emerald-100" />
               </div>
               <p className="text-[10px] text-slate-500 font-medium tracking-wide hidden sm:block">
-                Sacred Vedic Astrology • astravani.in
+                India's Sacred Vedic Platform • 4,500+ Verified Gurus
               </p>
             </div>
           </div>

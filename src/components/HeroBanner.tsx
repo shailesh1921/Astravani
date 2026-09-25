@@ -1,32 +1,67 @@
-import React from 'react';
-import { Star, ShieldCheck, Heart, Briefcase, Gem, Users, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, ShieldCheck, Heart, Briefcase, Gem, Users, CheckCircle2, Sparkles, MessageSquare, ArrowRight, Lock } from 'lucide-react';
+import { Astrologer } from '../types/astrotalk';
+import { ASTROLOGERS_DATA } from '../data/astrologersData';
 
 interface HeroBannerProps {
   onQuickTopicSelect: (topic: string) => void;
   onExploreAstrologers: () => void;
+  onInitiateChat?: (astrologer: Astrologer) => void;
+  onSelectTab?: (tab: string) => void;
+  topAstrologer?: Astrologer;
 }
+
+const LIVE_ACTIVITIES = [
+  '⚡ Pooja from Pune just started chat with Pt. Anand Swaroop',
+  '⭐ Vikram from Bengaluru rated Dr. Radhika Sharma 5.0 (Accurate career timing)',
+  '⚡ Sneha from Delhi claimed 100% FREE First Consultation',
+  '🔮 Amit from Jaipur generated his Free Janam Kundli',
+  '⚡ Ananya from Mumbai connected with Acharya Devrat'
+];
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
   onQuickTopicSelect,
-  onExploreAstrologers
+  onExploreAstrologers,
+  onInitiateChat,
+  onSelectTab,
+  topAstrologer
 }) => {
+  const featuredPandit = topAstrologer || ASTROLOGERS_DATA[0];
+  const [activeActivityIndex, setActiveActivityIndex] = useState(0);
+
+  // Rotate live activity social proof every 3.8 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveActivityIndex((prev) => (prev + 1) % LIVE_ACTIVITIES.length);
+    }, 3800);
+    return () => clearInterval(timer);
+  }, []);
+
   const problems = [
-    { label: 'Love & Relationship', icon: Heart, color: 'text-rose-500 bg-rose-50 border-rose-200' },
-    { label: 'Marriage Timing', icon: Users, color: 'text-pink-500 bg-pink-50 border-pink-200' },
-    { label: 'Career & Job Promotion', icon: Briefcase, color: 'text-blue-500 bg-blue-50 border-blue-200' },
-    { label: 'Wealth & Business', icon: Gem, color: 'text-amber-600 bg-amber-50 border-amber-200' },
+    { label: 'Love & Relationship', icon: Heart },
+    { label: 'Marriage Timing', icon: Users },
+    { label: 'Career & Job Promotion', icon: Briefcase },
+    { label: 'Wealth & Business', icon: Gem },
   ];
 
+  const handleStartConsultation = () => {
+    if (onInitiateChat && featuredPandit) {
+      onInitiateChat(featuredPandit);
+    } else {
+      onExploreAstrologers();
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-b from-amber-50/70 via-white to-slate-50 border-b border-slate-200 py-8 sm:py-12">
+    <div className="bg-gradient-to-b from-amber-50/60 via-white to-slate-50 border-b border-slate-200 py-7 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
-          {/* Left Content */}
-          <div className="lg:col-span-7 space-y-5">
+          {/* Left Column: Value Prop, Direct CTA, and Topic Chips */}
+          <div className="lg:col-span-7 space-y-4 sm:space-y-5">
             
-            {/* Trust Pill */}
-            <div className="inline-flex items-center gap-2 bg-white border border-amber-300 rounded-full px-3.5 py-1 shadow-xs">
+            {/* Live Trust Pill */}
+            <div className="inline-flex items-center gap-2 bg-white border border-amber-300/80 rounded-full px-3.5 py-1 shadow-2xs">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 pulsing-online" />
               <span className="text-xs font-bold text-slate-800">
                 4,520+ Astrologers Available Live
@@ -35,35 +70,49 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             </div>
 
             {/* Headline */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
               Get Answers from India's <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-orange-600">
                 Most Trusted Astrologers
               </span>
             </h1>
 
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl">
-              100% Private & Confidential. Ask questions regarding Love, Marriage, Career, Business, or Health. Consult verified Vedic Acharyas, Jyotishis, and Tarot Scholars vetted through rigorous 4-stage examination.
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl font-normal">
+              Consult verified Vedic Acharyas, Jyotishis, and Tarot Scholars vetted through rigorous 4-stage examination. Guaranteed 100% private and confidential birth chart readings.
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            {/* Primary Action Button */}
+            <div className="pt-1">
               <button
-                onClick={onExploreAstrologers}
-                className="btn-astrotalk px-6 py-3 text-sm font-bold flex items-center gap-2 shadow-md hover:shadow-lg transition cursor-pointer"
+                onClick={handleStartConsultation}
+                className="btn-astrotalk px-7 py-3.5 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2.5 shadow-md hover:shadow-xl transition transform active:scale-95 cursor-pointer rounded-xl"
               >
-                <span>⚡ Chat with Astrologer (FREE 1st Min)</span>
+                <MessageSquare className="w-5 h-5" />
+                <span>Chat with Astrologer (FREE 1st Chat) ⚡</span>
               </button>
-              
-              <div className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-800">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>100% Money-Back Guarantee</span>
-              </div>
             </div>
 
-            {/* Quick Topic Chips */}
-            <div className="pt-3">
-              <span className="text-xs font-bold uppercase text-slate-500 tracking-wider block mb-2">
+            {/* Clean Micro-Trust Row (Zero False Affordance) */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs font-semibold text-slate-500 pt-0.5">
+              <span className="flex items-center gap-1.5 text-emerald-700">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                100% Free First Consultation
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5 text-slate-600">
+                <ShieldCheck className="w-4 h-4 text-amber-600" />
+                Vedic Coordinates Synced
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5 text-slate-600">
+                <Lock className="w-3.5 h-3.5 text-slate-400" />
+                100% Private & Anonymous
+              </span>
+            </div>
+
+            {/* Harmonious Vedic Query Topic Chips */}
+            <div className="pt-2">
+              <span className="text-[11px] font-bold uppercase text-slate-400 tracking-wider block mb-2">
                 What is your query about?
               </span>
               <div className="flex flex-wrap gap-2">
@@ -73,9 +122,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                     <button
                       key={p.label}
                       onClick={() => onQuickTopicSelect(p.label)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition hover:scale-105 ${p.color}`}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white hover:bg-amber-50 border border-amber-200/80 hover:border-amber-400 text-slate-700 hover:text-slate-900 transition shadow-2xs hover:shadow-xs cursor-pointer active:scale-95"
                     >
-                      <Icon className="w-3.5 h-3.5" />
+                      <Icon className="w-3.5 h-3.5 text-amber-600" />
                       <span>{p.label}</span>
                     </button>
                   );
@@ -85,52 +134,100 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
           </div>
 
-          {/* Right Highlights & Social Proof Card */}
+          {/* Right Column: High-Converting Live Pandit Spotlight & Real-Time Activity Hub */}
           <div className="lg:col-span-5">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-at-card relative overflow-hidden">
+            <div className="bg-white rounded-2xl border border-amber-200/80 p-5 sm:p-6 shadow-at-card relative overflow-hidden flex flex-col justify-between">
               
               {/* Top Accent Gradient Bar */}
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500" />
 
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Why Trust AstraVani?</h3>
-                  <p className="text-xs text-slate-500">Verified by 5+ Crore Consultations</p>
+              {/* Card Header: Live Astrologer Spotlight */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-3.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 pulsing-online" />
+                  <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                    Top Verified Astrologer Live
+                  </span>
                 </div>
-                <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
-                  <span className="text-xs font-bold text-slate-900">4.8 / 5</span>
-                </div>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                  <span className="text-lg sm:text-xl font-extrabold text-amber-600 block">4,500+</span>
-                  <span className="text-xs text-slate-600 font-medium">Verified Astrologers</span>
-                </div>
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                  <span className="text-lg sm:text-xl font-extrabold text-emerald-600 block">5.2 Cr+</span>
-                  <span className="text-xs text-slate-600 font-medium">Minutes Consulted</span>
-                </div>
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                  <span className="text-lg sm:text-xl font-extrabold text-blue-600 block">98.6%</span>
-                  <span className="text-xs text-slate-600 font-medium">Positive Satisfaction</span>
-                </div>
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                  <span className="text-lg sm:text-xl font-extrabold text-purple-600 block">24 / 7</span>
-                  <span className="text-xs text-slate-600 font-medium">Live Pandits Ready</span>
+                <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg text-xs font-bold text-slate-900 shadow-2xs">
+                  <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                  <span>{featuredPandit.rating}</span>
+                  <span className="text-[10px] text-slate-500 font-normal">({(featuredPandit.ordersCount / 1000).toFixed(0)}k)</span>
                 </div>
               </div>
 
-              {/* Security Banner */}
-              <div className="flex items-center gap-3 bg-amber-50/60 border border-amber-200/70 rounded-xl p-3">
-                <ShieldCheck className="w-8 h-8 text-amber-600 flex-shrink-0" />
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900">100% Encrypted & Anonymous</h4>
-                  <p className="text-[11px] text-slate-600">Your chat transcripts, birth details & identity remain strictly confidential.</p>
+              {/* Pandit Profile Snippet */}
+              <div className="flex items-center gap-3.5 mb-4">
+                <div className="relative flex-shrink-0">
+                  <img
+                    src={featuredPandit.avatarUrl}
+                    alt={featuredPandit.name}
+                    className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-300 shadow-sm"
+                  />
+                  <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white pulsing-online" />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1">
+                    <h3 className="text-base font-extrabold text-slate-900 truncate">
+                      {featuredPandit.name}
+                    </h3>
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 fill-emerald-100 flex-shrink-0" />
+                  </div>
+                  <p className="text-xs text-slate-500 truncate mb-1">
+                    {featuredPandit.title}
+                  </p>
+                  <p className="text-[11px] text-amber-800 font-semibold truncate">
+                    Speciality: {featuredPandit.specialties.slice(0, 2).join(', ')} • {featuredPandit.experienceYears} Yrs Exp.
+                  </p>
                 </div>
               </div>
+
+              {/* Instant 1-Click Consultation CTA */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full inline-block mb-1">
+                    100% FREE FIRST CHAT
+                  </span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-sm font-black text-slate-900">₹0 Free Chat</span>
+                    <span className="text-xs text-slate-400 line-through">₹{featuredPandit.originalPrice || 80}/min</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleStartConsultation}
+                  className="btn-astrotalk px-4 py-2.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md transition active:scale-95 flex-shrink-0"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                  <span>Start Chat Now</span>
+                </button>
+              </div>
+
+              {/* Live Activity Social Proof Ticker */}
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-xs text-slate-700 flex items-center gap-2 mb-3.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping flex-shrink-0" />
+                <span className="truncate font-medium text-[11px] text-slate-600">
+                  {LIVE_ACTIVITIES[activeActivityIndex]}
+                </span>
+              </div>
+
+              {/* Quick Secondary Shortcut to Janam Kundli */}
+              {onSelectTab && (
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                  <span>Want your birth chart calculated?</span>
+                  <button
+                    onClick={() => {
+                      onSelectTab('kundli');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="text-amber-700 hover:text-amber-800 font-bold flex items-center gap-1 transition cursor-pointer"
+                  >
+                    <span>Free Janam Kundli</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
 
             </div>
           </div>
