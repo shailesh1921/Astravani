@@ -38,7 +38,7 @@ export const KundliMatchingView: React.FC<KundliMatchingViewProps> = ({ onConsul
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 w-full overflow-hidden">
       
       {/* Title Header */}
       <div className="text-center max-w-2xl mx-auto mb-8">

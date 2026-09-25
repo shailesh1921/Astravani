@@ -225,8 +225,8 @@ export const App: React.FC = () => {
         activeService={activeTab}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 pb-20 sm:pb-0">
+      {/* Main Content Area (Extra bottom clearance so sticky mobile nav never obscures CTAs) */}
+      <main className="flex-1 pb-24 sm:pb-0 w-full overflow-x-hidden">
         {activeTab === 'astrologers' && (
           <>
             <HeroBanner

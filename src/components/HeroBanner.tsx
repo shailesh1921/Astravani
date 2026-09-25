@@ -70,22 +70,22 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             </div>
 
             {/* Headline */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-              Get Answers from India's <br />
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+              Get Answers from India's <br className="hidden sm:inline" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-orange-600">
                 Most Trusted Astrologers
               </span>
             </h1>
 
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl font-normal">
+            <p className="text-xs sm:text-base text-slate-600 leading-relaxed max-w-xl font-normal">
               Consult verified Vedic Acharyas, Jyotishis, and Tarot Scholars vetted through rigorous 4-stage examination. Guaranteed 100% private and confidential birth chart readings.
             </p>
 
-            {/* Primary Action Button */}
+            {/* Primary Action Button (Full-width on mobile thumb zone, minimum 48px touch target) */}
             <div className="pt-1">
               <button
                 onClick={handleStartConsultation}
-                className="btn-astrotalk px-7 py-3.5 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2.5 shadow-md hover:shadow-xl transition transform active:scale-95 cursor-pointer rounded-xl"
+                className="btn-astrotalk w-full sm:w-auto px-6 py-3.5 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2.5 shadow-md hover:shadow-xl transition transform active:scale-95 cursor-pointer rounded-xl min-h-[48px]"
               >
                 <MessageSquare className="w-5 h-5" />
                 <span>Chat with Astrologer (FREE 1st Chat) ⚡</span>
@@ -93,19 +93,19 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             </div>
 
             {/* Clean Micro-Trust Row (Zero False Affordance) */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs font-semibold text-slate-500 pt-0.5">
+            <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1.5 text-xs font-semibold text-slate-500 pt-0.5">
               <span className="flex items-center gap-1.5 text-emerald-700">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 100% Free First Consultation
               </span>
               <span>•</span>
               <span className="flex items-center gap-1.5 text-slate-600">
-                <ShieldCheck className="w-4 h-4 text-amber-600" />
+                <ShieldCheck className="w-4 h-4 text-amber-600 flex-shrink-0" />
                 Vedic Coordinates Synced
               </span>
               <span>•</span>
               <span className="flex items-center gap-1.5 text-slate-600">
-                <Lock className="w-3.5 h-3.5 text-slate-400" />
+                <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                 100% Private & Anonymous
               </span>
             </div>
@@ -115,16 +115,16 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               <span className="text-[11px] font-bold uppercase text-slate-400 tracking-wider block mb-2">
                 What is your query about?
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {problems.map((p) => {
                   const Icon = p.icon;
                   return (
                     <button
                       key={p.label}
                       onClick={() => onQuickTopicSelect(p.label)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white hover:bg-amber-50 border border-amber-200/80 hover:border-amber-400 text-slate-700 hover:text-slate-900 transition shadow-2xs hover:shadow-xs cursor-pointer active:scale-95"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white hover:bg-amber-50 border border-amber-200/80 hover:border-amber-400 text-slate-700 hover:text-slate-900 transition shadow-2xs hover:shadow-xs cursor-pointer active:scale-95 min-h-[36px]"
                     >
-                      <Icon className="w-3.5 h-3.5 text-amber-600" />
+                      <Icon className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
                       <span>{p.label}</span>
                     </button>
                   );
@@ -135,14 +135,14 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
           </div>
 
           {/* Right Column: High-Converting Live Pandit Spotlight & Real-Time Activity Hub */}
-          <div className="lg:col-span-5">
-            <div className="bg-white rounded-2xl border border-amber-200/80 p-5 sm:p-6 shadow-at-card relative overflow-hidden flex flex-col justify-between">
+          <div className="lg:col-span-5 w-full">
+            <div className="bg-white rounded-2xl border border-amber-200/80 p-4 sm:p-6 shadow-at-card relative overflow-hidden flex flex-col justify-between w-full max-w-full">
               
               {/* Top Accent Gradient Bar */}
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500" />
 
               {/* Card Header: Live Astrologer Spotlight */}
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-3.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 pulsing-online" />
                   <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
@@ -157,17 +157,17 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               </div>
 
               {/* Pandit Profile Snippet */}
-              <div className="flex items-center gap-3.5 mb-4">
-                <div className="relative flex-shrink-0">
+              <div className="flex items-center gap-3.5 mb-3.5 w-full overflow-hidden">
+                <div className="relative flex-shrink-0 w-16 h-16">
                   <img
                     src={featuredPandit.avatarUrl}
                     alt={featuredPandit.name}
-                    className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-300 shadow-sm"
+                    className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-300 shadow-sm flex-shrink-0"
                   />
                   <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white pulsing-online" />
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 overflow-hidden">
                   <div className="flex items-center gap-1">
                     <h3 className="text-base font-extrabold text-slate-900 truncate">
                       {featuredPandit.name}
@@ -184,8 +184,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               </div>
 
               {/* Instant 1-Click Consultation CTA */}
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 mb-4 flex items-center justify-between gap-3">
-                <div>
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 mb-3.5 flex items-center justify-between gap-3">
+                <div className="min-w-0">
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full inline-block mb-1">
                     100% FREE FIRST CHAT
                   </span>
@@ -197,7 +197,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
                 <button
                   onClick={handleStartConsultation}
-                  className="btn-astrotalk px-4 py-2.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md transition active:scale-95 flex-shrink-0"
+                  className="btn-astrotalk px-4 py-2 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md transition active:scale-95 flex-shrink-0 min-h-[44px]"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                   <span>Start Chat Now</span>
