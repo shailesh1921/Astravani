@@ -31,6 +31,8 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechText, setSpeechText] = useState('');
+  const [hasPaidToContinue, setHasPaidToContinue] = useState(false);
+  const [showRechargePopup, setShowRechargePopup] = useState(false);
 
   const durationTimerRef = useRef<any>(null);
   const billingTimerRef = useRef<any>(null);
@@ -66,11 +68,15 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
       clearInterval(billingTimerRef.current);
       setCallState('ringing');
       setCallDuration(0);
+      setHasPaidToContinue(false);
+      setShowRechargePopup(false);
       return;
     }
 
     setCallState('ringing');
     setCallDuration(0);
+    setHasPaidToContinue(false);
+    setShowRechargePopup(false);
 
     // Simulate connecting after 3.2 seconds
     const ringTimeout = setTimeout(() => {
@@ -82,14 +88,33 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
       setSpeechText(openingSpeech);
       speakAstrologerVoice(openingSpeech);
 
-      // Start call duration timer
+      // Start call duration timer: 1st 1 min (60s) free, then freezes and pops recharge modal
       durationTimerRef.current = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
+        setCallDuration((prev) => {
+          if (prev >= 60 && !hasPaidToContinue) {
+            setShowRechargePopup(true);
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+            }
+            return 60;
+          }
+          const next = prev + 1;
+          if (next >= 60 && !hasPaidToContinue) {
+            setShowRechargePopup(true);
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+            }
+            return 60;
+          }
+          return next;
+        });
       }, 1000);
 
-      // Deduct wallet every 60 seconds
+      // Deduct wallet every 60 seconds after paid continuation
       billingTimerRef.current = setInterval(() => {
-        onDeductWallet(astrologer.pricePerMin);
+        if (hasPaidToContinue) {
+          onDeductWallet(astrologer.pricePerMin);
+        }
       }, 60000);
 
     }, 3200);
@@ -102,7 +127,7 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
         window.speechSynthesis.cancel();
       }
     };
-  }, [isOpen]);
+  }, [isOpen, hasPaidToContinue]);
 
   // Low balance auto-end
   useEffect(() => {
@@ -315,6 +340,126 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
           </button>
 
         </div>
+
+        {/* 1-MINUTE FREE TRIAL ENDED RECHARGE POPUP MODAL */}
+        {showRechargePopup && callState !== 'ended' && (
+          <div className="absolute inset-0 z-30 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border-2 border-amber-400 overflow-hidden animate-in zoom-in-95 duration-200 text-center">
+              
+              {/* Header Gradient */}
+              <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 p-5 text-slate-950 relative">
+                <div className="w-14 h-14 rounded-full bg-white/95 border-2 border-amber-600 flex items-center justify-center mx-auto shadow-md mb-2">
+                  <span className="text-2xl font-black text-amber-700">ॐ</span>
+                </div>
+                <span className="bg-red-600 text-white text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full tracking-wider animate-pulse inline-block mb-1 shadow-xs">
+                  Free 1-Minute Trial Completed
+                </span>
+                <h3 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-950">
+                  Recharge Wallet to Continue Call
+                </h3>
+                <p className="text-xs text-slate-800 font-semibold mt-0.5">
+                  Resume voice consultation with {astrologer.name}
+                </p>
+              </div>
+
+              {/* Body Content */}
+              <div className="p-5 space-y-4">
+                
+                {/* Astrologer Card Snippet */}
+                <div className="flex items-center gap-3 bg-amber-50/70 border border-amber-200 rounded-2xl p-3 text-left">
+                  <img
+                    src={astrologer.avatarUrl}
+                    alt={astrologer.name}
+                    className="w-12 h-12 rounded-xl object-cover border border-amber-400 shadow-xs flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <h4 className="text-sm font-bold text-slate-900 truncate">
+                        {astrologer.name}
+                      </h4>
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 truncate">{astrologer.title}</p>
+                    <p className="text-xs font-extrabold text-amber-700">
+                      Call Rate: ₹{astrologer.pricePerMin}/min
+                    </p>
+                  </div>
+                </div>
+
+                {/* Balance & Price Status */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex items-center justify-between">
+                  <div className="text-left">
+                    <span className="text-[11px] font-semibold text-slate-500 block">Your Current Balance</span>
+                    <span className={`text-base font-black font-mono ${walletBalance >= astrologer.pricePerMin ? 'text-emerald-600' : 'text-red-600'}`}>
+                      ₹{walletBalance}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[11px] font-semibold text-slate-500 block">Required per min</span>
+                    <span className="text-base font-black text-slate-900 font-mono">
+                      ₹{astrologer.pricePerMin}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Primary Action Buttons */}
+                <div className="space-y-2.5 pt-1">
+                  {walletBalance >= astrologer.pricePerMin ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          onDeductWallet(astrologer.pricePerMin);
+                          setHasPaidToContinue(true);
+                          setShowRechargePopup(false);
+                          const resumeSpeech = `Dhanyawaad ${intake.name} ji. Chaliye aapke agle prashna par charcha jaari rakhte hain.`;
+                          setSpeechText(resumeSpeech);
+                          speakAstrologerVoice(resumeSpeech);
+                        }}
+                        className="w-full btn-astrotalk py-3.5 px-4 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer transition active:scale-95"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        <span>Continue Call (₹{astrologer.pricePerMin}/min)</span>
+                      </button>
+
+                      <button
+                        onClick={onOpenRecharge}
+                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Recharge More Balance</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={onOpenRecharge}
+                      className="w-full btn-astrotalk py-3.5 px-4 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl cursor-pointer transition active:scale-95"
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span>Recharge Wallet & Continue Call ⚡</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setShowRechargePopup(false);
+                      handleEndCall();
+                    }}
+                    className="w-full text-slate-500 hover:text-slate-800 text-xs font-semibold py-1.5 transition cursor-pointer"
+                  >
+                    No thanks, End Call
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-medium pt-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>100% Secure Audio Channel • Certified Vedic Guru</span>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

@@ -41,6 +41,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
   const [totalCharged, setTotalCharged] = useState(0);
   const [showKundliDrawer, setShowKundliDrawer] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [hasPaidToContinue, setHasPaidToContinue] = useState(false);
+  const [showRechargePopup, setShowRechargePopup] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -153,6 +155,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
       setSecondsElapsed(0);
       setIsSessionEnded(false);
       setTotalCharged(0);
+      setHasPaidToContinue(false);
+      setShowRechargePopup(false);
 
       // Initial user question if provided in intake form
       const initialUserMsg: ChatMessage[] = intake.question && intake.question.trim().length > 2 ? [
@@ -183,29 +187,35 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     }
   }, [isOpen]);
 
-  // Session Timer and Per-Minute Wallet Deduction
+  // Session Timer: 1st 1 minute (60s) is 100% FREE, then STOPS and prompts for recharge
   useEffect(() => {
     if (!isOpen || isSessionEnded) return;
 
     const timer = setInterval(() => {
       setSecondsElapsed((prev) => {
+        // If 1st free minute has ended and user has NOT paid to continue, FREEZE at 60s
+        if (prev >= 60 && !hasPaidToContinue) {
+          setShowRechargePopup(true);
+          return 60;
+        }
+
         const next = prev + 1;
-        // First 60 seconds (1 minute) is FREE promotional period!
-        if (next > 60 && next % 60 === 0) {
+
+        // Exactly when reaching 60 seconds (1 minute free trial completed)
+        if (next >= 60 && !hasPaidToContinue) {
+          setShowRechargePopup(true);
+          return 60;
+        }
+
+        // Paid session continuation: deduct rate every 60s
+        if (hasPaidToContinue && next > 60 && (next - 60) % 60 === 0) {
           if (walletBalance >= astrologer.pricePerMin) {
             onDeductWallet(astrologer.pricePerMin);
             setTotalCharged((c) => c + astrologer.pricePerMin);
           } else {
-            // Low balance notice
-            setMessages((m) => [
-              ...m,
-              {
-                id: `system-low-${Date.now()}`,
-                sender: 'system',
-                text: `⚠️ Your wallet balance is low (₹${walletBalance}). Please recharge to continue the session.`,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              }
-            ]);
+            // Balance depleted during active chat: pause chat and show recharge popup
+            setShowRechargePopup(true);
+            return prev;
           }
         }
         return next;
@@ -213,7 +223,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isOpen, isSessionEnded, walletBalance, astrologer.pricePerMin]);
+  }, [isOpen, isSessionEnded, walletBalance, astrologer.pricePerMin, hasPaidToContinue]);
 
   // Auto scroll to bottom smoothly
   useEffect(() => {
@@ -223,6 +233,12 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
   const handleSendMessage = async (customText?: string) => {
     const textToSend = customText || inputText;
     if (!textToSend.trim() || isTyping) return;
+
+    // Strict 1-Minute Free Trial Enforcement: Stop and trigger recharge popup
+    if (secondsElapsed >= 60 && !hasPaidToContinue) {
+      setShowRechargePopup(true);
+      return;
+    }
 
     const msgId = `user-${Date.now()}`;
     const userMsg: ChatMessage = {
@@ -400,7 +416,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
 
         </div>
 
-        {/* Free Promo Banner */}
+        {/* Free Promo Banner (during first 60 seconds) */}
         {secondsElapsed < 60 && !isSessionEnded && (
           <div className="bg-amber-100 text-amber-950 px-4 py-1 text-center text-xs font-bold flex items-center justify-center gap-2 border-b border-amber-200">
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
@@ -408,16 +424,32 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
           </div>
         )}
 
-        {/* Low Balance Alert Banner */}
-        {secondsElapsed >= 60 && walletBalance < astrologer.pricePerMin && !isSessionEnded && (
-          <div className="bg-red-50 text-red-900 px-4 py-1.5 text-center text-xs font-bold flex items-center justify-between gap-2 border-b border-red-200 animate-in fade-in">
+        {/* Free 1-Min Completed & Chat Paused Alert Banner */}
+        {secondsElapsed >= 60 && !hasPaidToContinue && !isSessionEnded && (
+          <div className="bg-red-50 text-red-900 px-4 py-2 text-center text-xs font-bold flex items-center justify-between gap-2 border-b border-red-200 animate-in fade-in">
             <span className="flex items-center gap-1.5 text-left text-[11px] sm:text-xs">
-              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 animate-pulse" />
+              <span>⏱️ 1-Minute Free Trial Ended! Chat is paused. Please recharge wallet to start talking again.</span>
+            </span>
+            <button
+              onClick={() => setShowRechargePopup(true)}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3.5 py-1 rounded-lg transition shadow-xs cursor-pointer flex-shrink-0"
+            >
+              Recharge Wallet ⚡
+            </button>
+          </div>
+        )}
+
+        {/* Low Balance Alert Banner during paid continuation */}
+        {hasPaidToContinue && walletBalance < astrologer.pricePerMin && !isSessionEnded && (
+          <div className="bg-amber-50 text-amber-900 px-4 py-1.5 text-center text-xs font-bold flex items-center justify-between gap-2 border-b border-amber-200 animate-in fade-in">
+            <span className="flex items-center gap-1.5 text-left text-[11px] sm:text-xs">
+              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
               <span>Low Balance: ₹{walletBalance} left (Less than 1 min). Please recharge to keep chat live.</span>
             </span>
             <button
               onClick={onOpenRecharge}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] px-3 py-1 rounded-lg transition shadow-xs cursor-pointer flex-shrink-0"
+              className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] px-3 py-1 rounded-lg transition shadow-xs cursor-pointer flex-shrink-0"
             >
               Recharge Now ⚡
             </button>
@@ -611,30 +643,51 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
         </div>
 
         {/* SIGNATURE ASTROTALK FLOATING CONTINUATION CARD */}
-        <div className="bg-white/95 backdrop-blur-xs border-t border-slate-200 px-4 py-2.5 flex items-center justify-between gap-3 shadow-md flex-shrink-0">
+        <div className={`px-4 py-2.5 flex items-center justify-between gap-3 shadow-md flex-shrink-0 transition-all ${
+          secondsElapsed >= 60 && !hasPaidToContinue
+            ? 'bg-amber-50/95 border-t-2 border-red-500 shadow-amber-500/10'
+            : 'bg-white/95 backdrop-blur-xs border-t border-slate-200'
+        }`}>
           
           <div className="flex items-center gap-3">
             <img
               src={astrologer.avatarUrl}
               alt={astrologer.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-amber-400 shadow-xs flex-shrink-0"
+              className={`w-10 h-10 rounded-full object-cover border-2 shadow-xs flex-shrink-0 ${
+                secondsElapsed >= 60 && !hasPaidToContinue ? 'border-red-500 animate-pulse' : 'border-amber-400'
+              }`}
             />
             <div>
               <p className="text-xs sm:text-sm font-semibold text-slate-900 leading-tight">
-                Hi <span className="font-bold capitalize">{intake.name.split(' ')[0]}</span>, lets continue this chat at price of ₹ {astrologer.pricePerMin}.0/min
+                {secondsElapsed >= 60 && !hasPaidToContinue ? (
+                  <span className="text-red-700 font-extrabold flex items-center gap-1">
+                    <span>1-Min Free Trial Ended</span>
+                    <span className="text-slate-600 font-normal hidden sm:inline">• Rate: ₹{astrologer.pricePerMin}/min</span>
+                  </span>
+                ) : (
+                  <>Hi <span className="font-bold capitalize">{intake.name.split(' ')[0]}</span>, lets continue this chat at price of ₹ {astrologer.pricePerMin}.0/min</>
+                )}
               </p>
               <p className="text-[10px] text-slate-500">
-                100% Private & Confidential • Verified Pandit
+                {secondsElapsed >= 60 && !hasPaidToContinue
+                  ? 'Recharge your wallet to unpause chat'
+                  : '100% Private & Confidential • Verified Pandit'}
               </p>
             </div>
           </div>
 
           <button
-            onClick={onOpenRecharge}
+            onClick={() => {
+              if (secondsElapsed >= 60 && !hasPaidToContinue) {
+                setShowRechargePopup(true);
+              } else {
+                onOpenRecharge();
+              }
+            }}
             className="bg-[#FCD34D] hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer flex-shrink-0"
           >
             <Wallet className="w-3.5 h-3.5" />
-            <span>Recharge / Continue</span>
+            <span>{secondsElapsed >= 60 && !hasPaidToContinue ? 'Recharge to Talk ⚡' : 'Recharge / Continue'}</span>
           </button>
 
         </div>
@@ -646,7 +699,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
               <button
                 key={q}
                 onClick={() => handleSendMessage(q)}
-                disabled={isTyping}
+                disabled={isTyping || (secondsElapsed >= 60 && !hasPaidToContinue)}
                 className="flex-shrink-0 text-[11px] font-semibold bg-white hover:bg-amber-50 text-slate-800 border border-slate-300 px-3 py-1 rounded-full transition disabled:opacity-50 cursor-pointer shadow-2xs hover:border-amber-400"
               >
                 {q}
@@ -674,9 +727,13 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder={`Type your query to ${astrologer.name.split(' ')[0]}...`}
-              disabled={isTyping}
-              className="flex-1 bg-white border border-slate-300 rounded-full px-4 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:border-amber-500 text-slate-900 placeholder-slate-400 min-h-[44px]"
+              placeholder={
+                secondsElapsed >= 60 && !hasPaidToContinue
+                  ? "🔒 Free 1-min ended. Recharge wallet to send messages..."
+                  : `Type your query to ${astrologer.name.split(' ')[0]}...`
+              }
+              disabled={isTyping || (secondsElapsed >= 60 && !hasPaidToContinue)}
+              className="flex-1 bg-white border border-slate-300 rounded-full px-4 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:border-amber-500 text-slate-900 placeholder-slate-400 min-h-[44px] disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
 
             <button 
@@ -689,7 +746,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
 
             <button
               onClick={() => handleSendMessage()}
-              disabled={!inputText.trim() || isTyping}
+              disabled={!inputText.trim() || isTyping || (secondsElapsed >= 60 && !hasPaidToContinue)}
               className="w-11 h-11 sm:w-10 sm:h-10 min-w-[44px] min-h-[44px] sm:min-w-[40px] sm:min-h-[40px] rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition disabled:opacity-40 cursor-pointer shadow-sm flex-shrink-0 active:scale-95"
             >
               <Send className="w-4 h-4 ml-0.5" />
@@ -755,6 +812,124 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
               >
                 Close & Return
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* 1-MINUTE FREE TRIAL ENDED RECHARGE POPUP MODAL */}
+        {showRechargePopup && !isSessionEnded && (
+          <div className="absolute inset-0 z-30 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border-2 border-amber-400 overflow-hidden animate-in zoom-in-95 duration-200 text-center">
+              
+              {/* Header Gradient */}
+              <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 p-5 text-slate-950 relative">
+                <div className="w-14 h-14 rounded-full bg-white/95 border-2 border-amber-600 flex items-center justify-center mx-auto shadow-md mb-2">
+                  <span className="text-2xl font-black text-amber-700">ॐ</span>
+                </div>
+                <span className="bg-red-600 text-white text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full tracking-wider animate-pulse inline-block mb-1 shadow-xs">
+                  Free 1-Minute Trial Completed
+                </span>
+                <h3 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-950">
+                  Recharge Wallet to Continue
+                </h3>
+                <p className="text-xs text-slate-800 font-semibold mt-0.5">
+                  Keep consulting with {astrologer.name} without interruption
+                </p>
+              </div>
+
+              {/* Body Content */}
+              <div className="p-5 space-y-4">
+                
+                {/* Astrologer Card Snippet */}
+                <div className="flex items-center gap-3 bg-amber-50/70 border border-amber-200 rounded-2xl p-3 text-left">
+                  <img
+                    src={astrologer.avatarUrl}
+                    alt={astrologer.name}
+                    className="w-12 h-12 rounded-xl object-cover border border-amber-400 shadow-xs flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <h4 className="text-sm font-bold text-slate-900 truncate">
+                        {astrologer.name}
+                      </h4>
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 truncate">{astrologer.title}</p>
+                    <p className="text-xs font-extrabold text-amber-700">
+                      Rate: ₹{astrologer.pricePerMin}/min
+                    </p>
+                  </div>
+                </div>
+
+                {/* Balance & Price Status */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex items-center justify-between">
+                  <div className="text-left">
+                    <span className="text-[11px] font-semibold text-slate-500 block">Your Current Balance</span>
+                    <span className={`text-base font-black font-mono ${walletBalance >= astrologer.pricePerMin ? 'text-emerald-600' : 'text-red-600'}`}>
+                      ₹{walletBalance}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[11px] font-semibold text-slate-500 block">Required per min</span>
+                    <span className="text-base font-black text-slate-900 font-mono">
+                      ₹{astrologer.pricePerMin}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Primary Action Buttons */}
+                <div className="space-y-2.5 pt-1">
+                  {walletBalance >= astrologer.pricePerMin ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          onDeductWallet(astrologer.pricePerMin);
+                          setTotalCharged((c) => c + astrologer.pricePerMin);
+                          setHasPaidToContinue(true);
+                          setShowRechargePopup(false);
+                        }}
+                        className="w-full btn-astrotalk py-3.5 px-4 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer transition active:scale-95"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        <span>Continue Chat (₹{astrologer.pricePerMin}/min)</span>
+                      </button>
+
+                      <button
+                        onClick={onOpenRecharge}
+                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200"
+                      >
+                        <Wallet className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Recharge More Balance</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={onOpenRecharge}
+                      className="w-full btn-astrotalk py-3.5 px-4 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl cursor-pointer transition active:scale-95"
+                    >
+                      <Wallet className="w-4 h-4" />
+                      <span>Recharge Wallet & Continue Chat ⚡</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setShowRechargePopup(false);
+                      handleEndChat();
+                    }}
+                    className="w-full text-slate-500 hover:text-slate-800 text-xs font-semibold py-1.5 transition cursor-pointer"
+                  >
+                    No thanks, End Consultation
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-medium pt-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>100% Secure UPI & Card Payments • Confidential Reading</span>
+                </div>
+
+              </div>
+
             </div>
           </div>
         )}
