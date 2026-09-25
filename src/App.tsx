@@ -30,11 +30,16 @@ export const App: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
 
-  // Wallet balance
+  // Wallet balance: Starts strictly at 0. First 1 min is free, then user MUST recharge.
   const [walletBalance, setWalletBalance] = useState<number>(() => {
-    const saved = localStorage.getItem('astrotalk_wallet');
-    return saved ? parseInt(saved, 10) : 100;
+    const saved = localStorage.getItem('astravani_wallet_balance');
+    return saved !== null ? Math.max(0, parseInt(saved, 10)) : 0;
   });
+
+  useEffect(() => {
+    localStorage.removeItem('astrotalk_wallet');
+    localStorage.setItem('astravani_wallet_balance', walletBalance.toString());
+  }, [walletBalance]);
 
   // Payment configuration (Cashfree / Razorpay / Direct)
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => {
@@ -96,11 +101,7 @@ export const App: React.FC = () => {
 
   // Persistence effects
   useEffect(() => {
-    localStorage.setItem('astrotalk_wallet', walletBalance.toString());
-  }, [walletBalance]);
-
-  useEffect(() => {
-    localStorage.setItem('astrotalk_payment_config', JSON.stringify(paymentConfig));
+    localStorage.setItem('astravani_payment_config', JSON.stringify(paymentConfig));
   }, [paymentConfig]);
 
   useEffect(() => {

@@ -91,29 +91,48 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
       // Start call duration timer: 1st 1 min (60s) free, then freezes and pops recharge modal
       durationTimerRef.current = setInterval(() => {
         setCallDuration((prev) => {
-          if (prev >= 60 && !hasPaidToContinue) {
+          if (!hasPaidToContinue) {
+            if (prev >= 60) {
+              setShowRechargePopup(true);
+              if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+              }
+              return 60;
+            }
+            const next = prev + 1;
+            if (next >= 60) {
+              setShowRechargePopup(true);
+              if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+              }
+              return 60;
+            }
+            return next;
+          }
+
+          if (walletBalance < astrologer.pricePerMin) {
             setShowRechargePopup(true);
             if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
               window.speechSynthesis.cancel();
             }
-            return 60;
+            return prev;
           }
-          const next = prev + 1;
-          if (next >= 60 && !hasPaidToContinue) {
-            setShowRechargePopup(true);
-            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-              window.speechSynthesis.cancel();
-            }
-            return 60;
-          }
-          return next;
+
+          return prev + 1;
         });
       }, 1000);
 
       // Deduct wallet every 60 seconds after paid continuation
       billingTimerRef.current = setInterval(() => {
         if (hasPaidToContinue) {
-          onDeductWallet(astrologer.pricePerMin);
+          if (walletBalance >= astrologer.pricePerMin) {
+            onDeductWallet(astrologer.pricePerMin);
+          } else {
+            setShowRechargePopup(true);
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+            }
+          }
         }
       }, 60000);
 
@@ -127,7 +146,15 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
         window.speechSynthesis.cancel();
       }
     };
-  }, [isOpen, hasPaidToContinue]);
+  }, [isOpen, hasPaidToContinue, walletBalance, astrologer.pricePerMin]);
+
+  // When user recharges wallet and balance becomes sufficient during call, auto-unpause
+  useEffect(() => {
+    if (walletBalance >= astrologer.pricePerMin && showRechargePopup) {
+      setHasPaidToContinue(true);
+      setShowRechargePopup(false);
+    }
+  }, [walletBalance, astrologer.pricePerMin, showRechargePopup]);
 
   // Low balance auto-end
   useEffect(() => {
