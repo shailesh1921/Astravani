@@ -1,18 +1,25 @@
 import React from 'react';
-import { MessageSquare, ScrollText, HeartHandshake, Compass } from 'lucide-react';
+import { MessageSquare, ScrollText, HeartHandshake, Compass, User } from 'lucide-react';
+import { UserProfile } from '../types/astrotalk';
 
 interface MobileBottomNavProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   walletBalance: number;
   onOpenWallet: () => void;
+  currentUser?: UserProfile | null;
+  onOpenProfile: () => void;
+  onOpenAuth: () => void;
 }
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   activeTab,
   setActiveTab,
   walletBalance,
-  onOpenWallet
+  onOpenWallet,
+  currentUser,
+  onOpenProfile,
+  onOpenAuth
 }) => {
   const navItems = [
     {
@@ -92,6 +99,27 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           </span>
           <span className="text-[8px] font-black text-emerald-600 uppercase">
             Add
+          </span>
+        </button>
+
+        {/* User Account / Profile Button */}
+        <button
+          onClick={currentUser ? onOpenProfile : onOpenAuth}
+          className="relative flex flex-col items-center justify-center flex-1 py-1 px-1 transition-all cursor-pointer min-h-[48px] text-slate-600 hover:text-amber-700 rounded-xl"
+        >
+          <div className="relative">
+            {currentUser?.avatarUrl ? (
+              <img src={currentUser.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover border border-amber-400" />
+            ) : currentUser ? (
+              <div className="w-5 h-5 rounded-full bg-amber-500 text-white font-black text-[9px] flex items-center justify-center">
+                {currentUser.fullName.charAt(0).toUpperCase()}
+              </div>
+            ) : (
+              <User className="w-5 h-5 text-slate-500" />
+            )}
+          </div>
+          <span className="text-[11px] font-bold mt-0.5 tracking-tight truncate max-w-[50px]">
+            {currentUser ? currentUser.fullName.split(' ')[0] : 'Login'}
           </span>
         </button>
       </div>

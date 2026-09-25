@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ASTROLOGERS_DATA } from './data/astrologersData';
-import { Astrologer, ConsultationIntake, ApiConfig, PaymentConfig, PaymentTransaction } from './types/astrotalk';
+import { Astrologer, ConsultationIntake, ApiConfig, PaymentConfig, PaymentTransaction, UserProfile } from './types/astrotalk';
+import { cloudAuth } from './services/cloudAuthService';
 import { Header } from './components/Header';
 import { QuickServicesBar } from './components/QuickServicesBar';
 import { HeroBanner } from './components/HeroBanner';
@@ -13,6 +14,8 @@ import { AstrologerChatModal } from './components/AstrologerChatModal';
 import { AstrologerCallModal } from './components/AstrologerCallModal';
 import { WalletModal } from './components/WalletModal';
 import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
+import { AuthModal } from './components/AuthModal';
+import { UserProfileDrawer } from './components/UserProfileDrawer';
 import { AstrotalkFooter } from './components/AstrotalkFooter';
 import { CompliancePolicyModal, PolicyTab } from './components/CompliancePolicyModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
@@ -21,6 +24,11 @@ export const App: React.FC = () => {
   // Navigation & View state
   const [activeTab, setActiveTab] = useState<string>('astrologers');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Persistent User Authentication & Cloud Synchronization
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => cloudAuth.getCurrentUser());
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
 
   // Wallet balance
   const [walletBalance, setWalletBalance] = useState<number>(() => {
@@ -103,6 +111,18 @@ export const App: React.FC = () => {
     localStorage.setItem('astrotalk_api_config', JSON.stringify(apiConfig));
   }, [apiConfig]);
 
+  // Persistent Cloud User Subscription & Sync
+  useEffect(() => {
+    const unsub = cloudAuth.subscribe((user) => {
+      setCurrentUser(user);
+      if (user) {
+        setWalletBalance(cloudAuth.getWalletBalance());
+        setTransactions(cloudAuth.getTransactions());
+      }
+    });
+    return () => unsub();
+  }, []);
+
   // Handlers
   const handleInitiateChat = (astrologer: Astrologer) => {
     setSelectedAstrologer(astrologer);
@@ -127,7 +147,13 @@ export const App: React.FC = () => {
   };
 
   const handleDeductWallet = (amount: number) => {
-    setWalletBalance(prev => Math.max(0, prev - amount));
+    setWalletBalance(prev => {
+      const next = Math.max(0, prev - amount);
+      if (cloudAuth.isAuthenticated()) {
+        cloudAuth.setWalletBalance(next);
+      }
+      return next;
+    });
   };
 
   const handleSelectRechargePack = (pack: { pay: number; get: number; tag: string; bonus: string }) => {
@@ -139,6 +165,9 @@ export const App: React.FC = () => {
   const handlePaymentSuccess = (transaction: PaymentTransaction) => {
     setWalletBalance(prev => prev + transaction.totalCredited);
     setTransactions(prev => [transaction, ...prev]);
+    if (cloudAuth.isAuthenticated()) {
+      cloudAuth.addTransaction(transaction);
+    }
   };
 
   const handleQuickTopicSelect = (topic: string) => {
@@ -166,6 +195,9 @@ export const App: React.FC = () => {
         setActiveTab={setActiveTab}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        currentUser={currentUser}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenProfile={() => setIsProfileDrawerOpen(true)}
       />
 
       {/* Circular Quick Services Bar */}
@@ -211,17 +243,6 @@ export const App: React.FC = () => {
           <DailyHoroscopeView onConsultSign={handleConsultFromTool} />
         )}
       </main>
-
-      {/* Sticky Mobile Bottom Navigation Bar (320px - 640px) */}
-      <MobileBottomNav
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        walletBalance={walletBalance}
-        onOpenWallet={() => {
-          setWalletTab('wallet');
-          setIsWalletOpen(true);
-        }}
-      />
 
       {/* Consultation Modals */}
       {selectedAstrologer && (
@@ -310,6 +331,48 @@ export const App: React.FC = () => {
         onClose={() => setIsPolicyOpen(false)}
         activeTab={policyTab}
         onTabChange={(tab) => setPolicyTab(tab)}
+      />
+
+      {/* Cloud Authentication Modal (Phone OTP, Email/Pass, Google 1-Tap) */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={(user) => {
+          setCurrentUser(user);
+          setWalletBalance(cloudAuth.getWalletBalance());
+          setTransactions(cloudAuth.getTransactions());
+        }}
+      />
+
+      {/* Slide-over User Profile, Saved Kundlis, Ledger & Chat History Drawer */}
+      {currentUser && (
+        <UserProfileDrawer
+          isOpen={isProfileDrawerOpen}
+          onClose={() => setIsProfileDrawerOpen(false)}
+          currentUser={currentUser}
+          onLogout={() => {
+            cloudAuth.logout();
+            setCurrentUser(null);
+          }}
+          onOpenRecharge={() => {
+            setWalletTab('wallet');
+            setIsWalletOpen(true);
+          }}
+        />
+      )}
+
+      {/* Mobile Sticky Bottom Navigation (<640px) with 1-Tap Account Switcher */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        walletBalance={walletBalance}
+        onOpenWallet={() => {
+          setWalletTab('wallet');
+          setIsWalletOpen(true);
+        }}
+        currentUser={currentUser}
+        onOpenProfile={() => setIsProfileDrawerOpen(true)}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
       />
 
     </div>

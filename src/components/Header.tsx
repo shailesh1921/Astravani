@@ -1,5 +1,6 @@
 import React from 'react';
-import { Sparkles, Wallet, Search, ShieldCheck } from 'lucide-react';
+import { Sparkles, Wallet, Search, ShieldCheck, User } from 'lucide-react';
+import { UserProfile } from '../types/astrotalk';
 
 interface HeaderProps {
   walletBalance: number;
@@ -8,6 +9,9 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  currentUser?: UserProfile | null;
+  onOpenAuth: () => void;
+  onOpenProfile: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,7 +20,10 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   searchQuery,
-  setSearchQuery
+  setSearchQuery,
+  currentUser,
+  onOpenAuth,
+  onOpenProfile
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
@@ -88,8 +95,10 @@ export const Header: React.FC<HeaderProps> = ({
             />
           </div>
 
-          {/* Right Action Buttons: Wallet Balance & Recharge */}
+          {/* Right Action Buttons: Wallet Balance, Recharge & User Cloud Profile */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            
+            {/* Wallet Balance Pill */}
             <div className="flex items-center bg-amber-50 border border-amber-200/90 rounded-2xl p-1 gap-1.5 shadow-xs">
               <div 
                 onClick={onOpenWallet}
@@ -105,12 +114,46 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <button
                 onClick={onOpenWallet}
-                className="btn-astrotalk text-white font-bold text-xs px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                className="btn-astrotalk text-white font-bold text-xs px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <Wallet className="w-3.5 h-3.5" />
-                <span>+ Recharge</span>
+                <span className="hidden xs:inline">+ Recharge</span>
               </button>
             </div>
+
+            {/* Astrotalk User Profile / Login Avatar */}
+            {currentUser ? (
+              <button
+                type="button"
+                onClick={onOpenProfile}
+                className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1 rounded-2xl border border-slate-200 hover:border-amber-400 bg-slate-50 hover:bg-white transition cursor-pointer shadow-2xs group"
+                title={`Profile: ${currentUser.fullName}`}
+              >
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white font-black flex items-center justify-center text-xs shadow-xs flex-shrink-0">
+                  {currentUser.avatarUrl ? (
+                    <img src={currentUser.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    currentUser.fullName.charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="hidden sm:block text-left max-w-[85px]">
+                  <span className="text-xs font-bold text-slate-900 block leading-tight truncate">
+                    {currentUser.fullName.split(' ')[0]}
+                  </span>
+                  <span className="text-[9px] text-emerald-600 font-extrabold block">● Synced</span>
+                </div>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenAuth}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs transition cursor-pointer shadow-2xs"
+              >
+                <User className="w-3.5 h-3.5 text-amber-700" />
+                <span>Login</span>
+              </button>
+            )}
+
           </div>
 
         </div>

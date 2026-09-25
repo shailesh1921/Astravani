@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Astrologer, ConsultationIntake } from '../types/astrotalk';
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, MessageSquare, ShieldCheck, Sparkles, Clock, AlertCircle } from 'lucide-react';
 import { sounds } from '../utils/audioEffects';
+import { cloudAuth } from '../services/cloudAuthService';
 
 interface AstrologerCallModalProps {
   astrologer: Astrologer;
@@ -125,6 +126,37 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
     clearInterval(durationTimerRef.current);
     clearInterval(billingTimerRef.current);
     setCallState('ended');
+
+    if (callDuration > 0) {
+      try {
+        const cost = Math.max(0, Math.floor(callDuration / 60) * astrologer.pricePerMin);
+        cloudAuth.saveConsultation({
+          astrologerId: astrologer.id,
+          astrologerName: astrologer.name,
+          astrologerAvatar: astrologer.avatarUrl,
+          astrologerTitle: astrologer.title,
+          mode: 'call',
+          durationSeconds: callDuration,
+          amountDeducted: cost,
+          status: 'completed',
+          startedAt: new Date(Date.now() - callDuration * 1000).toISOString(),
+          endedAt: new Date().toISOString(),
+          topic: intake.topic,
+          intake,
+          messages: [
+            {
+              id: `call-log-${Date.now()}`,
+              sender: 'system',
+              text: `Audio consultation with ${astrologer.name}. Duration: ${Math.floor(callDuration / 60)}m ${callDuration % 60}s.`,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+          ]
+        });
+      } catch (e) {
+        console.error('Failed to save call consultation:', e);
+      }
+    }
+
     setTimeout(() => {
       onClose();
     }, 1200);

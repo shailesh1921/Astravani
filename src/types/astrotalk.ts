@@ -169,3 +169,60 @@ export interface GunaMilanResult {
     interpretation: string;
   }[];
 }
+
+export interface UserProfile {
+  id: string;
+  phone: string;
+  email?: string;
+  fullName: string;
+  avatarUrl?: string;
+  gender: 'Male' | 'Female' | 'Other';
+  dob: string;
+  tob: string;
+  pob: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  maritalStatus?: 'Single' | 'Married' | 'Divorced' | 'Widowed' | 'In a Relationship';
+  occupation?: string;
+  preferredLanguage?: string;
+  createdAt: string;
+  lastLoginAt: string;
+}
+
+export interface SavedKundli {
+  id: string;
+  userId: string;
+  name: string;
+  relation: 'Self' | 'Spouse' | 'Son' | 'Daughter' | 'Father' | 'Mother' | 'Brother' | 'Sister' | 'Friend' | 'Other';
+  gender: 'Male' | 'Female' | 'Other';
+  dob: string;
+  tob: string;
+  pob: string;
+  createdAt: string;
+}
+
+export interface ConsultationRecord {
+  id: string;
+  userId: string;
+  astrologerId: string;
+  astrologerName: string;
+  astrologerAvatar: string;
+  astrologerTitle: string;
+  mode: 'chat' | 'call';
+  durationSeconds: number;
+  amountDeducted: number;
+  status: 'completed' | 'ongoing' | 'failed';
+  startedAt: string;
+  endedAt?: string;
+  topic?: string;
+  intake: ConsultationIntake;
+  messages: ChatMessage[];
+  remediesNotes?: string;
+}
+
+export interface AuthSession {
+  user: UserProfile;
+  token: string;
+  expiresAt: number;
+}

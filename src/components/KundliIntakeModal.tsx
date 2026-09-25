@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Astrologer, ConsultationIntake } from '../types/astrotalk';
+import { Astrologer, ConsultationIntake, SavedKundli } from '../types/astrotalk';
 import { calculateKundli } from '../utils/kundliEngine';
+import { cloudAuth } from '../services/cloudAuthService';
 import { 
   X, Calendar, Clock, MapPin, Sparkles, User, ShieldCheck, 
   HelpCircle, Compass, CheckCircle2, ChevronRight, BookmarkCheck,
-  Search, Star, Award
+  Search, Star, Award, Users
 } from 'lucide-react';
 
 interface KundliIntakeModalProps {
@@ -116,6 +117,41 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
   const [activeProfileTab, setActiveProfileTab] = useState<'myself' | 'partner' | 'family'>('myself');
   const [unknownTime, setUnknownTime] = useState(false);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [savedKundlis, setSavedKundlis] = useState<SavedKundli[]>([]);
+  const [selectedKundliId, setSelectedKundliId] = useState<string | null>(null);
+  const [saveToAccount, setSaveToAccount] = useState(true);
+
+  // Sync with cloud user saved profiles
+  useEffect(() => {
+    if (isOpen) {
+      const list = cloudAuth.getSavedKundlis();
+      setSavedKundlis(list);
+      if (list.length > 0 && (!formData.name || formData.name === '')) {
+        const primary = list[0];
+        setSelectedKundliId(primary.id);
+        setFormData(prev => ({
+          ...prev,
+          name: primary.name,
+          gender: primary.gender,
+          dob: primary.dob,
+          tob: primary.tob,
+          pob: primary.pob
+        }));
+      }
+    }
+  }, [isOpen]);
+
+  const handleSelectSavedProfile = (kundli: SavedKundli) => {
+    setSelectedKundliId(kundli.id);
+    setFormData(prev => ({
+      ...prev,
+      name: kundli.name,
+      gender: kundli.gender,
+      dob: kundli.dob,
+      tob: kundli.tob,
+      pob: kundli.pob
+    }));
+  };
 
   // Filter city suggestions
   const filteredCities = useMemo(() => {
@@ -196,6 +232,23 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
       // ignore
     }
 
+    if (saveToAccount && cloudAuth.isAuthenticated()) {
+      try {
+        const existing = cloudAuth.getSavedKundlis();
+        const alreadyExists = existing.some(k => k.name.toLowerCase() === finalData.name.trim().toLowerCase());
+        if (!alreadyExists && finalData.name.trim()) {
+          cloudAuth.saveKundli({
+            name: finalData.name.trim(),
+            relation: activeProfileTab === 'partner' ? 'Spouse' : activeProfileTab === 'family' ? 'Other' : 'Self',
+            gender: finalData.gender,
+            dob: finalData.dob,
+            tob: finalData.tob,
+            pob: finalData.pob
+          });
+        }
+      } catch (e) {}
+    }
+
     onSubmit(finalData);
   };
 
@@ -256,31 +309,58 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
           </span>
         </div>
 
-        {/* QUICK PROFILE SWITCHER */}
-        <div className="bg-slate-50 px-4 pt-2.5 pb-2 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Consultation For:
-          </span>
-          <div className="flex gap-1.5">
-            {[
-              { id: 'myself', label: 'Myself' },
-              { id: 'partner', label: 'Partner' },
-              { id: 'family', label: 'Family / Child' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => handleProfileTab(tab.id as any)}
-                className={`px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
-                  activeProfileTab === tab.id
-                    ? 'bg-amber-500 text-white shadow-2xs'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+        {/* QUICK PROFILE SWITCHER & SAVED FAMILY CHARTS */}
+        <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 space-y-1.5 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <Users className="w-3.5 h-3.5 text-amber-600" />
+              <span>Consultation For:</span>
+            </span>
+            <div className="flex gap-1.5">
+              {[
+                { id: 'myself', label: 'Myself' },
+                { id: 'partner', label: 'Partner' },
+                { id: 'family', label: 'Family / Child' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => handleProfileTab(tab.id as any)}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
+                    activeProfileTab === tab.id
+                      ? 'bg-amber-500 text-white shadow-2xs'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* 1-Tap Saved Family Kundli Auto-Fill Bar */}
+          {savedKundlis.length > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+              <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">
+                Saved Charts:
+              </span>
+              {savedKundlis.map((k) => (
+                <button
+                  key={k.id}
+                  type="button"
+                  onClick={() => handleSelectSavedProfile(k)}
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1 ${
+                    selectedKundliId === k.id
+                      ? 'bg-amber-100 text-amber-900 border border-amber-400 shadow-2xs'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-amber-300'
+                  }`}
+                >
+                  <span>{k.relation === 'Self' ? '👤' : k.relation === 'Spouse' ? '💍' : '👶'}</span>
+                  <span>{k.name} ({k.relation})</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* FORM BODY */}
@@ -520,7 +600,21 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
           </div>
 
           {/* Action Button & Security Sticky Footer */}
-          <div className="px-4 py-3 sm:px-6 bg-white border-t border-slate-100 pb-safe flex-shrink-0 shadow-lg">
+          <div className="px-4 py-3 sm:px-6 bg-white border-t border-slate-100 pb-safe flex-shrink-0 shadow-lg space-y-2">
+            
+            {/* Auto-save profile option */}
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={saveToAccount}
+                onChange={(e) => setSaveToAccount(e.target.checked)}
+                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 border-slate-300"
+              />
+              <span className="text-[11px] font-semibold text-slate-700">
+                Save this Kundli profile to my AstraVani account for 1-tap future consultations
+              </span>
+            </label>
+
             <button
               type="submit"
               className="btn-astrotalk w-full py-3.5 sm:py-3 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition transform active:scale-[0.99] min-h-[48px]"

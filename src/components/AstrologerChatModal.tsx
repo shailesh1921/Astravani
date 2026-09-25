@@ -9,6 +9,7 @@ import {
   Share2, Printer, AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { cloudAuth } from '../services/cloudAuthService';
 
 interface AstrologerChatModalProps {
   astrologer: Astrologer;
@@ -268,6 +269,26 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
       spread: 70,
       origin: { y: 0.6 }
     });
+
+    try {
+      cloudAuth.saveConsultation({
+        astrologerId: astrologer.id,
+        astrologerName: astrologer.name,
+        astrologerAvatar: astrologer.avatarUrl,
+        astrologerTitle: astrologer.title,
+        mode: 'chat',
+        durationSeconds: secondsElapsed,
+        amountDeducted: totalCharged,
+        status: 'completed',
+        startedAt: new Date(Date.now() - secondsElapsed * 1000).toISOString(),
+        endedAt: new Date().toISOString(),
+        topic: intake.topic,
+        intake,
+        messages
+      });
+    } catch (e) {
+      console.error('Failed to archive consultation to cloud account:', e);
+    }
   };
 
   const formatTimer = (secs: number) => {
