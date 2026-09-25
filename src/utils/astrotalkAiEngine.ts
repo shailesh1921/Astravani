@@ -38,18 +38,24 @@ export async function generateAstrologerResponses(
     // Silently continue
   }
 
-  // 2. If user provided a custom live Gemini or OpenAI API key in client settings, try that
-  if (apiConfig.apiKey && apiConfig.apiKey.trim().length > 10) {
+  // 2. Check environment variable VITE_GEMINI_API_KEY or user settings key
+  const envGeminiKey = (import.meta.env.VITE_GEMINI_API_KEY as string | undefined)?.trim();
+  const effectiveKey = (apiConfig.apiKey && apiConfig.apiKey.trim().length > 10) 
+    ? apiConfig.apiKey.trim() 
+    : (envGeminiKey && envGeminiKey.length > 10 ? envGeminiKey : '');
+
+  if (effectiveKey) {
     try {
-      if (apiConfig.provider === 'gemini') {
-        const lines = await callGeminiApiLines(userMessage, astrologer, intake, chatHistory, apiConfig.apiKey, apiConfig.model);
+      const provider = apiConfig.provider === 'openai' && apiConfig.apiKey ? 'openai' : 'gemini';
+      if (provider === 'gemini') {
+        const lines = await callGeminiApiLines(userMessage, astrologer, intake, chatHistory, effectiveKey, apiConfig.model || 'gemini-1.5-flash');
         if (lines && lines.length > 0) return lines;
-      } else if (apiConfig.provider === 'openai') {
-        const lines = await callOpenAiApiLines(userMessage, astrologer, intake, chatHistory, apiConfig.apiKey, apiConfig.model);
+      } else if (provider === 'openai') {
+        const lines = await callOpenAiApiLines(userMessage, astrologer, intake, chatHistory, effectiveKey, apiConfig.model || 'gpt-4o-mini');
         if (lines && lines.length > 0) return lines;
       }
     } catch (err) {
-      console.warn('External client API call failed, falling back to dynamic multi-turn engine:', err);
+      console.warn('External AI call failed, falling back to dynamic multi-turn Vedic engine:', err);
     }
   }
 
