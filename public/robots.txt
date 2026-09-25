@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.astravani.in/sitemap.xml
+Host: https://www.astravani.in
