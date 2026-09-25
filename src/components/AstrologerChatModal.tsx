@@ -117,28 +117,31 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
   };
 
   // Deliver sequential replies with realistic human typing cadence
-  // (Not too fast, not too slow — ~2.2 to 3.5 seconds per line so user has time to read and never doubts)
+  // Deliver sequential replies with realistic human typing cadence (not machine fast)
   const deliverSequentialReplies = async (replies: string[]) => {
-    for (let i = 0; i < replies.length; i++) {
+    // Limit to 2 bubbles max to avoid text dumping
+    const bubbles = replies.slice(0, 2);
+
+    for (let i = 0; i < bubbles.length; i++) {
       setIsTyping(true);
       
-      // Believable typing duration based on character count (approx 2000ms - 3200ms)
-      const typingDuration = Math.min(3400, Math.max(2200, replies[i].length * 45));
+      // Believable human typing duration (2800ms - 4200ms)
+      const typingDuration = Math.min(4200, Math.max(2600, bubbles[i].length * 52));
       await new Promise((r) => setTimeout(r, typingDuration));
 
       const newMsg: ChatMessage = {
         id: `astrologer-${Date.now()}-${i}`,
         sender: 'astrologer',
-        text: replies[i],
+        text: bubbles[i],
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages((prev) => [...prev, newMsg]);
       playChime();
 
-      // Brief human pause between consecutive messages (1000ms - 1500ms)
-      if (i < replies.length - 1) {
+      // Human pause between consecutive messages (1800ms - 2600ms)
+      if (i < bubbles.length - 1) {
         setIsTyping(false);
-        await new Promise((r) => setTimeout(r, 1100 + Math.random() * 400));
+        await new Promise((r) => setTimeout(r, 2000 + Math.random() * 600));
       }
     }
     setIsTyping(false);
@@ -164,20 +167,17 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
 
       setMessages(initialUserMsg);
 
-      // Human-like opening sequence (mirroring authentic Astrotalk live conversation)
+      // Human-like opening sequence: Only 2 polite, natural lines
       const firstName = intake.name.split(' ')[0] || intake.name;
       const openingLines = [
-        `Main aapki kundli dekh raha hoon ${firstName} ji...`,
-        `Apki lagan mai rashi dekhe to ${userKundli.lagnaSign.split(' ')[0]} hai`,
-        `${userKundli.mahadasha.split(' ')[0]} ki dasha chal rahi hai abhi`,
-        `Aapki life me samriddhi aur safalta ka shubh yog dikh raha hai`,
-        `Bataiye ${firstName} ji, aap apne career, vivah ya kisi vishisht vishay par kya poochna chahte hain?`
+        `Pranam ${firstName} ji! Main aapki janam patrika open kar raha hoon.`,
+        `Bataiye, aaj kis vishay par aap vishisht guidance chahte hain?`
       ];
 
-      // Realistic 1.5s delay before pandit starts typing opening greeting
+      // Realistic 2.2s delay before pandit starts typing opening greeting
       const initTimer = setTimeout(() => {
         deliverSequentialReplies(openingLines);
-      }, 1500);
+      }, 2200);
 
       return () => clearTimeout(initTimer);
     }
@@ -242,8 +242,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
       prev.map((m) => (m.id === msgId ? { ...m, status: 'delivered' } : m))
     );
 
-    // Step 2: Realistic "Pandit reading & reflecting" pause before typing starts (1.0s - 1.5s)
-    await new Promise((r) => setTimeout(r, 1200 + Math.random() * 400));
+    // Step 2: Realistic "Pandit reading question & analyzing chart" pause before typing starts (2.2s - 3.0s)
+    await new Promise((r) => setTimeout(r, 2200 + Math.random() * 800));
 
     try {
       const replyLines = await generateAstrologerResponses(
