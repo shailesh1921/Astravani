@@ -5,7 +5,8 @@ import { sounds } from '../utils/audioEffects';
 import { 
   X, ShieldCheck, QrCode, CreditCard, Lock, 
   CheckCircle2, Sparkles, Loader2, Download,
-  Copy, Check, ExternalLink, ChevronDown, ChevronUp
+  Copy, Check, ExternalLink, ChevronDown, ChevronUp,
+  Clock, AlertCircle, MessageCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -82,14 +83,36 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
     });
   };
 
-  const handleProcessPayment = (paymentMethod: string = 'upi') => {
+  const [pendingTxn, setPendingTxn] = useState<PaymentTransaction | null>(null);
+
+  // Handle manual UPI/UTR submission: NEVER auto-credit wallet. Move to pending verification.
+  const handleManualUtrSubmit = () => {
+    if (!utrNumber.trim()) {
+      setShowUtrInput(true);
+      return;
+    }
     setIsProcessing(true);
     setTimeout(() => {
-      completeTransaction(utrNumber, paymentMethod);
+      setIsProcessing(false);
+      const txnId = `req_${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
+      const txn: PaymentTransaction = {
+        id: txnId,
+        amount: pack.pay,
+        bonusCredit: pack.get - pack.pay,
+        totalCredited: pack.get,
+        method: 'upi',
+        status: 'pending',
+        timestamp: new Date().toLocaleString(),
+        receiptId: `REQ_${Math.floor(100000 + Math.random() * 900000)}`,
+        paymentGatewayId: `UTR_${utrNumber.trim()}`
+      };
+      setPendingTxn(txn);
+      onPaymentSuccess(txn); // Recorded in ledger as pending, but balance will NOT be credited
     }, 1200);
   };
 
-  const completeTransaction = (customRef?: string, methodType: string = 'upi') => {
+  // Only real authenticated gateway callbacks (Cashfree / Razorpay) call this
+  const completeTransaction = (customRef?: string, methodType: string = 'gateway') => {
     setIsProcessing(false);
     const txnId = `pay_${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
     const txn: PaymentTransaction = {
@@ -101,7 +124,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
       status: 'success',
       timestamp: new Date().toLocaleString(),
       receiptId: `RCPT_${Math.floor(100000 + Math.random() * 900000)}`,
-      paymentGatewayId: customRef?.trim() ? `REF_${customRef.trim()}` : `UPI_${Date.now()}`
+      paymentGatewayId: customRef?.trim() ? `REF_${customRef.trim()}` : `GATEWAY_${Date.now()}`
     };
 
     setCompletedTxn(txn);
@@ -304,35 +327,35 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
               )}
             </div>
 
-            {/* PRIMARY ACTION: I HAVE COMPLETED PAYMENT */}
+            {/* PRIMARY ACTION: SUBMIT UTR FOR VERIFICATION */}
             <div className="pt-1 space-y-2">
               <button
                 type="button"
-                onClick={() => handleProcessPayment('upi')}
+                onClick={handleManualUtrSubmit}
                 disabled={isProcessing}
                 className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-sm sm:text-base rounded-2xl flex items-center justify-center gap-2 shadow-lg transition active:scale-[0.98] cursor-pointer min-h-[48px]"
               >
                 {isProcessing ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Verifying with Bank...</span>
+                    <span>Submitting UTR to Bank...</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-5 h-5 text-white" />
-                    <span>✓ I Have Paid ₹{pack.pay} — Credit ₹{pack.get}</span>
+                    <span>✓ I Have Paid ₹{pack.pay} — Submit UTR</span>
                   </>
                 )}
               </button>
 
-              {/* Optional UTR Input Toggle */}
+              {/* UTR Input Section */}
               <div className="text-center">
                 <button
                   type="button"
                   onClick={() => setShowUtrInput(!showUtrInput)}
-                  className="text-[11px] text-slate-500 hover:text-slate-700 underline cursor-pointer"
+                  className="text-[11px] text-slate-600 hover:text-slate-800 font-semibold underline cursor-pointer"
                 >
-                  {showUtrInput ? 'Hide UTR reference' : 'Have a 12-digit UPI / UTR Ref? (Optional)'}
+                  {showUtrInput ? 'Hide UTR input' : 'Enter 12-digit UPI / UTR Transaction ID (Required for approval)'}
                 </button>
                 {showUtrInput && (
                   <div className="mt-2 flex gap-2 max-w-sm mx-auto">
@@ -345,10 +368,11 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                     />
                     <button
                       type="button"
-                      onClick={() => handleProcessPayment('upi')}
-                      className="px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg cursor-pointer"
+                      onClick={handleManualUtrSubmit}
+                      disabled={isProcessing || !utrNumber.trim()}
+                      className="px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg cursor-pointer disabled:opacity-50"
                     >
-                      Save & Credit
+                      Verify UTR
                     </button>
                   </div>
                 )}
@@ -374,55 +398,82 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
 
               {showCardOption && (
                 <div className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 animate-in fade-in">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Card Number</label>
-                    <input
-                      type="text"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      placeholder="4532 8920 1823 4901"
-                      className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Expiry (MM/YY)</label>
-                      <input
-                        type="text"
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(e.target.value)}
-                        placeholder="08/29"
-                        className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">CVV</label>
-                      <input
-                        type="password"
-                        maxLength={3}
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value)}
-                        placeholder="782"
-                        className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900"
-                      />
-                    </div>
-                  </div>
                   <button
                     type="button"
-                    onClick={() => handleProcessPayment('card')}
+                    onClick={handleLaunchCashfree}
                     disabled={isProcessing}
-                    className="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl cursor-pointer"
+                    className="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl cursor-pointer flex items-center justify-center gap-2"
                   >
-                    Pay ₹{pack.pay} with Card
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Launch Gateway for Card / NetBanking</span>
                   </button>
                 </div>
               )}
             </div>
 
             <p className="text-[10px] text-center text-slate-400">
-              🔒 256-Bit SSL Encrypted • Instant Wallet Activation Guaranteed
+              🔒 256-Bit SSL Encrypted • NPCI / Bank Verified Gateway
             </p>
 
+          </div>
+        ) : pendingTxn ? (
+          /* PENDING MANUAL UTR VERIFICATION SCREEN */
+          <div className="p-6 sm:p-8 text-center space-y-4 animate-in fade-in">
+            <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto shadow-xs">
+              <Clock className="w-10 h-10 animate-pulse text-amber-600" />
+            </div>
+
+            <div>
+              <div className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full mb-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>Verification in Progress</span>
+              </div>
+              <h3 className="text-xl font-black text-slate-900">UTR Submitted</h3>
+              <p className="text-xs text-slate-600 mt-1 max-w-sm mx-auto">
+                Your payment reference has been submitted. Our automated finance engine is verifying with the bank (5–10 mins).
+              </p>
+            </div>
+
+            {/* Verification Details Box */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left max-w-md mx-auto text-xs space-y-2">
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500">Request ID:</span>
+                <span className="font-mono font-bold text-slate-900">{pendingTxn.id}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500">Bank UTR Ref:</span>
+                <span className="font-mono text-amber-700 font-bold">{pendingTxn.paymentGatewayId}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500">Amount Paid:</span>
+                <span className="font-bold text-slate-900">₹{pendingTxn.amount}.00</span>
+              </div>
+              <div className="flex justify-between font-extrabold text-sm pt-1 text-slate-900">
+                <span>Wallet Credit Upon Approval:</span>
+                <span className="text-emerald-700">₹{pendingTxn.totalCredited}.00</span>
+              </div>
+            </div>
+
+            {/* Fast-Track via WhatsApp Button */}
+            <div className="pt-2 max-w-md mx-auto space-y-2.5">
+              <a
+                href={`https://wa.me/919173108730?text=${encodeURIComponent(`Namaste AstraVani Team, I completed UPI transfer of ₹${pack.pay} for wallet recharge. My UTR is ${utrNumber || 'Attached'}. Please approve instantly.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 shadow-md transition active:scale-[0.98]"
+              >
+                <MessageCircle className="w-4 h-4 fill-white" />
+                <span>Send Screenshot on WhatsApp for Instant Approval</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-2.5 text-xs text-slate-600 hover:text-slate-900 font-bold cursor-pointer"
+              >
+                Done / Back to Astrologers
+              </button>
+            </div>
           </div>
         ) : (
           /* OFFICIAL PAYMENT SUCCESS RECEIPT SCREEN */

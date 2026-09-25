@@ -517,14 +517,14 @@ class CloudAuthService {
    */
   public getWalletBalance(): number {
     const user = this.getCurrentUser();
-    if (!user) return 100;
+    if (!user) return 0;
     const vault = this.getVault();
     for (const key of Object.keys(vault)) {
       if (vault[key].profile.id === user.id) {
-        return vault[key].walletBalance;
+        return Math.max(0, vault[key].walletBalance);
       }
     }
-    return 100;
+    return 0;
   }
 
   public setWalletBalance(balance: number): void {

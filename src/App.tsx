@@ -1,26 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { ASTROLOGERS_DATA } from './data/astrologersData';
 import { Astrologer, ConsultationIntake, ApiConfig, PaymentConfig, PaymentTransaction, UserProfile } from './types/astrotalk';
 import { cloudAuth } from './services/cloudAuthService';
+import { walletSecurity } from './utils/walletSecurity';
 import { Header } from './components/Header';
 import { QuickServicesBar } from './components/QuickServicesBar';
 import { HeroBanner } from './components/HeroBanner';
 import { AstrologersGrid } from './components/AstrologersGrid';
-import { FreeKundliView } from './components/FreeKundliView';
-import { KundliMatchingView } from './components/KundliMatchingView';
-import { DailyHoroscopeView } from './components/DailyHoroscopeView';
 import { KundliIntakeModal } from './components/KundliIntakeModal';
 import { AstrologerChatModal } from './components/AstrologerChatModal';
-import { AstrologerCallModal } from './components/AstrologerCallModal';
 import { WalletModal } from './components/WalletModal';
-import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
 import { AuthModal } from './components/AuthModal';
-import { UserProfileDrawer } from './components/UserProfileDrawer';
 import { AstrotalkFooter } from './components/AstrotalkFooter';
-import { CompliancePolicyModal, PolicyTab } from './components/CompliancePolicyModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { LiveSocialProofToast } from './components/LiveSocialProofToast';
 import { LiveTrustProofSection } from './components/LiveTrustProofSection';
+import { PolicyTab } from './components/CompliancePolicyModal';
+
+// Code-splitting heavy secondary views and modals to optimize initial bundle size
+const FreeKundliView = lazy(() => import('./components/FreeKundliView').then(m => ({ default: m.FreeKundliView })));
+const KundliMatchingView = lazy(() => import('./components/KundliMatchingView').then(m => ({ default: m.KundliMatchingView })));
+const DailyHoroscopeView = lazy(() => import('./components/DailyHoroscopeView').then(m => ({ default: m.DailyHoroscopeView })));
+const AstrologerCallModal = lazy(() => import('./components/AstrologerCallModal').then(m => ({ default: m.AstrologerCallModal })));
+const PaymentCheckoutModal = lazy(() => import('./components/PaymentCheckoutModal').then(m => ({ default: m.PaymentCheckoutModal })));
+const CompliancePolicyModal = lazy(() => import('./components/CompliancePolicyModal').then(m => ({ default: m.CompliancePolicyModal })));
+const UserProfileDrawer = lazy(() => import('./components/UserProfileDrawer').then(m => ({ default: m.UserProfileDrawer })));
+
+const ViewSuspenseFallback: React.FC = () => (
+  <div className="flex items-center justify-center p-12 min-h-[300px]">
+    <div className="flex flex-col items-center gap-2">
+      <div className="w-8 h-8 rounded-full border-3 border-amber-500 border-t-transparent animate-spin" />
+      <span className="text-xs text-slate-500 font-medium">Loading Vedic View...</span>
+    </div>
+  </div>
+);
 
 export const App: React.FC = () => {
   // Navigation & View state
@@ -32,15 +45,13 @@ export const App: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
 
-  // Wallet balance: Starts strictly at 0. First 1 min is free, then user MUST recharge.
+  // Tamper-proof signed wallet balance: Defaults strictly to 0
   const [walletBalance, setWalletBalance] = useState<number>(() => {
-    const saved = localStorage.getItem('astravani_wallet_balance');
-    return saved !== null ? Math.max(0, parseInt(saved, 10)) : 0;
+    return walletSecurity.getBalance();
   });
 
   useEffect(() => {
-    localStorage.removeItem('astrotalk_wallet');
-    localStorage.setItem('astravani_wallet_balance', walletBalance.toString());
+    walletSecurity.setBalance(walletBalance);
   }, [walletBalance]);
 
   // Payment configuration (Cashfree / Razorpay / Direct)
@@ -126,6 +137,31 @@ export const App: React.FC = () => {
     return () => unsub();
   }, []);
 
+  // Active Consultation Session Recovery on Mount (Pull-to-refresh / tab reload safety)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('astravani_active_chat_session');
+      if (raw) {
+        const session = JSON.parse(raw);
+        if (
+          session &&
+          session.astrologerId &&
+          session.intake &&
+          Date.now() - (session.lastUpdated || 0) < 30 * 60 * 1000
+        ) {
+          const astro = ASTROLOGERS_DATA.find((a) => a.id === session.astrologerId);
+          if (astro) {
+            setSelectedAstrologer(astro);
+            setCurrentIntake(session.intake);
+            setIsChatOpen(true);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Session recovery check failed:', e);
+    }
+  }, []);
+
   // Handlers
   const handleInitiateChat = (astrologer: Astrologer) => {
     setSelectedAstrologer(astrologer);
@@ -152,6 +188,7 @@ export const App: React.FC = () => {
   const handleDeductWallet = (amount: number) => {
     setWalletBalance(prev => {
       const next = Math.max(0, prev - amount);
+      walletSecurity.setBalance(next);
       if (cloudAuth.isAuthenticated()) {
         cloudAuth.setWalletBalance(next);
       }
@@ -166,10 +203,18 @@ export const App: React.FC = () => {
   };
 
   const handlePaymentSuccess = (transaction: PaymentTransaction) => {
-    setWalletBalance(prev => prev + transaction.totalCredited);
     setTransactions(prev => [transaction, ...prev]);
-    if (cloudAuth.isAuthenticated()) {
-      cloudAuth.addTransaction(transaction);
+    if (transaction.status === 'success') {
+      const nextBal = walletSecurity.credit(transaction.totalCredited);
+      setWalletBalance(nextBal);
+      if (cloudAuth.isAuthenticated()) {
+        cloudAuth.addTransaction(transaction);
+      }
+    } else {
+      // Pending verification from manual UTR -> do not credit balance
+      if (cloudAuth.isAuthenticated()) {
+        cloudAuth.addTransaction(transaction);
+      }
     }
   };
 
@@ -251,17 +296,19 @@ export const App: React.FC = () => {
           </>
         )}
 
-        {activeTab === 'kundli' && (
-          <FreeKundliView onConsultKundli={handleConsultFromTool} />
-        )}
+        <Suspense fallback={<ViewSuspenseFallback />}>
+          {activeTab === 'kundli' && (
+            <FreeKundliView onConsultKundli={handleConsultFromTool} />
+          )}
 
-        {activeTab === 'matching' && (
-          <KundliMatchingView onConsultMatch={handleConsultFromTool} />
-        )}
+          {activeTab === 'matching' && (
+            <KundliMatchingView onConsultMatch={handleConsultFromTool} />
+          )}
 
-        {activeTab === 'horoscope' && (
-          <DailyHoroscopeView onConsultSign={handleConsultFromTool} />
-        )}
+          {activeTab === 'horoscope' && (
+            <DailyHoroscopeView onConsultSign={handleConsultFromTool} />
+          )}
+        </Suspense>
       </main>
 
       {/* Consultation Modals */}
@@ -292,24 +339,62 @@ export const App: React.FC = () => {
       )}
 
       {/* Voice Call Consultation Modal */}
-      {selectedAstrologer && currentIntake && (
-        <AstrologerCallModal
-          astrologer={selectedAstrologer}
-          intake={currentIntake}
-          isOpen={isCallOpen}
-          onClose={() => setIsCallOpen(false)}
-          walletBalance={walletBalance}
-          onDeductWallet={handleDeductWallet}
-          onOpenRecharge={() => {
-            setWalletTab('wallet');
-            setIsWalletOpen(true);
-          }}
-          onSwitchToChat={() => {
-            setIsCallOpen(false);
-            setIsChatOpen(true);
-          }}
+      <Suspense fallback={null}>
+        {selectedAstrologer && currentIntake && (
+          <AstrologerCallModal
+            astrologer={selectedAstrologer}
+            intake={currentIntake}
+            isOpen={isCallOpen}
+            onClose={() => setIsCallOpen(false)}
+            walletBalance={walletBalance}
+            onDeductWallet={handleDeductWallet}
+            onOpenRecharge={() => {
+              setWalletTab('wallet');
+              setIsWalletOpen(true);
+            }}
+            onSwitchToChat={() => {
+              setIsCallOpen(false);
+              setIsChatOpen(true);
+            }}
+          />
+        )}
+
+        {/* Real Payment Gateway Checkout Modal (UPI, Cards, Razorpay) */}
+        {selectedPack && (
+          <PaymentCheckoutModal
+            isOpen={isCheckoutOpen}
+            onClose={() => setIsCheckoutOpen(false)}
+            pack={selectedPack}
+            paymentConfig={paymentConfig}
+            onPaymentSuccess={handlePaymentSuccess}
+          />
+        )}
+
+        {/* Legal & Compliance Policy Modal for Payment Gateway Verification */}
+        <CompliancePolicyModal
+          isOpen={isPolicyOpen}
+          onClose={() => setIsPolicyOpen(false)}
+          activeTab={policyTab}
+          onTabChange={(tab) => setPolicyTab(tab)}
         />
-      )}
+
+        {/* Slide-over User Profile, Saved Kundlis, Ledger & Chat History Drawer */}
+        {currentUser && (
+          <UserProfileDrawer
+            isOpen={isProfileDrawerOpen}
+            onClose={() => setIsProfileDrawerOpen(false)}
+            currentUser={currentUser}
+            onLogout={() => {
+              cloudAuth.logout();
+              setCurrentUser(null);
+            }}
+            onOpenRecharge={() => {
+              setWalletTab('wallet');
+              setIsWalletOpen(true);
+            }}
+          />
+        )}
+      </Suspense>
 
       {/* Wallet Management & Settings Modal */}
       <WalletModal
@@ -325,17 +410,6 @@ export const App: React.FC = () => {
         initialTab={walletTab}
       />
 
-      {/* Real Payment Gateway Checkout Modal (UPI, Cards, Razorpay) */}
-      {selectedPack && (
-        <PaymentCheckoutModal
-          isOpen={isCheckoutOpen}
-          onClose={() => setIsCheckoutOpen(false)}
-          pack={selectedPack}
-          paymentConfig={paymentConfig}
-          onPaymentSuccess={handlePaymentSuccess}
-        />
-      )}
-
       {/* Astrotalk Footer */}
       <AstrotalkFooter 
         onSelectNav={(tab) => setActiveTab(tab)} 
@@ -343,14 +417,6 @@ export const App: React.FC = () => {
           setPolicyTab(tab);
           setIsPolicyOpen(true);
         }}
-      />
-
-      {/* Legal & Compliance Policy Modal for Payment Gateway (Cashfree/Razorpay) Verification */}
-      <CompliancePolicyModal
-        isOpen={isPolicyOpen}
-        onClose={() => setIsPolicyOpen(false)}
-        activeTab={policyTab}
-        onTabChange={(tab) => setPolicyTab(tab)}
       />
 
       {/* Cloud Authentication Modal (Phone OTP, Email/Pass, Google 1-Tap) */}
@@ -363,23 +429,6 @@ export const App: React.FC = () => {
           setTransactions(cloudAuth.getTransactions());
         }}
       />
-
-      {/* Slide-over User Profile, Saved Kundlis, Ledger & Chat History Drawer */}
-      {currentUser && (
-        <UserProfileDrawer
-          isOpen={isProfileDrawerOpen}
-          onClose={() => setIsProfileDrawerOpen(false)}
-          currentUser={currentUser}
-          onLogout={() => {
-            cloudAuth.logout();
-            setCurrentUser(null);
-          }}
-          onOpenRecharge={() => {
-            setWalletTab('wallet');
-            setIsWalletOpen(true);
-          }}
-        />
-      )}
 
       {/* Mobile Sticky Bottom Navigation (<640px) with 1-Tap Account Switcher */}
       <MobileBottomNav

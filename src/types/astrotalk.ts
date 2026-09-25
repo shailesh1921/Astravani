@@ -66,7 +66,7 @@ export interface PaymentTransaction {
   bonusCredit: number;
   totalCredited: number;
   method: 'cashfree' | 'razorpay' | 'upi' | 'card' | 'netbanking';
-  status: 'success' | 'failed' | 'processing';
+  status: 'success' | 'failed' | 'processing' | 'pending';
   timestamp: string;
   receiptId: string;
   paymentGatewayId?: string;

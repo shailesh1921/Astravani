@@ -149,9 +149,33 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     setIsTyping(false);
   };
 
-  // Initialize consultation chat session
+  const ACTIVE_SESSION_KEY = 'astravani_active_chat_session';
+
+  // Restore or Initialize consultation chat session
   useEffect(() => {
     if (isOpen) {
+      // Check for active session recovery (accidental refresh / tab reload guard)
+      let recovered = false;
+      try {
+        const savedRaw = sessionStorage.getItem(ACTIVE_SESSION_KEY);
+        if (savedRaw) {
+          const saved = JSON.parse(savedRaw);
+          if (saved && saved.astrologerId === astrologer.id && Array.isArray(saved.messages) && saved.messages.length > 0) {
+            setMessages(saved.messages);
+            setSecondsElapsed(saved.secondsElapsed || 0);
+            setTotalCharged(saved.totalCharged || 0);
+            setHasPaidToContinue(saved.hasPaidToContinue || false);
+            setIsSessionEnded(false);
+            setShowRechargePopup(false);
+            recovered = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse saved chat session:', e);
+      }
+
+      if (recovered) return;
+
       setSecondsElapsed(0);
       setIsSessionEnded(false);
       setTotalCharged(0);
@@ -185,7 +209,25 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
 
       return () => clearTimeout(initTimer);
     }
-  }, [isOpen]);
+  }, [isOpen, astrologer.id]);
+
+  // Continuously persist active consultation state to sessionStorage
+  useEffect(() => {
+    if (isOpen && !isSessionEnded && messages.length > 0) {
+      try {
+        const payload = {
+          astrologerId: astrologer.id,
+          intake,
+          messages,
+          secondsElapsed,
+          hasPaidToContinue,
+          totalCharged,
+          lastUpdated: Date.now()
+        };
+        sessionStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(payload));
+      } catch (e) {}
+    }
+  }, [isOpen, isSessionEnded, astrologer.id, intake, messages, secondsElapsed, hasPaidToContinue, totalCharged]);
 
   // Strict 1-Minute Free Trial and Balance Depletion Checking
   const isTrialExpired = secondsElapsed >= 60 && !hasPaidToContinue;
@@ -308,6 +350,9 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
 
   const handleEndChat = () => {
     setIsSessionEnded(true);
+    try {
+      sessionStorage.removeItem(ACTIVE_SESSION_KEY);
+    } catch (e) {}
     confetti({
       particleCount: 60,
       spread: 70,

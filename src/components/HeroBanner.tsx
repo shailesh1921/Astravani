@@ -163,6 +163,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                     src={featuredPandit.avatarUrl}
                     alt={featuredPandit.name}
                     className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-300 shadow-sm flex-shrink-0"
+                    loading="eager"
+                    decoding="async"
                   />
                   <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white pulsing-online" />
                 </div>

@@ -37,25 +37,50 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
   const durationTimerRef = useRef<any>(null);
   const billingTimerRef = useRef<any>(null);
 
-  // Trigger speech synthesis for Pandit Ji's voice
+  const [audioFailed, setAudioFailed] = useState(false);
+
+  // Trigger speech synthesis for Pandit Ji's voice with iOS/Android safety guards
   const speakAstrologerVoice = (text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+    try {
+      if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+        setAudioFailed(true);
+        return;
+      }
+      window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.92;
-    utterance.pitch = 1.0;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.92;
+      utterance.pitch = 1.0;
 
-    // Try finding Indian English or Hindi voice
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => v.lang.includes('IN') || v.lang.includes('hi') || v.name.includes('India')) || voices[0];
-    if (preferredVoice) utterance.voice = preferredVoice;
+      // Watchdog timer: If utterance doesn't fire onstart within 3.5s, trigger audio fallback
+      const watchdog = setTimeout(() => {
+        if (!isSpeaking) {
+          setAudioFailed(true);
+        }
+      }, 3500);
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+      // Try finding Indian English or Hindi voice
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(v => v.lang.includes('IN') || v.lang.includes('hi') || v.name.includes('India')) || voices[0];
+      if (preferredVoice) utterance.voice = preferredVoice;
 
-    window.speechSynthesis.speak(utterance);
+      utterance.onstart = () => {
+        clearTimeout(watchdog);
+        setIsSpeaking(true);
+        setAudioFailed(false);
+      };
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => {
+        clearTimeout(watchdog);
+        setIsSpeaking(false);
+        setAudioFailed(true);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn('Speech synthesis error:', err);
+      setAudioFailed(true);
+    }
   };
 
   // Call lifecycle
@@ -298,6 +323,29 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
             <div className="mt-5 p-3.5 bg-slate-800/80 border border-slate-700/80 rounded-2xl text-xs text-slate-300 text-left max-h-24 overflow-y-auto leading-relaxed">
               <span className="text-[10px] font-bold text-amber-400 block mb-1">LIVE VOICE TRANSCRIPT:</span>
               "{speechText}"
+            </div>
+          )}
+
+          {/* Audio Fallback & Switch to Chat Helper */}
+          {callState === 'connected' && (
+            <div className="mt-2.5 flex items-center justify-between bg-slate-800/60 border border-slate-700/60 rounded-xl px-3 py-2 text-xs">
+              <span className="text-slate-300 text-[11px] flex items-center gap-1.5">
+                {audioFailed ? (
+                  <span className="text-amber-400 font-semibold">⚠️ Audio muted by phone browser</span>
+                ) : (
+                  <span>Prefer reading quietly?</span>
+                )}
+              </span>
+              <button
+                onClick={() => {
+                  handleEndCall();
+                  onSwitchToChat();
+                }}
+                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs flex items-center gap-1 transition cursor-pointer"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Switch to Chat</span>
+              </button>
             </div>
           )}
 
