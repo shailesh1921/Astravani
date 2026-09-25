@@ -19,6 +19,8 @@ import { UserProfileDrawer } from './components/UserProfileDrawer';
 import { AstrotalkFooter } from './components/AstrotalkFooter';
 import { CompliancePolicyModal, PolicyTab } from './components/CompliancePolicyModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { LiveSocialProofToast } from './components/LiveSocialProofToast';
+import { LiveTrustProofSection } from './components/LiveTrustProofSection';
 
 export const App: React.FC = () => {
   // Navigation & View state
@@ -245,6 +247,7 @@ export const App: React.FC = () => {
               onInitiateChat={handleInitiateChat}
               onInitiateCall={handleInitiateCall}
             />
+            <LiveTrustProofSection />
           </>
         )}
 
@@ -391,6 +394,9 @@ export const App: React.FC = () => {
         onOpenProfile={() => setIsProfileDrawerOpen(true)}
         onOpenAuth={() => setIsAuthModalOpen(true)}
       />
+
+      {/* Floating Live Social Proof Activity Toast */}
+      <LiveSocialProofToast />
 
     </div>
   );
