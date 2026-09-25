@@ -109,7 +109,7 @@ export const QuickServicesBar: React.FC<QuickServicesBarProps> = ({
                 {/* 3D Jewel Icon Container */}
                 <div className="relative">
                   <div
-                    className={`w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center transition-all bg-gradient-to-br ${svc.bgGradient} shadow-md ${svc.shadowColor} border border-white/30 relative overflow-hidden ${
+                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all bg-gradient-to-br ${svc.bgGradient} shadow-md ${svc.shadowColor} border border-white/30 relative overflow-hidden ${
                       isSelected ? `ring-2 ring-offset-2 ${svc.ringColor} scale-105 shadow-lg` : 'group-hover:scale-105 group-hover:shadow-lg'
                     }`}
                   >

@@ -271,7 +271,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
                 <img
                   src={astrologer.avatarUrl}
                   alt={astrologer.name}
-                  className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl object-cover border-2 border-white/90 shadow-md"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 border-white/90 shadow-md"
                 />
                 <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full ring-2 ring-emerald-500/30 animate-pulse" title="Online Now" />
               </div>

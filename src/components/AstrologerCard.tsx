@@ -30,12 +30,12 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
   };
 
   return (
-    <div className="at-card p-4 sm:p-5 flex flex-col justify-between relative group hover:border-amber-400">
+    <div className="at-card p-3.5 sm:p-5 flex flex-col justify-between relative group hover:border-amber-400 w-full max-w-full overflow-hidden">
       
       {/* Top Meta: Verified & Orders */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
           <span>Verified Astrologer</span>
         </div>
         <span className="text-[11px] font-semibold text-slate-500">
@@ -44,11 +44,11 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
       </div>
 
       {/* Main Body: Avatar + Details */}
-      <div className="flex gap-4 items-start mb-2">
+      <div className="flex gap-3 sm:gap-4 items-start mb-2 w-full overflow-hidden">
         
-        {/* Avatar with Status & Rating */}
-        <div className="relative flex-shrink-0">
-          <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-amber-200 shadow-xs">
+        {/* Avatar with Status & Rating (Strictly sized for mobile and desktop) */}
+        <div className="relative flex-shrink-0 w-20 h-20 sm:w-20 sm:h-20">
+          <div className="w-20 h-20 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-amber-200 shadow-xs bg-slate-100 flex-shrink-0">
             <img
               src={astrologer.avatarUrl}
               alt={astrologer.name}
@@ -66,14 +66,14 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
           )}
 
           {/* Rating Pill */}
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white border border-amber-300 px-1.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white border border-amber-300 px-1.5 py-0.5 rounded-full shadow-xs flex items-center gap-1 z-10 whitespace-nowrap">
             <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
             <span className="text-[10px] font-bold text-slate-900">{astrologer.rating}</span>
           </div>
         </div>
 
         {/* Text Details */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <h3 className="text-base font-bold text-slate-900 truncate group-hover:text-amber-600 transition">
             {astrologer.name}
           </h3>
