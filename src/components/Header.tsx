@@ -26,65 +26,68 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+    <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm w-full">
       {/* Top Offer Ribbon */}
-      <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-900 text-xs sm:text-sm font-semibold py-1.5 px-4 text-center flex items-center justify-center gap-2">
-        <span className="bg-red-600 text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider animate-pulse">
+      <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-900 text-xs sm:text-sm font-semibold py-1.5 px-3 sm:px-4 text-center flex items-center justify-center gap-1.5 sm:gap-2 overflow-hidden">
+        <span className="bg-red-600 text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider animate-pulse flex-shrink-0">
           Free Offer
         </span>
-        <span>⚡ First Chat with Astrologer is FREE! (100% Free First Consultation) | 4,500+ Verified Gurus Online ⚡</span>
+        <span className="truncate sm:overflow-visible">
+          ⚡ First Chat with Astrologer is FREE! <span className="hidden md:inline">(100% Free First Consultation) | 4,500+ Verified Gurus Online ⚡</span>
+        </span>
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
           
           {/* Logo */}
           <div 
             onClick={() => setActiveTab('astrologers')}
-            className="flex items-center gap-2.5 cursor-pointer select-none group flex-shrink-0"
+            className="flex items-center gap-2 sm:gap-2.5 cursor-pointer select-none group flex-shrink-0"
           >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
-              <span className="text-white text-xl font-bold">ॐ</span>
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform flex-shrink-0">
+              <span className="text-white text-lg sm:text-xl font-bold">ॐ</span>
             </div>
             <div>
               <div className="flex items-center gap-1">
-                <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
+                <span className="text-lg sm:text-2xl font-extrabold tracking-tight text-slate-900">
                   Astra<span className="text-amber-500">Vani</span>
                 </span>
-                <ShieldCheck className="w-4 h-4 text-emerald-500 fill-emerald-100" />
+                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 fill-emerald-100 flex-shrink-0" />
               </div>
-              <p className="text-[10px] text-slate-500 font-medium tracking-wide hidden sm:block">
+              <p className="text-[10px] text-slate-500 font-medium tracking-wide hidden xl:block">
                 India's Sacred Vedic Platform • 4,500+ Verified Gurus
               </p>
             </div>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links (Laptop & Desktop) */}
           <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
             {[
-              { id: 'astrologers', label: 'Consult Astrologers', icon: '🔮' },
-              { id: 'kundli', label: 'Free Kundli', icon: '📜' },
-              { id: 'matching', label: 'Kundli Matching', icon: '💑' },
-              { id: 'horoscope', label: 'Horoscopes', icon: '⭐' },
+              { id: 'astrologers', label: 'Consult', fullLabel: 'Consult Astrologers', icon: '🔮' },
+              { id: 'kundli', label: 'Kundli', fullLabel: 'Free Kundli', icon: '📜' },
+              { id: 'matching', label: 'Matching', fullLabel: 'Kundli Matching', icon: '💑' },
+              { id: 'horoscope', label: 'Horoscope', fullLabel: 'Horoscopes', icon: '⭐' },
             ].map(item => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-semibold transition-all flex items-center gap-1.5 ${
                   activeTab === item.id
                     ? 'text-amber-600 bg-amber-50 border border-amber-200/80 shadow-xs'
                     : 'text-slate-700 hover:text-amber-600 hover:bg-slate-50'
                 }`}
               >
                 <span>{item.icon}</span>
-                <span>{item.label}</span>
+                <span className="xl:hidden">{item.label}</span>
+                <span className="hidden xl:inline">{item.fullLabel}</span>
               </button>
             ))}
           </nav>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex items-center relative w-48 lg:w-60">
+          {/* Search Bar - Visible on XL screens to preserve frame balance on laptops */}
+          <div className="hidden xl:flex items-center relative w-52 2xl:w-64">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
             <input
               type="text"
@@ -96,16 +99,16 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right Action Buttons: Wallet Balance, Recharge & User Cloud Profile */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             
             {/* Wallet Balance Pill */}
-            <div className="flex items-center bg-amber-50 border border-amber-200/90 rounded-2xl p-1 gap-1.5 shadow-xs">
+            <div className="flex items-center bg-amber-50 border border-amber-200/90 rounded-2xl p-1 gap-1 sm:gap-1.5 shadow-xs">
               <div 
                 onClick={onOpenWallet}
-                className="flex items-center gap-1.5 px-2.5 py-1 cursor-pointer hover:bg-amber-100/70 rounded-xl transition"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 cursor-pointer hover:bg-amber-100/70 rounded-xl transition"
                 title="Your AstraVani Wallet Balance"
               >
-                <div className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-black">
+                <div className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-black flex-shrink-0">
                   ₹
                 </div>
                 <span className="text-xs sm:text-sm font-extrabold text-slate-900 font-mono">
@@ -114,10 +117,11 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <button
                 onClick={onOpenWallet}
-                className="btn-astrotalk text-white font-bold text-xs px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                className="btn-astrotalk text-white font-bold text-xs px-2 sm:px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1 sm:gap-1.5 cursor-pointer flex-shrink-0"
               >
                 <Wallet className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">+ Recharge</span>
+                <span className="hidden sm:inline">+ Recharge</span>
+                <span className="sm:hidden">+</span>
               </button>
             </div>
 
@@ -126,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenProfile}
-                className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1 rounded-2xl border border-slate-200 hover:border-amber-400 bg-slate-50 hover:bg-white transition cursor-pointer shadow-2xs group"
+                className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1 rounded-2xl border border-slate-200 hover:border-amber-400 bg-slate-50 hover:bg-white transition cursor-pointer shadow-2xs group flex-shrink-0"
                 title={`Profile: ${currentUser.fullName}`}
               >
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white font-black flex items-center justify-center text-xs shadow-xs flex-shrink-0">
@@ -136,7 +140,7 @@ export const Header: React.FC<HeaderProps> = ({
                     currentUser.fullName.charAt(0).toUpperCase()
                   )}
                 </div>
-                <div className="hidden sm:block text-left max-w-[85px]">
+                <div className="hidden md:block text-left max-w-[85px]">
                   <span className="text-xs font-bold text-slate-900 block leading-tight truncate">
                     {currentUser.fullName.split(' ')[0]}
                   </span>
@@ -147,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenAuth}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs transition cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs transition cursor-pointer shadow-2xs flex-shrink-0"
               >
                 <User className="w-3.5 h-3.5 text-amber-700" />
                 <span>Login</span>
@@ -156,29 +160,6 @@ export const Header: React.FC<HeaderProps> = ({
 
           </div>
 
-        </div>
-
-        {/* Mobile Navigation Row */}
-        <div className="flex lg:hidden overflow-x-auto py-2 gap-2 border-t border-slate-100 no-scrollbar">
-          {[
-            { id: 'astrologers', label: 'Consult', icon: '🔮' },
-            { id: 'kundli', label: 'Kundli', icon: '📜' },
-            { id: 'matching', label: 'Matching', icon: '💑' },
-            { id: 'horoscope', label: 'Horoscope', icon: '⭐' },
-          ].map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition ${
-                activeTab === item.id
-                  ? 'bg-amber-500 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <span className="mr-1">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
         </div>
 
       </div>

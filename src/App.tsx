@@ -203,8 +203,24 @@ export const App: React.FC = () => {
       {/* Circular Quick Services Bar */}
       <QuickServicesBar
         onSelectService={(serviceId) => {
-          setActiveTab(serviceId);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (serviceId === 'astrologers-call') {
+            setActiveTab('astrologers');
+            window.scrollTo({ top: 450, behavior: 'smooth' });
+          } else if (serviceId === 'tarot') {
+            setActiveTab('astrologers');
+            setSearchQuery('Tarot');
+            window.scrollTo({ top: 450, behavior: 'smooth' });
+          } else if (serviceId === 'astromall') {
+            setActiveTab('astrologers');
+            setSearchQuery('Vedic');
+            window.scrollTo({ top: 450, behavior: 'smooth' });
+          } else if (serviceId === 'panchang') {
+            setActiveTab('horoscope');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            setActiveTab(serviceId);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
         }}
         activeService={activeTab}
       />
