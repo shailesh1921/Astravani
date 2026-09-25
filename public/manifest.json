@@ -1,0 +1,19 @@
+{
+  "short_name": "AstraVani",
+  "name": "AstraVani — Vedic Astrology & Online Kundli",
+  "description": "Consult 4,500+ verified Vedic Astrologers, Tarot Readers & Numerologists. First consultation 100% FREE!",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/?utm_source=pwa_install",
+  "background_color": "#0F172A",
+  "theme_color": "#F59E0B",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/"
+}

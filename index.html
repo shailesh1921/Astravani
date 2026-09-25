@@ -15,6 +15,7 @@
     <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
     <meta name="google-site-verification" content="googlec65e68d68ec501ce" />
     <meta name="theme-color" content="#F59E0B" />
+    <link rel="manifest" href="/manifest.json" />
     <link rel="canonical" href="https://www.astravani.in/" />
 
     <!-- OpenGraph / Facebook / WhatsApp Share Previews -->
@@ -109,5 +110,12 @@
   <body class="bg-[#F8FAFC] text-[#1E293B] font-sans antialiased selection:bg-amber-100 selection:text-amber-900 overflow-x-hidden min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
+        });
+      }
+    </script>
   </body>
 </html>

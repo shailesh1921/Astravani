@@ -15,6 +15,7 @@ import { AstrotalkFooter } from './components/AstrotalkFooter';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { LiveSocialProofToast } from './components/LiveSocialProofToast';
 import { LiveTrustProofSection } from './components/LiveTrustProofSection';
+import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { PolicyTab } from './components/CompliancePolicyModal';
 
 // Code-splitting heavy secondary views and modals to optimize initial bundle size
@@ -446,6 +447,9 @@ export const App: React.FC = () => {
 
       {/* Floating Live Social Proof Activity Toast */}
       <LiveSocialProofToast />
+
+      {/* Progressive Web App (PWA) Mobile Install Prompt */}
+      <PwaInstallBanner />
 
     </div>
   );

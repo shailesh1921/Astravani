@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { HOROSCOPES_DATA } from '../data/horoscopesData';
 import { HoroscopeSign, Astrologer } from '../types/astrotalk';
-import { Heart, Briefcase, Activity, Sparkles, MessageSquare } from 'lucide-react';
+import { Heart, Briefcase, Activity, Sparkles, MessageSquare, Share2 } from 'lucide-react';
 
 interface DailyHoroscopeViewProps {
   onConsultSign: (astrologer?: Astrologer) => void;
@@ -95,13 +95,30 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
             </div>
           </div>
 
-          <button
-            onClick={() => onConsultSign()}
-            className="btn-astrotalk px-5 py-2.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md self-start sm:self-auto"
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Consult {currentSign.nameEn} Astrologer</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <button
+              onClick={() => {
+                const text = `🕉️ *${currentSign.nameEn} (${currentSign.nameHi}) - Aaj Ka Rashifal*\n\n` +
+                  `✨ *Shubh Muhurat:* ${currentSign.luckyTime}\n` +
+                  `🔢 *Lucky Number:* ${currentSign.luckyNumber} | 🎨 *Color:* ${currentSign.luckyColor}\n\n` +
+                  `📖 *Bhavishya:* ${currentSign.overview.slice(0, 160)}...\n\n` +
+                  `👉 *Apna Kundli & Rashifal dekhein (1st Chat 100% FREE):* https://www.astravani.in/?utm_source=whatsapp&utm_medium=daily_rashifal`;
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+              }}
+              className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Share on WhatsApp</span>
+            </button>
+
+            <button
+              onClick={() => onConsultSign()}
+              className="btn-astrotalk px-4 py-2.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>Consult Astrologer</span>
+            </button>
+          </div>
         </div>
 
         {/* Lucky Numbers & Colors Bar */}
