@@ -71,8 +71,8 @@ export const App: React.FC = () => {
     }
     return {
       provider: 'gemini',
-      apiKey: '',
-      model: 'gemini-1.5-flash'
+      apiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+      model: 'gemini-3.5-flash'
     };
   });
 

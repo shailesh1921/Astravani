@@ -48,7 +48,7 @@ export async function generateAstrologerResponses(
     try {
       const provider = apiConfig.provider === 'openai' && apiConfig.apiKey ? 'openai' : 'gemini';
       if (provider === 'gemini') {
-        const lines = await callGeminiApiLines(userMessage, astrologer, intake, chatHistory, effectiveKey, apiConfig.model || 'gemini-1.5-flash');
+        const lines = await callGeminiApiLines(userMessage, astrologer, intake, chatHistory, effectiveKey, apiConfig.model || 'gemini-3.5-flash');
         if (lines && lines.length > 0) return lines;
       } else if (provider === 'openai') {
         const lines = await callOpenAiApiLines(userMessage, astrologer, intake, chatHistory, effectiveKey, apiConfig.model || 'gpt-4o-mini');
@@ -107,7 +107,7 @@ NEVER repeat what you already said in previous messages. Keep each line punchy (
     { role: 'user', parts: [{ text: userMessage }] }
   ];
 
-  const targetModel = modelName.includes('2.0') ? 'gemini-2.0-flash' : 'gemini-1.5-flash';
+  const targetModel = modelName && !modelName.includes('1.5') && !modelName.includes('2.0') ? modelName : 'gemini-3.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey.trim()}`;
 
   const res = await fetch(url, {
