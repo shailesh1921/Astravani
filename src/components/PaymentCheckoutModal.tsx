@@ -156,38 +156,43 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/75 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-xl shadow-2xl border-t sm:border border-slate-200 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh] animate-slide-up sm:animate-none">
         
         {/* Gateway Header */}
-        <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-800 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-              ॐ
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-extrabold text-white">AstraVani Secure Payment</h3>
-                <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-emerald-500/30">
-                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                  256-bit SSL
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">Cashfree & NPCI Verified Payment Gateway</p>
-            </div>
-          </div>
+        <div className="bg-slate-900 text-white px-4 pt-3 pb-4 sm:p-5 flex flex-col border-b border-slate-800 flex-shrink-0">
+          {/* Mobile Bottom-sheet Drag Handle */}
+          <div className="w-12 h-1.5 bg-white/40 rounded-full mx-auto mb-2.5 sm:hidden" />
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                ॐ
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-white">AstraVani Secure Payment</h3>
+                  <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-emerald-500/30">
+                    <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                    256-bit SSL
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">Cashfree & NPCI Verified Payment Gateway</p>
+              </div>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content Body */}
         {!completedTxn ? (
-          <div className="p-4 sm:p-6 overflow-y-auto space-y-5">
+          <div className="p-4 sm:p-6 pb-safe overflow-y-auto space-y-5">
             
             {/* Order Summary Ribbon */}
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
@@ -380,13 +385,13 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                       value={upiId}
                       onChange={(e) => setUpiId(e.target.value)}
                       placeholder="e.g. yourname@okhdfcbank"
-                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-amber-500 font-mono"
+                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2.5 sm:py-2 text-base sm:text-xs text-slate-900 focus:outline-none focus:border-amber-500 font-mono"
                     />
                     <button
                       type="button"
                       onClick={handleProcessDirectPayment}
                       disabled={isProcessing}
-                      className="btn-astrotalk px-4 py-2 text-xs font-bold cursor-pointer"
+                      className="btn-astrotalk px-4 py-2 text-xs font-bold cursor-pointer min-h-[42px]"
                     >
                       {isProcessing ? 'Verifying...' : 'Pay ₹' + pack.pay}
                     </button>
@@ -408,7 +413,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                       value={cardNumber}
                       onChange={(e) => setCardNumber(e.target.value)}
                       placeholder="4532 8920 1823 4901"
-                      className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900 focus:border-amber-500"
+                      className="w-full pl-9 pr-3 py-2.5 sm:py-2 text-base sm:text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900 focus:border-amber-500"
                     />
                   </div>
                 </div>
@@ -421,7 +426,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                       value={cardExpiry}
                       onChange={(e) => setCardExpiry(e.target.value)}
                       placeholder="08/29"
-                      className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900 focus:border-amber-500"
+                      className="w-full px-3 py-2.5 sm:py-2 text-base sm:text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900 focus:border-amber-500"
                     />
                   </div>
 
@@ -435,7 +440,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                         value={cardCvv}
                         onChange={(e) => setCardCvv(e.target.value)}
                         placeholder="782"
-                        className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900 focus:border-amber-500"
+                        className="w-full pl-8 pr-3 py-2.5 sm:py-2 text-base sm:text-xs bg-white border border-slate-300 rounded-xl font-mono text-slate-900 focus:border-amber-500"
                       />
                     </div>
                   </div>
@@ -448,7 +453,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                     value={cardName}
                     onChange={(e) => setCardName(e.target.value)}
                     placeholder="Name on card"
-                    className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus:border-amber-500"
+                    className="w-full px-3 py-2.5 sm:py-2 text-base sm:text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus:border-amber-500"
                   />
                 </div>
               </div>

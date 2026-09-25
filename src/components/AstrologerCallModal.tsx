@@ -132,7 +132,7 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl flex flex-col text-white relative">
+      <div className="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl flex flex-col text-white relative max-h-[92dvh]">
         
         {/* Top Header Bar */}
         <div className="p-4 flex items-center justify-between border-b border-slate-800 text-xs text-slate-400">
@@ -250,7 +250,7 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
         )}
 
         {/* Bottom Call Controls */}
-        <div className="p-6 bg-slate-950 border-t border-slate-800 flex items-center justify-around">
+        <div className="p-6 pb-safe bg-slate-950 border-t border-slate-800 flex items-center justify-around">
           
           {/* Mute Button */}
           <button

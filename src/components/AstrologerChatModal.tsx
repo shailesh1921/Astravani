@@ -282,7 +282,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-slate-900/75 backdrop-blur-xs animate-in fade-in duration-200">
       
       {/* Outer Shell: Astrotalk Container */}
-      <div className="bg-white w-full sm:max-w-4xl h-full sm:h-[92vh] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-300 relative">
+      <div className="bg-white w-full sm:max-w-4xl lg:max-w-5xl h-dvh sm:h-[92dvh] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-300 relative">
         
         {/* TOP SIGNATURE ASTROTALK YELLOW BAR */}
         <div className="bg-[#FCD34D] border-b border-amber-300 px-4 py-3 flex items-center justify-between shadow-xs select-none flex-shrink-0">
@@ -528,9 +528,9 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* UNIQUE IN-CHAT KUNDLI SLIDE DRAWER */}
+          {/* UNIQUE IN-CHAT KUNDLI SLIDE DRAWER (ADAPTIVE SPLIT SCREEN ON TABLET/DESKTOP) */}
           {showKundliDrawer && (
-            <div className="w-72 sm:w-80 bg-white border-l border-slate-200 shadow-xl p-4 overflow-y-auto flex flex-col gap-4 animate-in slide-in-from-right duration-200 z-10">
+            <div className="absolute right-0 inset-y-0 md:relative w-full max-w-[280px] xs:max-w-xs sm:w-80 md:w-84 bg-white border-l border-slate-200 shadow-xl p-4 overflow-y-auto flex flex-col gap-4 animate-in slide-in-from-right duration-200 z-20 flex-shrink-0">
               
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                 <div className="flex items-center gap-1.5">
@@ -539,7 +539,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
                 </div>
                 <button
                   onClick={() => setShowKundliDrawer(false)}
-                  className="p-1 rounded-full hover:bg-slate-100 text-slate-400"
+                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 cursor-pointer"
+                  title="Close Kundli view"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -636,12 +637,12 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
 
         {/* BOTTOM INPUT BAR */}
         {!isSessionEnded ? (
-          <div className="bg-[#F0F2F5] px-3 py-2 sm:px-4 sm:py-3 border-t border-slate-300 flex items-center gap-2 flex-shrink-0">
+          <div className="bg-[#F0F2F5] px-3 pt-2.5 pb-safe sm:py-3 sm:pb-3 border-t border-slate-300 flex items-center gap-2 flex-shrink-0">
             
             <button 
               type="button" 
               onClick={() => setShowKundliDrawer(!showKundliDrawer)}
-              className="text-slate-500 hover:text-amber-600 transition p-1"
+              className="text-slate-500 hover:text-amber-600 transition p-2 rounded-full min-w-[40px] min-h-[40px] flex items-center justify-center cursor-pointer"
               title="Attach birth chart notes"
             >
               <Paperclip className="w-5 h-5" />
@@ -654,12 +655,12 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
               placeholder={`Type your query to ${astrologer.name.split(' ')[0]}...`}
               disabled={isTyping}
-              className="flex-1 bg-white border border-slate-300 rounded-full px-4 py-2 text-xs sm:text-sm focus:outline-none focus:border-amber-500 text-slate-900 placeholder-slate-400"
+              className="flex-1 bg-white border border-slate-300 rounded-full px-4 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:border-amber-500 text-slate-900 placeholder-slate-400 min-h-[44px]"
             />
 
             <button 
               type="button" 
-              className="text-slate-400 hover:text-slate-600 transition p-1 hidden sm:block"
+              className="text-slate-400 hover:text-slate-600 transition p-2 hidden sm:flex items-center justify-center min-w-[40px] min-h-[40px]"
               title="Voice recording (simulated)"
             >
               <Mic className="w-5 h-5" />
@@ -668,7 +669,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
             <button
               onClick={() => handleSendMessage()}
               disabled={!inputText.trim() || isTyping}
-              className="w-9 h-9 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition disabled:opacity-40 cursor-pointer shadow-sm flex-shrink-0"
+              className="w-11 h-11 sm:w-10 sm:h-10 min-w-[44px] min-h-[44px] sm:min-w-[40px] sm:min-h-[40px] rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition disabled:opacity-40 cursor-pointer shadow-sm flex-shrink-0 active:scale-95"
             >
               <Send className="w-4 h-4 ml-0.5" />
             </button>

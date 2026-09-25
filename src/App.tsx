@@ -15,6 +15,7 @@ import { WalletModal } from './components/WalletModal';
 import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
 import { AstrotalkFooter } from './components/AstrotalkFooter';
 import { CompliancePolicyModal, PolicyTab } from './components/CompliancePolicyModal';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 export const App: React.FC = () => {
   // Navigation & View state
@@ -177,7 +178,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main className="flex-1 pb-20 sm:pb-0">
         {activeTab === 'astrologers' && (
           <>
             <HeroBanner
@@ -207,6 +208,17 @@ export const App: React.FC = () => {
           <DailyHoroscopeView onConsultSign={handleConsultFromTool} />
         )}
       </main>
+
+      {/* Sticky Mobile Bottom Navigation Bar (320px - 640px) */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        walletBalance={walletBalance}
+        onOpenWallet={() => {
+          setWalletTab('wallet');
+          setIsWalletOpen(true);
+        }}
+      />
 
       {/* Consultation Modals */}
       {selectedAstrologer && (

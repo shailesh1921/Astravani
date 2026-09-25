@@ -204,40 +204,45 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
   const currentTopicData = TOPIC_PRESETS[formData.topic] || TOPIC_PRESETS['Career & Job'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-amber-200/60 overflow-hidden relative flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-xl shadow-2xl border-t sm:border border-amber-200/60 overflow-hidden relative flex flex-col max-h-[92dvh] sm:max-h-[90vh] animate-slide-up sm:animate-none">
         
         {/* TOP HEADER: Verified Astrologer Profile Card */}
-        <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white p-4 sm:p-5 flex items-center justify-between shadow-sm flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <img
-                src={astrologer.avatarUrl}
-                alt={astrologer.name}
-                className="w-13 h-13 rounded-2xl object-cover border-2 border-white/90 shadow-md"
-              />
-              <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full ring-2 ring-emerald-500/30 animate-pulse" title="Online Now" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h3 className="text-base sm:text-lg font-black leading-tight text-white tracking-tight">{astrologer.name}</h3>
-                <ShieldCheck className="w-4 h-4 text-emerald-200 fill-emerald-500/20" />
-              </div>
-              <p className="text-xs text-amber-100 font-medium flex items-center gap-2 mt-0.5">
-                <span>{isCallMode ? 'Audio Consultation' : 'Live Chat Consultation'}</span>
-                <span>•</span>
-                <span className="font-bold text-white bg-black/20 px-2 py-0.5 rounded-full">₹{astrologer.pricePerMin}/min</span>
-              </p>
-            </div>
-          </div>
+        <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white px-4 pt-3 pb-4 sm:p-5 flex flex-col shadow-sm flex-shrink-0">
+          {/* Mobile Bottom-sheet Drag Handle */}
+          <div className="w-12 h-1.5 bg-white/40 rounded-full mx-auto mb-2.5 sm:hidden" />
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-white/20 text-white transition cursor-pointer"
-            title="Close"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img
+                  src={astrologer.avatarUrl}
+                  alt={astrologer.name}
+                  className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl object-cover border-2 border-white/90 shadow-md"
+                />
+                <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full ring-2 ring-emerald-500/30 animate-pulse" title="Online Now" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-base sm:text-lg font-black leading-tight text-white tracking-tight">{astrologer.name}</h3>
+                  <ShieldCheck className="w-4 h-4 text-emerald-200 fill-emerald-500/20" />
+                </div>
+                <p className="text-xs text-amber-100 font-medium flex items-center gap-2 mt-0.5">
+                  <span>{isCallMode ? 'Audio Consultation' : 'Live Chat Consultation'}</span>
+                  <span>•</span>
+                  <span className="font-bold text-white bg-black/20 px-2 py-0.5 rounded-full">₹{astrologer.pricePerMin}/min</span>
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-white/20 text-white transition cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center"
+              title="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* PROMO & TRUST BAR */}
@@ -252,7 +257,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
         </div>
 
         {/* QUICK PROFILE SWITCHER */}
-        <div className="bg-slate-50 px-4 pt-3 pb-2 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
+        <div className="bg-slate-50 px-4 pt-2.5 pb-2 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
             Consultation For:
           </span>
@@ -279,7 +284,8 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
         </div>
 
         {/* FORM BODY */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+          <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
           
           {/* Full Name & Gender Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -295,7 +301,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Rahul Verma"
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 font-medium"
+                  className="w-full pl-9 pr-3 py-2.5 sm:py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 font-medium"
                 />
               </div>
             </div>
@@ -336,7 +342,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
                   required
                   value={formData.dob}
                   onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 font-medium"
+                  className="w-full pl-9 pr-3 py-2.5 sm:py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 font-medium"
                 />
               </div>
             </div>
@@ -367,7 +373,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
                     type="time"
                     value={formData.tob}
                     onChange={(e) => setFormData({ ...formData, tob: e.target.value })}
-                    className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 font-medium"
+                    className="w-full pl-9 pr-3 py-2.5 sm:py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 font-medium"
                   />
                 </div>
               )}
@@ -391,7 +397,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
                   setShowCityDropdown(true);
                 }}
                 placeholder="Type or select city (e.g. New Delhi, Mumbai, Jaipur)..."
-                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 font-medium"
+                className="w-full pl-9 pr-3 py-2.5 sm:py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900 font-medium"
               />
 
               {/* City Autocomplete Suggestions */}
@@ -443,7 +449,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
             <select
               value={formData.topic}
               onChange={(e) => setFormData({ ...formData, topic: e.target.value as any })}
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 text-slate-900 font-semibold cursor-pointer"
+              className="w-full px-3 py-2.5 sm:py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 text-slate-900 font-semibold cursor-pointer"
             >
               <option value="Career & Job">💼 Career, Job & Promotion Timing</option>
               <option value="Marriage & Kundli">💍 Marriage Timing & Kundli Milan</option>
@@ -469,7 +475,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
                   key={q}
                   type="button"
                   onClick={() => handleSelectQuestionChip(q)}
-                  className={`text-[11px] font-semibold text-left px-2.5 py-1 rounded-lg border transition cursor-pointer ${
+                  className={`text-[11px] font-semibold text-left px-2.5 py-1.5 rounded-lg border transition cursor-pointer min-h-[34px] flex items-center ${
                     formData.question === q
                       ? 'bg-amber-100 text-amber-900 border-amber-400 font-bold shadow-2xs'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-amber-50/70 hover:border-amber-300'
@@ -485,7 +491,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
               value={formData.question}
               onChange={(e) => setFormData({ ...formData, question: e.target.value })}
               placeholder="e.g. When will I switch to a higher paying job? Any remedies for peace?"
-              className="w-full p-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900"
+              className="w-full p-3 sm:p-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900"
             />
           </div>
 
@@ -511,16 +517,18 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
             </div>
           )}
 
-          {/* Action Button & Security Footer */}
-          <div className="pt-2">
+          </div>
+
+          {/* Action Button & Security Sticky Footer */}
+          <div className="px-4 py-3 sm:px-6 bg-white border-t border-slate-100 pb-safe flex-shrink-0 shadow-lg">
             <button
               type="submit"
-              className="btn-astrotalk w-full py-3.5 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition transform active:scale-[0.99]"
+              className="btn-astrotalk w-full py-3.5 sm:py-3 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition transform active:scale-[0.99] min-h-[48px]"
             >
               <span>{isCallMode ? '📞 Connect Call with Astrologer' : '💬 Start Live Chat (FREE 1st Min)'}</span>
             </button>
 
-            <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500 mt-2.5">
+            <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500 mt-2">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 100% Confidential
@@ -531,7 +539,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
                 Vedic Coordinates Synced
               </span>
               <span>•</span>
-              <span>⚡ Connects in &lt; 15s</span>
+              <span>⚡ &lt; 15s</span>
             </div>
           </div>
 

@@ -64,43 +64,48 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/65 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/75 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-xl shadow-2xl border-t sm:border border-slate-200 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh] animate-slide-up sm:animate-none">
         
         {/* Navigation Tabs Header */}
-        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 sm:p-4 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
-            {[
-              { id: 'wallet', label: 'Recharge Wallet', icon: Wallet },
-              { id: 'history', label: 'Transaction History', icon: History },
-              { id: 'gateway', label: 'Payment Gateway', icon: CreditCard },
-            ].map((t) => {
-              const Icon = t.icon;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id as any)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer flex-shrink-0 ${
-                    activeTab === t.id
-                      ? 'bg-white text-slate-900 shadow-sm'
-                      : 'text-white/80 hover:bg-white/10'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{t.label}</span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 pt-3 pb-3 sm:p-4 flex flex-col flex-shrink-0">
+          {/* Mobile Bottom-sheet Drag Handle */}
+          <div className="w-12 h-1.5 bg-white/40 rounded-full mx-auto mb-2.5 sm:hidden" />
 
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-white/20 text-white cursor-pointer ml-2 flex-shrink-0">
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+              {[
+                { id: 'wallet', label: 'Recharge Wallet', icon: Wallet },
+                { id: 'history', label: 'Transaction History', icon: History },
+                { id: 'gateway', label: 'Payment Gateway', icon: CreditCard },
+              ].map((t) => {
+                const Icon = t.icon;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setActiveTab(t.id as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] ${
+                      activeTab === t.id
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-white/80 hover:bg-white/10'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{t.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-white/20 text-white cursor-pointer ml-2 flex-shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* TAB 1: WALLET RECHARGE PACKS */}
         {activeTab === 'wallet' && (
-          <div className="p-5 sm:p-6 space-y-5 overflow-y-auto">
+          <div className="p-5 sm:p-6 pb-safe space-y-5 overflow-y-auto">
             
             {/* Balance Badge */}
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between">
@@ -162,7 +167,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
 
         {/* TAB 2: TRANSACTION HISTORY / RECEIPTS */}
         {activeTab === 'history' && (
-          <div className="p-5 sm:p-6 space-y-4 overflow-y-auto">
+          <div className="p-5 sm:p-6 pb-safe space-y-4 overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h4 className="text-sm font-bold text-slate-900">Payment & Recharge History</h4>
@@ -209,7 +214,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
 
         {/* TAB 3: PAYMENT GATEWAY SETTINGS (CASHFREE & RAZORPAY) */}
         {activeTab === 'gateway' && (
-          <form onSubmit={handleSaveGateway} className="p-5 sm:p-6 space-y-4 overflow-y-auto">
+          <form onSubmit={handleSaveGateway} className="p-5 sm:p-6 pb-safe space-y-4 overflow-y-auto">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <CreditCard className="w-4 h-4 text-amber-500" />

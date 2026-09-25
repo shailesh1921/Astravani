@@ -163,19 +163,19 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => onInitiateCall(astrologer)}
-            className="px-3 py-2 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+            className="px-3.5 py-2 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[42px] active:scale-95"
             title="Start Audio Consultation"
           >
             <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="hidden sm:inline">Call</span>
+            <span>Call</span>
           </button>
 
           <button
             onClick={() => onInitiateChat(astrologer)}
-            className="btn-astrotalk px-4 py-2 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+            className="btn-astrotalk px-4 py-2 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer min-h-[42px] active:scale-95 shadow-xs"
             title="Start Live Chat Consultation"
           >
             <MessageSquare className="w-3.5 h-3.5" />

@@ -19,28 +19,33 @@ export const CompliancePolicyModal: React.FC<CompliancePolicyModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/75 backdrop-blur-xs animate-in fade-in duration-200">
       <div 
-        className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200"
+        className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-3xl max-h-[92dvh] sm:max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border-t sm:border border-slate-200 animate-slide-up sm:animate-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-4 flex items-center justify-between text-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-lg">
-              ॐ
+        <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-4 pt-3 pb-4 sm:px-6 sm:py-4 flex flex-col text-white flex-shrink-0">
+          {/* Mobile Bottom-sheet Drag Handle */}
+          <div className="w-12 h-1.5 bg-white/40 rounded-full mx-auto mb-2.5 sm:hidden" />
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-lg">
+                ॐ
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold">AstraVani Legal & Compliance</h2>
+                <p className="text-xs text-amber-100">AstraVani Online Vedic Astrology Services (astravani.in)</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold">AstraVani Legal & Compliance</h2>
-              <p className="text-xs text-amber-100">AstraVani Online Vedic Astrology Services (astravani.in)</p>
-            </div>
+            <button
+              onClick={onClose}
+              className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Tab Bar */}
@@ -95,7 +100,7 @@ export const CompliancePolicyModal: React.FC<CompliancePolicyModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="p-6 overflow-y-auto space-y-6 text-sm text-slate-700 leading-relaxed max-h-[60vh]">
+        <div className="p-4 sm:p-6 pb-safe overflow-y-auto space-y-6 text-sm text-slate-700 leading-relaxed max-h-[65vh]">
           {activeTab === 'terms' && (
             <div className="space-y-4">
               <h3 className="text-base font-bold text-slate-900 border-b pb-2">Terms & Conditions</h3>
