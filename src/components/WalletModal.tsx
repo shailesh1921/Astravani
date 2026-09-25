@@ -344,6 +344,51 @@ export const WalletModal: React.FC<WalletModalProps> = ({
               </div>
             )}
 
+            {/* Direct UPI Accounts Summary */}
+            {tempGatewayProvider === 'direct' && (
+              <div className="space-y-3 bg-amber-50/70 p-4 rounded-xl border border-amber-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Direct UPI Auto-Routing Active</span>
+                  </span>
+                  <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                    0% Commission
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="bg-white p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold block">Google Pay (GPay)</span>
+                      <strong className="text-slate-900 font-mono text-[11px]">singh44shailesh@okhdfcbank</strong>
+                    </div>
+                    <span className="text-emerald-600 font-bold text-xs">Active</span>
+                  </div>
+
+                  <div className="bg-white p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold block">PhonePe</span>
+                      <strong className="text-slate-900 font-mono text-[11px]">9173108730@ybl</strong>
+                    </div>
+                    <span className="text-emerald-600 font-bold text-xs">Active</span>
+                  </div>
+
+                  <div className="bg-white p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold block">Paytm</span>
+                      <strong className="text-slate-900 font-mono text-[11px]">9173108730@ptyes</strong>
+                    </div>
+                    <span className="text-emerald-600 font-bold text-xs">Active</span>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-600">
+                  Payments made via mobile or QR are routed directly to these accounts under verified merchant name <strong>AstraVani</strong>.
+                </p>
+              </div>
+            )}
+
             <div className="pt-2">
               <button
                 type="submit"

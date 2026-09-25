@@ -78,6 +78,8 @@ export interface PaymentConfig {
   cashfreeSecretKey?: string;
   cashfreeEnv?: 'sandbox' | 'production';
   razorpayKeyId?: string;
+  directUpiId?: string;
+  directPayeeName?: string;
   currency: 'INR';
 }
 
