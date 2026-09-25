@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, PhoneCall, ScrollText, HeartHandshake, Compass, Sparkles, Sun, ShoppingBag } from 'lucide-react';
+import { MessageSquare, PhoneCall, ScrollText, HeartHandshake, Compass, Sparkles, Sun, ShoppingBag, BookOpen } from 'lucide-react';
 
 interface QuickServicesBarProps {
   onSelectService: (serviceId: string) => void;
@@ -80,6 +80,16 @@ export const QuickServicesBar: React.FC<QuickServicesBarProps> = ({
       shadowColor: 'shadow-amber-500/35',
       badgeBg: 'bg-amber-700 text-white',
       ringColor: 'ring-amber-500',
+    },
+    {
+      id: 'blog',
+      name: 'Vedic Blog & Upay',
+      tag: 'Dosh Nivaran',
+      icon: BookOpen,
+      bgGradient: 'from-emerald-600 via-teal-600 to-cyan-700',
+      shadowColor: 'shadow-teal-500/35',
+      badgeBg: 'bg-emerald-800 text-white',
+      ringColor: 'ring-emerald-500',
     },
     {
       id: 'astromall',

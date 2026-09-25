@@ -104,21 +104,45 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav, o
                   Daily Horoscopes (Rashifal)
                 </button>
               </li>
+              <li>
+                <button onClick={() => onSelectNav('blog')} className="hover:text-amber-400 transition cursor-pointer font-bold text-amber-400">
+                  📖 Vedic Astrology Blog & Upay
+                </button>
+              </li>
             </ul>
           </div>
 
-          {/* Col 3: Popular Horoscopes */}
+          {/* Col 3: Popular Vedic Guides & Articles */}
           <div>
             <h5 className="text-white font-bold uppercase tracking-wider mb-3 text-[11px]">
-              Daily Rashifals
+              Vedic Gyan & Upay
             </h5>
             <ul className="space-y-1.5 text-slate-400">
-              <li>Aries (मेष) • Taurus (वृषभ)</li>
-              <li>Gemini (मिथुन) • Cancer (कर्क)</li>
-              <li>Leo (सिंह) • Virgo (कन्या)</li>
-              <li>Libra (तुला) • Scorpio (वृश्चिक)</li>
-              <li>Sagittarius (धनु) • Capricorn (मकर)</li>
-              <li>Aquarius (कुंभ) • Pisces (मीन)</li>
+              <li>
+                <button onClick={() => onSelectNav('blog')} className="hover:text-amber-400 transition cursor-pointer text-left">
+                  काल सर्प दोष लक्षण एवं उपाय
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onSelectNav('blog')} className="hover:text-amber-400 transition cursor-pointer text-left">
+                  मांगलिक दोष एवं 36 गुण मिलान
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onSelectNav('blog')} className="hover:text-amber-400 transition cursor-pointer text-left">
+                  शनि साढ़े साती के अचूक उपाय
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onSelectNav('blog')} className="hover:text-amber-400 transition cursor-pointer text-left">
+                  राहु महादशा एवं शांति विधि
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onSelectNav('blog')} className="hover:text-amber-400 transition cursor-pointer text-left">
+                  घर में सुख-समृद्धि के 10 वास्तु टिप्स
+                </button>
+              </li>
             </ul>
           </div>
 

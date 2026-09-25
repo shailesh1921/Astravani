@@ -69,6 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
               { id: 'kundli', label: 'Kundli', fullLabel: 'Free Kundli', icon: '📜' },
               { id: 'matching', label: 'Matching', fullLabel: 'Kundli Matching', icon: '💑' },
               { id: 'horoscope', label: 'Horoscope', fullLabel: 'Horoscopes', icon: '⭐' },
+              { id: 'blog', label: 'Blog', fullLabel: 'Vedic Blog', icon: '📖' },
             ].map(item => (
               <button
                 key={item.id}

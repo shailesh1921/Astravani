@@ -22,6 +22,7 @@ import { PolicyTab } from './components/CompliancePolicyModal';
 const FreeKundliView = lazy(() => import('./components/FreeKundliView').then(m => ({ default: m.FreeKundliView })));
 const KundliMatchingView = lazy(() => import('./components/KundliMatchingView').then(m => ({ default: m.KundliMatchingView })));
 const DailyHoroscopeView = lazy(() => import('./components/DailyHoroscopeView').then(m => ({ default: m.DailyHoroscopeView })));
+const BlogView = lazy(() => import('./components/BlogView').then(m => ({ default: m.BlogView })));
 const AstrologerCallModal = lazy(() => import('./components/AstrologerCallModal').then(m => ({ default: m.AstrologerCallModal })));
 const PaymentCheckoutModal = lazy(() => import('./components/PaymentCheckoutModal').then(m => ({ default: m.PaymentCheckoutModal })));
 const CompliancePolicyModal = lazy(() => import('./components/CompliancePolicyModal').then(m => ({ default: m.CompliancePolicyModal })));
@@ -37,8 +38,17 @@ const ViewSuspenseFallback: React.FC = () => (
 );
 
 export const App: React.FC = () => {
-  // Navigation & View state
-  const [activeTab, setActiveTab] = useState<string>('astrologers');
+  // Navigation & View state - supports direct deep linking
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog'].includes(tab)) {
+        return tab;
+      }
+    } catch (e) {}
+    return 'astrologers';
+  });
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Persistent User Authentication & Cloud Synchronization
@@ -308,6 +318,20 @@ export const App: React.FC = () => {
 
           {activeTab === 'horoscope' && (
             <DailyHoroscopeView onConsultSign={handleConsultFromTool} />
+          )}
+
+          {activeTab === 'blog' && (
+            <BlogView 
+              onConsultArticle={(topic) => handleQuickTopicSelect(topic)}
+              onOpenKundli={() => {
+                setActiveTab('kundli');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onOpenMatching={() => {
+                setActiveTab('matching');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
           )}
         </Suspense>
       </main>
