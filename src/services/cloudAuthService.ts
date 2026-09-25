@@ -1,4 +1,5 @@
 import { UserProfile, SavedKundli, ConsultationRecord, PaymentTransaction, AuthSession } from '../types/astrotalk';
+import { supabase } from './supabaseClient';
 
 const SESSION_KEY = 'astravani_auth_session';
 const ACCOUNTS_DB_KEY = 'astravani_cloud_accounts_vault_v1';
@@ -408,6 +409,7 @@ class CloudAuthService {
       topic: 'Career & Job'
     }));
     this.notifyListeners();
+    this.syncUserToCloud(user);
   }
 
   public logout() {
@@ -470,6 +472,9 @@ class CloudAuthService {
       }
     }
     this.saveVault(vault);
+    if (user.phone) {
+      this.syncKundliToCloud(newKundli, user.phone);
+    }
     return newKundli;
   }
 
@@ -523,6 +528,9 @@ class CloudAuthService {
       }
     }
     this.saveVault(vault);
+    if (user.phone) {
+      this.syncTransactionToCloud(tx, user.phone);
+    }
   }
 
   public getTransactions(): PaymentTransaction[] {
@@ -569,8 +577,106 @@ class CloudAuthService {
         }
       }
       this.saveVault(vault);
+      if (user.phone) {
+        this.syncConsultationToCloud(consultation, user.phone);
+      }
     }
     return consultation;
+  }
+
+  // ==========================================
+  // Supabase Cloud Synchronizers (Background)
+  // ==========================================
+  private async syncUserToCloud(user: UserProfile) {
+    try {
+      await supabase.from('users').upsert({
+        phone: user.phone,
+        email: user.email || null,
+        full_name: user.fullName,
+        gender: user.gender,
+        dob: user.dob || null,
+        tob: user.tob || null,
+        pob: user.pob || null,
+        marital_status: user.maritalStatus || 'Single',
+        occupation: user.occupation || null,
+        preferred_language: user.preferredLanguage || 'Hindi',
+        last_login_at: new Date().toISOString()
+      }, { onConflict: 'phone' });
+    } catch (e) {
+      // Graceful background sync
+    }
+  }
+
+  private async syncKundliToCloud(kundli: SavedKundli, userPhone: string) {
+    try {
+      const { data } = await supabase.from('users').select('id').eq('phone', userPhone).single();
+      if (data && data.id) {
+        await supabase.from('saved_kundlis').insert({
+          user_id: data.id,
+          name: kundli.name,
+          relation: kundli.relation,
+          gender: kundli.gender,
+          dob: kundli.dob,
+          tob: kundli.tob,
+          pob: kundli.pob
+        });
+      }
+    } catch (e) {}
+  }
+
+  private async syncTransactionToCloud(tx: PaymentTransaction, userPhone: string) {
+    try {
+      const { data } = await supabase.from('users').select('id').eq('phone', userPhone).single();
+      if (data && data.id) {
+        await supabase.from('transactions').insert({
+          user_id: data.id,
+          amount: tx.amount,
+          bonus_credit: tx.bonusCredit,
+          total_credited: tx.totalCredited,
+          method: tx.method,
+          status: tx.status,
+          receipt_id: tx.receiptId,
+          utr_number: (tx as any).paymentGatewayId || (tx as any).utrNumber || null
+        });
+        await supabase.from('wallets').upsert({
+          user_id: data.id,
+          balance_inr: this.getWalletBalance(),
+          updated_at: new Date().toISOString()
+        });
+      }
+    } catch (e) {}
+  }
+
+  private async syncConsultationToCloud(record: ConsultationRecord, userPhone: string) {
+    try {
+      const { data } = await supabase.from('users').select('id').eq('phone', userPhone).single();
+      if (data && data.id) {
+        const { data: sessionData } = await supabase.from('consultation_sessions').insert({
+          user_id: data.id,
+          astrologer_id: record.astrologerId,
+          astrologer_name: record.astrologerName,
+          mode: record.mode,
+          duration_seconds: record.durationSeconds,
+          amount_deducted: record.amountDeducted,
+          status: record.status,
+          topic: record.topic || 'General',
+          intake_data: record.intake,
+          started_at: record.startedAt,
+          ended_at: record.endedAt || new Date().toISOString()
+        }).select().single();
+
+        if (sessionData && sessionData.id && record.messages && record.messages.length > 0) {
+          const rows = record.messages.map(m => ({
+            session_id: sessionData.id,
+            user_id: data.id,
+            sender: m.sender,
+            text: m.text,
+            created_at: new Date().toISOString()
+          }));
+          await supabase.from('chat_messages').insert(rows);
+        }
+      }
+    } catch (e) {}
   }
 }
 
