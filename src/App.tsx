@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { ASTROLOGERS_DATA } from './data/astrologersData';
 import { Astrologer, ConsultationIntake, ApiConfig, PaymentConfig, PaymentTransaction, UserProfile } from './types/astrotalk';
 import { cloudAuth } from './services/cloudAuthService';
@@ -503,6 +504,9 @@ export const App: React.FC = () => {
 
       {/* Progressive Web App (PWA) Mobile Install Prompt */}
       <PwaInstallBanner />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
     </div>
   );
