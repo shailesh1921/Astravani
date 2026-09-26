@@ -343,7 +343,70 @@ class CloudAuthService {
   }
 
   /**
-   * 1-Tap Google Sign-In
+   * Sync Google Profile from Firebase Authentication
+   */
+  public async syncGoogleUser(info: { id: string; email: string; name: string; avatar?: string }): Promise<UserProfile> {
+    const cleanEmail = (info.email || `user_${info.id}@astravani.in`).trim().toLowerCase();
+    const vault = this.getVault();
+    let account = vault[cleanEmail];
+
+    const now = new Date().toISOString();
+    if (!account) {
+      const newUserId = `usr_g_${Date.now()}`;
+      const newProfile: UserProfile = {
+        id: newUserId,
+        phone: '',
+        email: cleanEmail,
+        fullName: info.name || 'AstraVani User',
+        avatarUrl: info.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+        gender: 'Male',
+        dob: '1998-05-15',
+        tob: '12:00',
+        pob: 'New Delhi, India',
+        maritalStatus: 'Single',
+        occupation: 'Professional',
+        preferredLanguage: 'Hindi',
+        createdAt: now,
+        lastLoginAt: now
+      };
+
+      const selfKundli: SavedKundli = {
+        id: `knd_${Date.now()}`,
+        userId: newUserId,
+        name: newProfile.fullName,
+        relation: 'Self',
+        gender: newProfile.gender,
+        dob: newProfile.dob,
+        tob: newProfile.tob,
+        pob: newProfile.pob,
+        createdAt: now
+      };
+
+      account = {
+        profile: newProfile,
+        walletBalance: 0,
+        bonusBalance: 0,
+        transactions: [],
+        savedKundlis: [selfKundli],
+        consultations: []
+      };
+
+      vault[cleanEmail] = account;
+      this.saveVault(vault);
+    } else {
+      account.profile.lastLoginAt = now;
+      if (info.name) account.profile.fullName = info.name;
+      if (info.avatar) account.profile.avatarUrl = info.avatar;
+      vault[cleanEmail] = account;
+      this.saveVault(vault);
+    }
+
+    this.establishSession(account.profile);
+    return account.profile;
+  }
+
+  /**
+   * 1-Tap Google Sign-In Demo
    */
   public async loginWithGoogle(): Promise<UserProfile> {
     const demoEmail = 'devotee.astravani@gmail.com';

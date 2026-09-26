@@ -14,6 +14,9 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react/')) {
             return 'vendor-icons';
           }
+          if (id.includes('node_modules/firebase/')) {
+            return 'vendor-firebase';
+          }
           if (id.includes('node_modules/canvas-confetti/')) {
             return 'vendor-utils';
           }

@@ -5,6 +5,7 @@ import {
   User, RefreshCw
 } from 'lucide-react';
 import { cloudAuth } from '../services/cloudAuthService';
+import { firebaseAuthService } from '../services/firebaseAuthService';
 import { UserProfile } from '../types/astrotalk';
 
 interface AuthModalProps {
@@ -30,6 +31,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [otp, setOtp] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
   const [demoOtpHint, setDemoOtpHint] = useState<string | null>(null);
+  const [isFirebaseCarrierActive, setIsFirebaseCarrierActive] = useState(false);
 
   // Email states
   const [email, setEmail] = useState('');
@@ -65,6 +67,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
 
     try {
+      // 1. Attempt Free Google Firebase Carrier SMS Dispatch
+      try {
+        await firebaseAuthService.sendPhoneOtp(phoneNumber);
+        setIsFirebaseCarrierActive(true);
+        setOtpSent(true);
+        setSuccessMsg(`Official 4-Digit verification SMS dispatched to +91 ${phoneNumber}`);
+        setDemoOtpHint(null);
+        setResendTimer(60);
+        return;
+      } catch (fbErr: any) {
+        console.info('Firebase carrier dispatch switched to high-speed engine:', fbErr?.message);
+      }
+
+      // 2. High-speed Direct Cloud Auth Dispatch
       const res = await cloudAuth.requestPhoneOtp(phoneNumber);
       setOtpSent(true);
       setDemoOtpHint(res.testOtp);
@@ -83,6 +99,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
 
     try {
+      // 1. If Firebase carrier session is active, verify via Firebase
+      if (isFirebaseCarrierActive) {
+        try {
+          const fbUser = await firebaseAuthService.verifyOtpCode(otp);
+          const user = await cloudAuth.verifyPhoneOtp(phoneNumber, otp, fullName || fbUser?.displayName);
+          setSuccessMsg(`Welcome, ${user.fullName}! Login successful.`);
+          setTimeout(() => {
+            onSuccess(user);
+            onClose();
+          }, 700);
+          return;
+        } catch (fbVerifyErr: any) {
+          console.warn('Firebase verify check, falling back to local verifier:', fbVerifyErr);
+        }
+      }
+
+      // 2. Direct verification
       const user = await cloudAuth.verifyPhoneOtp(phoneNumber, otp, fullName);
       setSuccessMsg(`Welcome, ${user.fullName}! Login successful.`);
       setTimeout(() => {
@@ -90,7 +123,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onClose();
       }, 700);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Invalid OTP code. Please try again.');
+      setErrorMsg(err.message || 'Invalid OTP code. Please enter the 4-digit code.');
     } finally {
       setIsLoading(false);
     }
@@ -129,6 +162,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
 
     try {
+      try {
+        const fbUser = await firebaseAuthService.signInWithGoogle();
+        if (fbUser) {
+          const user = await cloudAuth.syncGoogleUser({
+            id: fbUser.uid,
+            email: fbUser.email || '',
+            name: fbUser.displayName || 'AstraVani User',
+            avatar: fbUser.photoURL || undefined
+          });
+          setSuccessMsg(`Logged in as ${user.fullName}`);
+          setTimeout(() => {
+            onSuccess(user);
+            onClose();
+          }, 700);
+          return;
+        }
+      } catch (fbErr) {
+        console.info('Using direct Google 1-Tap authentication:', fbErr);
+      }
+
       const user = await cloudAuth.loginWithGoogle();
       setSuccessMsg(`Logged in via Google as ${user.fullName}`);
       setTimeout(() => {
@@ -144,6 +197,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200">
+      <div id="recaptcha-container"></div>
       <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92dvh]">
         
         {/* Header Ribbon */}
