@@ -14,11 +14,11 @@ export const QuickServicesBar: React.FC<QuickServicesBarProps> = ({
     {
       id: 'astrologers',
       name: 'Chat with Astrologer',
-      tag: 'FREE 1st Chat',
+      tag: 'Instant Chat',
       icon: MessageSquare,
       bgGradient: 'from-amber-500 via-orange-500 to-amber-600',
       shadowColor: 'shadow-amber-500/35',
-      badgeBg: 'bg-red-600 text-white animate-pulse',
+      badgeBg: 'bg-amber-700 text-white',
       ringColor: 'ring-amber-500',
     },
     {

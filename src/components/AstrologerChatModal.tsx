@@ -164,9 +164,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
             setMessages(saved.messages);
             setSecondsElapsed(saved.secondsElapsed || 0);
             setTotalCharged(saved.totalCharged || 0);
-            setHasPaidToContinue(saved.hasPaidToContinue || false);
+            setHasPaidToContinue(true);
             setIsSessionEnded(false);
-            setShowRechargePopup(false);
             recovered = true;
           }
         }
@@ -179,7 +178,14 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
       setSecondsElapsed(0);
       setIsSessionEnded(false);
       setTotalCharged(0);
-      setHasPaidToContinue(false);
+      setHasPaidToContinue(walletBalance >= astrologer.pricePerMin);
+
+      // STRICT ZERO-BALANCE CHECK: If balance is less than 1 min price, show recharge popup immediately and DO NOT fire replies!
+      if (walletBalance < astrologer.pricePerMin) {
+        setShowRechargePopup(true);
+        return;
+      }
+
       setShowRechargePopup(false);
 
       // Initial user question if provided in intake form
@@ -229,47 +235,41 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     }
   }, [isOpen, isSessionEnded, astrologer.id, intake, messages, secondsElapsed, hasPaidToContinue, totalCharged]);
 
-  // Strict 1-Minute Free Trial and Balance Depletion Checking
-  const isTrialExpired = secondsElapsed >= 60 && !hasPaidToContinue;
-  const isBalanceDepleted = hasPaidToContinue && walletBalance < astrologer.pricePerMin;
-  const isChatPaused = !isSessionEnded && (isTrialExpired || isBalanceDepleted);
+  // Strict Balance Checking: If wallet balance is less than rate per minute, chat is strictly PAUSED
+  const hasSufficientBalance = walletBalance >= astrologer.pricePerMin;
+  const isChatPaused = !isSessionEnded && !hasSufficientBalance;
 
-  // Auto-pop recharge modal whenever chat enters paused state
+  // Auto-pop recharge modal whenever chat balance is insufficient
   useEffect(() => {
-    if (isChatPaused) {
+    if (isOpen && !isSessionEnded && !hasSufficientBalance) {
       setShowRechargePopup(true);
     }
-  }, [isChatPaused]);
+  }, [isOpen, isSessionEnded, hasSufficientBalance]);
 
   // When user completes wallet recharge during active consultation
   useEffect(() => {
-    if (walletBalance >= astrologer.pricePerMin && (secondsElapsed >= 60 || hasPaidToContinue)) {
-      setHasPaidToContinue(true);
+    if (isOpen && hasSufficientBalance) {
       setShowRechargePopup(false);
-    }
-  }, [walletBalance, astrologer.pricePerMin, secondsElapsed, hasPaidToContinue]);
+      setHasPaidToContinue(true);
 
-  // Session Timer: 1st 1 minute (60s) is 100% FREE, then STOPS strictly and prompts for recharge
+      // If no messages were sent yet because balance was 0, trigger opening greeting now!
+      if (messages.length === 0) {
+        const firstName = intake.name.split(' ')[0] || intake.name;
+        const openingLines = [
+          `Pranam ${firstName} ji! Main aapki janam patrika open kar raha hoon.`,
+          `Bataiye, aaj kis vishay par aap vishisht guidance chahte hain?`
+        ];
+        deliverSequentialReplies(openingLines);
+      }
+    }
+  }, [isOpen, hasSufficientBalance, messages.length, intake.name]);
+
+  // Session Timer: Real-time per-minute deduction (Every 60s)
   useEffect(() => {
     if (!isOpen || isSessionEnded) return;
 
     const timer = setInterval(() => {
       setSecondsElapsed((prev) => {
-        // Phase 1: Free 1st minute (0 to 60s)
-        if (!hasPaidToContinue) {
-          if (prev >= 60) {
-            setShowRechargePopup(true);
-            return 60; // Strictly freeze at 60s
-          }
-          const next = prev + 1;
-          if (next >= 60) {
-            setShowRechargePopup(true);
-            return 60; // Freeze at 60s
-          }
-          return next;
-        }
-
-        // Phase 2: Paid continuation
         // If balance is depleted below astrologer price per min, freeze and prompt recharge
         if (walletBalance < astrologer.pricePerMin) {
           setShowRechargePopup(true);
@@ -277,8 +277,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
         }
 
         const next = prev + 1;
-        // Deduct rate every 60s of paid conversation
-        if (next > 60 && (next - 60) % 60 === 0) {
+        // Deduct rate every 60s of active consultation
+        if (next > 0 && next % 60 === 0) {
           if (walletBalance >= astrologer.pricePerMin) {
             onDeductWallet(astrologer.pricePerMin);
             setTotalCharged((c) => c + astrologer.pricePerMin);
@@ -292,7 +292,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isOpen, isSessionEnded, walletBalance, astrologer.pricePerMin, hasPaidToContinue]);
+  }, [isOpen, isSessionEnded, walletBalance, astrologer.pricePerMin]);
 
   // Auto scroll to bottom smoothly
   useEffect(() => {
@@ -303,8 +303,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     const textToSend = customText || inputText;
     if (!textToSend.trim() || isTyping) return;
 
-    // Strict 1-Minute Free Trial Enforcement: Stop and trigger recharge popup
-    if (isChatPaused) {
+    // Strict Balance Check: Block sending and open recharge modal immediately
+    if (walletBalance < astrologer.pricePerMin) {
       setShowRechargePopup(true);
       onOpenRecharge();
       return;
@@ -489,23 +489,15 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
 
         </div>
 
-        {/* Free Promo Banner (during first 60 seconds) */}
-        {secondsElapsed < 60 && !isSessionEnded && (
-          <div className="bg-amber-100 text-amber-950 px-4 py-1 text-center text-xs font-bold flex items-center justify-center gap-2 border-b border-amber-200">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>⚡ First 1 Minute is 100% FREE! Free time remaining: {60 - secondsElapsed}s</span>
-          </div>
-        )}
-
-        {/* Free 1-Min Completed / Chat Paused Alert Banner */}
+        {/* Chat Paused / Low Balance Alert Banner */}
         {isChatPaused && (
           <div className="bg-red-50 text-red-900 px-3 sm:px-4 py-2 text-center text-xs font-bold flex items-center justify-between gap-2 border-b border-red-200 animate-in fade-in">
             <span className="flex items-center gap-1.5 text-left text-[11px] sm:text-xs">
               <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 animate-pulse" />
               <span>
-                {isTrialExpired 
-                  ? '⏱️ 1-Minute Free Trial Ended! Chat is paused. Please recharge wallet to talk.'
-                  : `Low Balance: ₹${walletBalance} left. Please recharge wallet to keep chat live.`}
+                {walletBalance === 0 
+                  ? `Insufficient Balance (₹0). Please recharge min ₹${astrologer.pricePerMin} to consult with ${astrologer.name}.`
+                  : `Low Balance: ₹${walletBalance} left (Rate: ₹${astrologer.pricePerMin}/min). Please recharge to continue.`}
               </span>
             </span>
             <button
@@ -725,16 +717,16 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
               <p className="text-xs sm:text-sm font-semibold text-slate-900 leading-tight">
                 {isChatPaused ? (
                   <span className="text-red-700 font-extrabold flex items-center gap-1">
-                    <span>{isTrialExpired ? '1-Min Free Trial Ended' : 'Low Balance'}</span>
+                    <span>{walletBalance === 0 ? 'Insufficient Balance (₹0)' : 'Low Balance'}</span>
                     <span className="text-slate-600 font-normal hidden sm:inline">• Rate: ₹{astrologer.pricePerMin}/min</span>
                   </span>
                 ) : (
-                  <>Hi <span className="font-bold capitalize">{intake.name.split(' ')[0]}</span>, lets continue this chat at price of ₹ {astrologer.pricePerMin}.0/min</>
+                  <>Consulting with <span className="font-bold">{astrologer.name}</span> • ₹{astrologer.pricePerMin}/min</>
                 )}
               </p>
               <p className="text-[10px] text-slate-500">
                 {isChatPaused
-                  ? 'Recharge your wallet to unpause chat'
+                  ? `Recharge min ₹${astrologer.pricePerMin} to start live reading`
                   : '100% Private & Confidential • Verified Pandit'}
               </p>
             </div>
@@ -748,7 +740,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
             className="bg-[#FCD34D] hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer flex-shrink-0"
           >
             <Wallet className="w-3.5 h-3.5" />
-            <span>{isChatPaused ? 'Recharge to Talk ⚡' : 'Recharge / Continue'}</span>
+            <span>{isChatPaused ? 'Recharge Wallet ⚡' : 'Add Balance'}</span>
           </button>
 
         </div>
@@ -759,9 +751,16 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
             {topicQuickChips.map((q) => (
               <button
                 key={q}
-                onClick={() => handleSendMessage(q)}
-                disabled={isTyping || isChatPaused}
-                className="flex-shrink-0 text-[11px] font-semibold bg-white hover:bg-amber-50 text-slate-800 border border-slate-300 px-3 py-1 rounded-full transition disabled:opacity-40 cursor-pointer shadow-2xs hover:border-amber-400 disabled:cursor-not-allowed"
+                onClick={() => {
+                  if (isChatPaused) {
+                    setShowRechargePopup(true);
+                    onOpenRecharge();
+                  } else {
+                    handleSendMessage(q);
+                  }
+                }}
+                disabled={isTyping}
+                className="flex-shrink-0 text-[11px] font-semibold bg-white hover:bg-amber-50 text-slate-800 border border-slate-300 px-3 py-1 rounded-full transition cursor-pointer shadow-2xs hover:border-amber-400"
               >
                 {q}
               </button>
@@ -787,10 +786,19 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (isChatPaused) {
+                    setShowRechargePopup(true);
+                    onOpenRecharge();
+                  } else {
+                    handleSendMessage();
+                  }
+                }
+              }}
               placeholder={
                 isChatPaused
-                  ? "🔒 Free 1-min ended. Recharge wallet to send messages..."
+                  ? `🔒 Low Balance: Recharge min ₹${astrologer.pricePerMin} to chat...`
                   : `Type your query to ${astrologer.name.split(' ')[0]}...`
               }
               disabled={isTyping || isChatPaused}
@@ -878,7 +886,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
           </div>
         )}
 
-        {/* 1-MINUTE FREE TRIAL ENDED RECHARGE POPUP MODAL */}
+        {/* RECHARGE POPUP MODAL */}
         {showRechargePopup && !isSessionEnded && (
           <div className="absolute inset-0 z-30 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border-2 border-amber-400 overflow-hidden animate-in zoom-in-95 duration-200 text-center">
@@ -889,13 +897,13 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
                   <span className="text-2xl font-black text-amber-700">ॐ</span>
                 </div>
                 <span className="bg-red-600 text-white text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full tracking-wider animate-pulse inline-block mb-1 shadow-xs">
-                  Free 1-Minute Trial Completed
+                  {walletBalance === 0 ? 'Zero Balance' : 'Insufficient Balance'}
                 </span>
                 <h3 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-950">
-                  Recharge Wallet to Continue
+                  Recharge Wallet to Consult
                 </h3>
                 <p className="text-xs text-slate-800 font-semibold mt-0.5">
-                  Keep consulting with {astrologer.name} without interruption
+                  Consult live with {astrologer.name} at ₹{astrologer.pricePerMin}/min
                 </p>
               </div>
 

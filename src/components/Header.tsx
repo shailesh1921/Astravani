@@ -29,11 +29,11 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm w-full">
       {/* Top Offer Ribbon */}
       <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-900 text-xs sm:text-sm font-semibold py-1.5 px-3 sm:px-4 text-center flex items-center justify-center gap-1.5 sm:gap-2 overflow-hidden">
-        <span className="bg-red-600 text-white text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider animate-pulse flex-shrink-0">
-          Free Offer
+        <span className="bg-slate-900 text-amber-400 text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider flex-shrink-0">
+          ✨ Vedic Guarantee
         </span>
         <span className="truncate sm:overflow-visible">
-          ⚡ First Chat with Astrologer is FREE! <span className="hidden md:inline">(100% Free First Consultation) | 4,500+ Verified Gurus Online ⚡</span>
+          ⚡ 100% Private & Verified Consultations with 4,500+ Top Astrologers Online 24/7 • Free Janam Kundli ⚡
         </span>
       </div>
 

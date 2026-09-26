@@ -619,7 +619,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
               type="submit"
               className="btn-astrotalk w-full py-3.5 sm:py-3 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition transform active:scale-[0.99] min-h-[48px]"
             >
-              <span>{isCallMode ? '📞 Connect Call with Astrologer' : '💬 Start Live Chat (FREE 1st Min)'}</span>
+              <span>{isCallMode ? `📞 Connect Call with ${astrologer.name} (₹${astrologer.pricePerMin}/min)` : `💬 Start Live Consultation (₹${astrologer.pricePerMin}/min)`}</span>
             </button>
 
             <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500 mt-2">
