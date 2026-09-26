@@ -83,6 +83,10 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
     }
   };
 
+  // Track latest wallet balance in a ref so intervals always read current value without re-triggering useEffect
+  const walletRef = useRef(walletBalance);
+  useEffect(() => { walletRef.current = walletBalance; }, [walletBalance]);
+
   // Call lifecycle
   useEffect(() => {
     if (!isOpen) {
@@ -99,10 +103,10 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
     }
 
     setCallDuration(0);
-    setHasPaidToContinue(walletBalance >= astrologer.pricePerMin);
+    setHasPaidToContinue(walletRef.current >= astrologer.pricePerMin);
 
     // STRICT ZERO-BALANCE CHECK: If balance is insufficient, pop recharge immediately and do not connect call
-    if (walletBalance < astrologer.pricePerMin) {
+    if (walletRef.current < astrologer.pricePerMin) {
       setCallState('ringing');
       setShowRechargePopup(true);
       return;
@@ -124,7 +128,7 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
       // Start call duration timer: real-time duration and live deduction
       durationTimerRef.current = setInterval(() => {
         setCallDuration((prev) => {
-          if (walletBalance < astrologer.pricePerMin) {
+          if (walletRef.current < astrologer.pricePerMin) {
             setShowRechargePopup(true);
             if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
               window.speechSynthesis.cancel();
@@ -138,7 +142,7 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
 
       // Deduct wallet every 60 seconds of active consultation
       billingTimerRef.current = setInterval(() => {
-        if (walletBalance >= astrologer.pricePerMin) {
+        if (walletRef.current >= astrologer.pricePerMin) {
           onDeductWallet(astrologer.pricePerMin);
         } else {
           setShowRechargePopup(true);
@@ -158,7 +162,7 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
         window.speechSynthesis.cancel();
       }
     };
-  }, [isOpen, walletBalance, astrologer.pricePerMin]);
+  }, [isOpen, astrologer.pricePerMin]);
 
   // When user recharges wallet and balance becomes sufficient during call, auto-unpause
   useEffect(() => {

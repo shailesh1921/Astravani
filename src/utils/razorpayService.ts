@@ -45,9 +45,9 @@ export async function launchRazorpayCheckout(options: RazorpayPaymentOptions): P
       key: options.keyId.trim(),
       amount: options.amountRupees * 100, // Amount in paise
       currency: 'INR',
-      name: 'AstroTalk India',
-      description: `Astrology Consultation Wallet Recharge (₹${options.amountRupees})`,
-      image: 'https://astrotalk.com/assets/images/astrotalk-logo.png',
+      name: 'AstraVani India',
+      description: `AstraVani Astrology Wallet Recharge (₹${options.amountRupees})`,
+      image: 'https://www.astravani.in/favicon.svg',
       handler: function (response: any) {
         if (response && response.razorpay_payment_id) {
           options.onSuccess(response.razorpay_payment_id);
@@ -56,12 +56,12 @@ export async function launchRazorpayCheckout(options: RazorpayPaymentOptions): P
         }
       },
       prefill: {
-        name: options.userName || 'Shailesh Singh',
-        email: options.userEmail || 'consultation@astrotalk.com',
-        contact: options.userPhone || '+91 9876543210'
+        name: options.userName || 'AstraVani Client',
+        email: options.userEmail || 'support@astravani.in',
+        contact: options.userPhone || '+91 9173108730'
       },
       theme: {
-        color: '#F59E0B' // Astrotalk Gold
+        color: '#D97706' // AstraVani Amber
       },
       modal: {
         ondismiss: function () {

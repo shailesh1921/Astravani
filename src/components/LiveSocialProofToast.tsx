@@ -101,11 +101,13 @@ export const LiveSocialProofToast: React.FC = () => {
       setIsVisible(true);
     }, 3500);
 
+    let cycleTimeout: any = null;
+
     // Cycle every 8.5 seconds (display 5.5s, pause 3s)
     const interval = setInterval(() => {
       setIsVisible(false);
 
-      setTimeout(() => {
+      cycleTimeout = setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % LIVE_EVENTS.length);
         setIsVisible(true);
       }, 700);
@@ -114,6 +116,7 @@ export const LiveSocialProofToast: React.FC = () => {
 
     return () => {
       clearTimeout(initialTimeout);
+      clearTimeout(cycleTimeout);
       clearInterval(interval);
     };
   }, [isDismissed]);

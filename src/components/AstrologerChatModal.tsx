@@ -97,11 +97,18 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
   }, [intake.topic]);
 
 
+  // Singleton AudioContext to prevent memory leak (browsers limit ~6 active instances)
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
   // Play audio chime when message arrives
   const playChime = () => {
     if (isMuted) return;
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const audioCtx = audioCtxRef.current;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
@@ -113,6 +120,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + 0.22);
+      osc.onended = () => { osc.disconnect(); gain.disconnect(); };
     } catch (e) {
       // AudioContext muted/unsupported
     }
@@ -264,6 +272,12 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     }
   }, [isOpen, hasSufficientBalance, messages.length, intake.name]);
 
+  // Track latest wallet balance in ref to avoid resetting interval on every minute deduction
+  const chatWalletRef = useRef(walletBalance);
+  useEffect(() => {
+    chatWalletRef.current = walletBalance;
+  }, [walletBalance]);
+
   // Session Timer: Real-time per-minute deduction (Every 60s)
   useEffect(() => {
     if (!isOpen || isSessionEnded) return;
@@ -271,7 +285,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     const timer = setInterval(() => {
       setSecondsElapsed((prev) => {
         // If balance is depleted below astrologer price per min, freeze and prompt recharge
-        if (walletBalance < astrologer.pricePerMin) {
+        if (chatWalletRef.current < astrologer.pricePerMin) {
           setShowRechargePopup(true);
           return prev;
         }
@@ -279,7 +293,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
         const next = prev + 1;
         // Deduct rate every 60s of active consultation
         if (next > 0 && next % 60 === 0) {
-          if (walletBalance >= astrologer.pricePerMin) {
+          if (chatWalletRef.current >= astrologer.pricePerMin) {
             onDeductWallet(astrologer.pricePerMin);
             setTotalCharged((c) => c + astrologer.pricePerMin);
           } else {
@@ -292,7 +306,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isOpen, isSessionEnded, walletBalance, astrologer.pricePerMin]);
+  }, [isOpen, isSessionEnded, astrologer.pricePerMin, onDeductWallet]);
 
   // Auto scroll to bottom smoothly
   useEffect(() => {

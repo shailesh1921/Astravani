@@ -9,10 +9,12 @@ export const PwaInstallBanner: React.FC = () => {
 
   useEffect(() => {
     // Check if dismissed in last 2 days
-    const dismissedAt = localStorage.getItem('astravani_pwa_dismissed');
-    if (dismissedAt && Date.now() - parseInt(dismissedAt, 10) < 2 * 24 * 60 * 60 * 1000) {
-      return;
-    }
+    try {
+      const dismissedAt = localStorage.getItem('astravani_pwa_dismissed');
+      if (dismissedAt && Date.now() - parseInt(dismissedAt, 10) < 2 * 24 * 60 * 60 * 1000) {
+        return;
+      }
+    } catch (e) {}
 
     // Check if already in standalone PWA mode
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
@@ -59,7 +61,9 @@ export const PwaInstallBanner: React.FC = () => {
   const handleDismiss = () => {
     setShowBanner(false);
     setShowIosGuide(false);
-    localStorage.setItem('astravani_pwa_dismissed', Date.now().toString());
+    try {
+      localStorage.setItem('astravani_pwa_dismissed', Date.now().toString());
+    } catch (e) {}
   };
 
   if (!showBanner) return null;

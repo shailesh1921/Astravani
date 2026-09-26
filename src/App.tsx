@@ -51,6 +51,35 @@ export const App: React.FC = () => {
   });
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Synchronize browser history and URL with activeTab
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('tab') !== activeTab) {
+        url.searchParams.set('tab', activeTab);
+        window.history.pushState({ tab: activeTab }, '', url.toString());
+      }
+    } catch (e) {}
+  }, [activeTab]);
+
+  // Handle browser back and forward buttons seamlessly
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab') || e.state?.tab;
+        if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog'].includes(tab)) {
+          setActiveTab(tab);
+        } else {
+          setActiveTab('astrologers');
+        }
+      } catch (err) {}
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // Persistent User Authentication & Cloud Synchronization
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => cloudAuth.getCurrentUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);

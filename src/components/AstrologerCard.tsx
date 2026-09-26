@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Astrologer } from '../types/astrotalk';
 import { Star, ShieldCheck, MessageSquare, PhoneCall, Award, Globe, Volume2, VolumeX } from 'lucide-react';
 import { playPanditVoiceSample, stopPanditVoice } from '../utils/panditVoiceBlessing';
@@ -15,6 +15,12 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
   onInitiateCall
 }) => {
   const [isPlayingVoice, setIsPlayingVoice] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      stopPanditVoice();
+    };
+  }, []);
 
   const handleToggleVoice = (e: React.MouseEvent) => {
     e.stopPropagation();

@@ -5,6 +5,15 @@ const SESSION_KEY = 'astravani_auth_session';
 const ACCOUNTS_DB_KEY = 'astravani_cloud_accounts_vault_v1';
 const PENDING_OTP_KEY = 'astravani_pending_otp';
 
+// Secure password hashing using Web Crypto API (SHA-256 + salt)
+async function hashPassword(password: string): Promise<string> {
+  const salt = 'AstraVani_Auth_Salt_v1';
+  const data = new TextEncoder().encode(salt + password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 interface AccountRecord {
   profile: UserProfile;
   walletBalance: number;
@@ -167,8 +176,8 @@ class CloudAuthService {
     if (Date.now() > parsedOtp.expiresAt) {
       throw new Error('OTP has expired. Please request a new code.');
     }
-    if (parsedOtp.otp !== otp.trim() && otp.trim() !== '123456') {
-      throw new Error('Invalid OTP. Please check the 6-digit code.');
+    if (parsedOtp.otp !== otp.trim()) {
+      throw new Error('Invalid OTP. Please check the 4-digit code.');
     }
 
     sessionStorage.removeItem(PENDING_OTP_KEY);
@@ -256,8 +265,11 @@ class CloudAuthService {
     if (!account) {
       throw new Error('No AstraVani account found with this email. Please Sign Up.');
     }
-    if (account.passwordHash && account.passwordHash !== pass) {
-      throw new Error('Incorrect password. Please verify and try again.');
+    if (account.passwordHash) {
+      const inputHash = await hashPassword(pass);
+      if (account.passwordHash !== inputHash) {
+        throw new Error('Incorrect password. Please verify and try again.');
+      }
     }
 
     account.profile.lastLoginAt = new Date().toISOString();
@@ -329,7 +341,7 @@ class CloudAuthService {
       ],
       savedKundlis: [selfKundli],
       consultations: [],
-      passwordHash: pass
+      passwordHash: await hashPassword(pass)
     };
 
     vault[cleanEmail] = account;
@@ -409,7 +421,7 @@ class CloudAuthService {
    * 1-Tap Google Sign-In Demo
    */
   public async loginWithGoogle(): Promise<UserProfile> {
-    const demoEmail = 'devotee.astravani@gmail.com';
+    const demoEmail = 'member.astravani@gmail.com';
     const vault = this.getVault();
     let account = vault[demoEmail];
 
@@ -420,14 +432,14 @@ class CloudAuthService {
         id: newUserId,
         phone: '+919876543210',
         email: demoEmail,
-        fullName: 'Shailesh Singh (Verified)',
+        fullName: 'AstraVani Member',
         avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
         gender: 'Male',
-        dob: '1995-10-24',
-        tob: '06:45',
-        pob: 'Varanasi, Uttar Pradesh',
+        dob: '1998-01-01',
+        tob: '08:00',
+        pob: 'New Delhi, India',
         maritalStatus: 'Single',
-        occupation: 'Software Engineer',
+        occupation: 'Professional',
         preferredLanguage: 'Hindi',
         createdAt: now,
         lastLoginAt: now
@@ -438,10 +450,10 @@ class CloudAuthService {
         userId: newUserId,
         name: newProfile.fullName,
         relation: 'Self',
-        gender: 'Male',
-        dob: '1995-10-24',
-        tob: '06:45',
-        pob: 'Varanasi, Uttar Pradesh',
+        gender: newProfile.gender,
+        dob: newProfile.dob,
+        tob: newProfile.tob,
+        pob: newProfile.pob,
         createdAt: now
       };
 
