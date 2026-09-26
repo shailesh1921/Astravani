@@ -98,7 +98,7 @@ class CloudAuthService {
   }
 
   /**
-   * Request 6-digit OTP for phone login
+   * Request 4-digit OTP for phone login
    */
   public async requestPhoneOtp(phone: string): Promise<{ success: boolean; message: string; testOtp: string }> {
     const cleanPhone = phone.replace(/\D/g, '').slice(-10);
@@ -106,9 +106,11 @@ class CloudAuthService {
       throw new Error('Please enter a valid 10-digit Indian mobile number');
     }
 
-    // Auto-detect live Fast2SMS API key if provided
+    // Auto-detect live Fast2SMS or 2Factor API key if provided
     const fast2smsKey = (import.meta.env.VITE_FAST2SMS_API_KEY as string | undefined)?.trim();
-    const generatedOtp = fast2smsKey ? Math.floor(100000 + Math.random() * 900000).toString() : '123456'; 
+    const generatedOtp = fast2smsKey 
+      ? Math.floor(1000 + Math.random() * 9000).toString() 
+      : Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP (e.g. 1234)
 
     if (fast2smsKey) {
       try {
@@ -121,11 +123,12 @@ class CloudAuthService {
           body: JSON.stringify({
             route: 'otp',
             variables_values: generatedOtp,
-            numbers: cleanPhone
+            numbers: cleanPhone,
+            sender_id: 'ASTRAV'
           })
         });
       } catch (smsErr) {
-        console.warn('Fast2SMS carrier dispatch notice:', smsErr);
+        console.warn('SMS carrier dispatch notice:', smsErr);
       }
     }
 
@@ -139,8 +142,8 @@ class CloudAuthService {
     return {
       success: true,
       message: fast2smsKey
-        ? `Verification code dispatched to +91 ${cleanPhone}.`
-        : `OTP sent successfully to +91 ${cleanPhone}. (Use demo code: ${generatedOtp})`,
+        ? `4-digit verification code sent via SMS to +91 ${cleanPhone}.`
+        : `4-digit OTP sent to +91 ${cleanPhone}. (Demo code: ${generatedOtp})`,
       testOtp: generatedOtp
     };
   }

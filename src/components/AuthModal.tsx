@@ -247,7 +247,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       />
                     </div>
                     <span className="text-[10px] text-slate-400 block mt-1">
-                      We'll send a 6-digit verification code to confirm your number.
+                      We'll send a 4-digit verification code to confirm your number.
                     </span>
                   </div>
 
@@ -275,11 +275,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Sending OTP...</span>
+                        <span>Sending 4-Digit OTP...</span>
                       </>
                     ) : (
                       <>
-                        <span>Get Verification Code</span>
+                        <span>Get 4-Digit Verification Code</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </>
                     )}
@@ -289,7 +289,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <form onSubmit={handleVerifyOtp} className="space-y-4">
                   <div className="text-center space-y-1">
                     <span className="text-xs font-bold text-slate-800">
-                      Enter OTP sent to +91 {phoneNumber}
+                      Enter 4-Digit OTP sent to +91 {phoneNumber}
                     </span>
                     <button
                       type="button"
@@ -304,11 +304,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <input
                       type="text"
                       required
-                      maxLength={6}
+                      maxLength={4}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      placeholder="123456"
-                      className="w-44 text-center tracking-[0.5em] font-mono text-xl font-bold bg-white border-2 border-amber-400 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 text-slate-900 shadow-inner"
+                      placeholder="• • • •"
+                      className="w-36 text-center tracking-[0.6em] font-mono text-2xl font-black bg-white border-2 border-amber-400 rounded-2xl p-2.5 focus:outline-none focus:border-amber-600 text-slate-900 shadow-inner"
                       autoFocus
                     />
                   </div>
@@ -326,23 +326,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         <span>Resend OTP</span>
                       </button>
                     )}
-                    <span className="text-slate-400 text-[11px]">Demo: 123456</span>
+                    {demoOtpHint && (
+                      <span className="text-slate-400 text-[11px]">Demo: {demoOtpHint}</span>
+                    )}
                   </div>
 
                   <button
                     type="submit"
-                    disabled={isLoading || otp.length < 4}
+                    disabled={isLoading || otp.length !== 4}
                     className="btn-astrotalk w-full py-2.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Verifying...</span>
+                        <span>Verifying OTP...</span>
                       </>
                     ) : (
                       <>
                         <CheckCircle2 className="w-4 h-4" />
-                        <span>Verify &amp; Enter AstraVani</span>
+                        <span>Verify 4-Digit OTP &amp; Enter</span>
                       </>
                     )}
                   </button>
