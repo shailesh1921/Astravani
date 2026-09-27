@@ -77,7 +77,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       let msg = fbErr?.message || 'Failed to send SMS OTP.';
 
       if (code === 'auth/operation-not-allowed') {
-        msg = 'Phone Auth is disabled in Firebase. In Firebase Console, go to Authentication > Sign-in method and enable "Phone".';
+        msg = fbErr?.message?.includes('region')
+          ? 'SMS region is blocked by Google. In Firebase Console, go to Authentication > Settings > "SMS region policy" and enable India (+91).'
+          : 'In Firebase Console, go to Authentication > Settings > "SMS region policy" and enable India (+91).';
       } else if (code === 'auth/unauthorized-domain') {
         msg = 'Domain astravani.in needs to be authorized in Firebase Console (Authentication > Settings > Authorized Domains).';
       } else if (code === 'auth/quota-exceeded') {
