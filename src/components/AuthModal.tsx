@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, Mail, Lock, ShieldCheck, 
   Sparkles, CheckCircle2, AlertCircle, Loader2,
-  User, Gift
+  User
 } from 'lucide-react';
 import { cloudAuth } from '../services/cloudAuthService';
 import { firebaseAuthService } from '../services/firebaseAuthService';
@@ -161,17 +161,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {authMethod === 'google' ? (
             <div className="space-y-4">
               
-              {/* Welcome Gift Box */}
+              {/* Welcome Value Proposition */}
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl p-4 text-center shadow-2xs">
                 <div className="inline-flex items-center gap-1.5 bg-amber-500/15 text-amber-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full mb-1.5">
-                  <Gift className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Welcome Devotee Offer</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Vedic Astrology Platform</span>
                 </div>
                 <h4 className="text-sm font-extrabold text-slate-900">
-                  Sign in &amp; Get ₹100 Free Consultation Balance
+                  Sign in to Connect with Expert Astrologers
                 </h4>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Instant 1-Click login • No phone or OTP wait
+                  Instant 1-Click login • Secure wallet • Private consultations
                 </p>
               </div>
 

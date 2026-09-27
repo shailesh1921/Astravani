@@ -49,7 +49,7 @@ const LIVE_EVENTS: SocialProofEvent[] = [
     id: 'e4',
     name: 'Sneha Rao',
     city: 'Bengaluru',
-    action: 'Unlocked 1-Min Free Chat with',
+    action: 'Started Chat Consultation with',
     target: 'Tarot Sunita Sen',
     timeAgo: '42s ago',
     avatar: '/astrologers/tarot-sunita.jpg',

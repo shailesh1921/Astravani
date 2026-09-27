@@ -88,7 +88,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 className="btn-astrotalk w-full sm:w-auto px-6 py-3.5 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2.5 shadow-md hover:shadow-xl transition transform active:scale-95 cursor-pointer rounded-xl min-h-[48px]"
               >
                 <MessageSquare className="w-5 h-5" />
-                <span>Chat with Astrologer (FREE 1st Chat) ⚡</span>
+                <span>Chat with Astrologer Now ⚡</span>
               </button>
             </div>
 
@@ -96,7 +96,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1.5 text-xs font-semibold text-slate-500 pt-0.5">
               <span className="flex items-center gap-1.5 text-emerald-700">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                100% Free First Consultation
+                Verified Expert Astrologers
               </span>
               <span>•</span>
               <span className="flex items-center gap-1.5 text-slate-600">
@@ -188,12 +188,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               {/* Instant 1-Click Consultation CTA */}
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 mb-3.5 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full inline-block mb-1">
-                    100% FREE FIRST CHAT
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-100/90 px-2 py-0.5 rounded-full inline-block mb-1">
+                    ⭐ TOP RATED ASTROLOGER
                   </span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-sm font-black text-slate-900">₹0 Free Chat</span>
-                    <span className="text-xs text-slate-400 line-through">₹{featuredPandit.originalPrice || 80}/min</span>
+                    <span className="text-sm font-black text-slate-900">₹{featuredPandit.originalPrice || 80}/min</span>
+                    <span className="text-xs text-emerald-600 font-bold">Best Value</span>
                   </div>
                 </div>
 

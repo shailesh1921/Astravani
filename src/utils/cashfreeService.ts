@@ -1,3 +1,9 @@
+/**
+ * ⚠️  SECURITY WARNING: Cashfree secret key is exposed client-side (line 85).
+ * This is acceptable ONLY for sandbox/testing mode.
+ * For PRODUCTION: Route order creation through a backend API/serverless function.
+ * The secret key in the browser can be extracted by anyone.
+ */
 // Cashfree JS SDK v3 client helper for AstraVani
 declare global {
   interface Window {

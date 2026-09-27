@@ -218,20 +218,9 @@ class CloudAuthService {
 
       account = {
         profile: newProfile,
-        walletBalance: 100, // Welcome free talktime
-        bonusBalance: 50,
-        transactions: [
-          {
-            id: `tx_welcome_${Date.now()}`,
-            amount: 0,
-            bonusCredit: 100,
-            totalCredited: 100,
-            method: 'upi',
-            status: 'success',
-            timestamp: now,
-            receiptId: `REC-WELCOME-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-          }
-        ],
+        walletBalance: 0,
+        bonusBalance: 0,
+        transactions: [],
         savedKundlis: [selfKundli],
         consultations: []
       };
@@ -323,20 +312,9 @@ class CloudAuthService {
 
     const account: AccountRecord = {
       profile: newProfile,
-      walletBalance: 100,
-      bonusBalance: 50,
-      transactions: [
-        {
-          id: `tx_welcome_${Date.now()}`,
-          amount: 0,
-          bonusCredit: 100,
-          totalCredited: 100,
-          method: 'upi',
-          status: 'success',
-          timestamp: now,
-          receiptId: `REC-WELCOME-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-        }
-      ],
+      walletBalance: 0,
+      bonusBalance: 0,
+      transactions: [],
       savedKundlis: [selfKundli],
       consultations: [],
       passwordHash: await hashPassword(pass)
@@ -457,20 +435,9 @@ class CloudAuthService {
 
       account = {
         profile: newProfile,
-        walletBalance: 250,
-        bonusBalance: 100,
-        transactions: [
-          {
-            id: `tx_google_${Date.now()}`,
-            amount: 0,
-            bonusCredit: 250,
-            totalCredited: 250,
-            method: 'upi',
-            status: 'success',
-            timestamp: now,
-            receiptId: `REC-GOOGLE-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-          }
-        ],
+        walletBalance: 0,
+        bonusBalance: 0,
+        transactions: [],
         savedKundlis: [selfKundli],
         consultations: []
       };

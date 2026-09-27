@@ -96,7 +96,7 @@ export const App: React.FC = () => {
 
   // Payment configuration (Cashfree / Razorpay / Direct)
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => {
-    const saved = localStorage.getItem('astrotalk_payment_config');
+    const saved = localStorage.getItem('astravani_payment_config');
     if (saved) {
       try { 
         const parsed = JSON.parse(saved);
@@ -114,7 +114,7 @@ export const App: React.FC = () => {
 
   // Transaction Ledger history
   const [transactions, setTransactions] = useState<PaymentTransaction[]>(() => {
-    const saved = localStorage.getItem('astrotalk_transactions');
+    const saved = localStorage.getItem('astravani_transactions');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
@@ -123,7 +123,7 @@ export const App: React.FC = () => {
 
   // AI Configuration
   const [apiConfig, setApiConfig] = useState<ApiConfig>(() => {
-    const saved = localStorage.getItem('astrotalk_api_config');
+    const saved = localStorage.getItem('astravani_api_config');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
@@ -158,11 +158,11 @@ export const App: React.FC = () => {
   }, [paymentConfig]);
 
   useEffect(() => {
-    localStorage.setItem('astrotalk_transactions', JSON.stringify(transactions));
+    localStorage.setItem('astravani_transactions', JSON.stringify(transactions));
   }, [transactions]);
 
   useEffect(() => {
-    localStorage.setItem('astrotalk_api_config', JSON.stringify(apiConfig));
+    localStorage.setItem('astravani_api_config', JSON.stringify(apiConfig));
   }, [apiConfig]);
 
   // Persistent Cloud User Subscription & Sync
