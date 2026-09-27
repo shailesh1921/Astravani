@@ -66,32 +66,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
 
     try {
-      // 1. Attempt Free Google Firebase Carrier SMS Dispatch
-      try {
-        await firebaseAuthService.sendPhoneOtp(phoneNumber);
-        setIsFirebaseCarrierActive(true);
-        setOtpSent(true);
-        setSuccessMsg(`Official verification SMS dispatched to +91 ${phoneNumber}`);
-        setResendTimer(60);
-        return;
-      } catch (fbErr: any) {
-        console.warn('Firebase SMS dispatch fallback:', fbErr);
-        if (fbErr?.code === 'auth/unauthorized-domain') {
-          setErrorMsg('Domain astravani.in needs to be added to Firebase Console (Authentication > Settings > Authorized Domains).');
-          return;
-        } else if (fbErr?.code === 'auth/quota-exceeded') {
-          setErrorMsg('Daily SMS limit reached. Please use Google 1-Tap Sign-In.');
-          return;
-        }
+      await firebaseAuthService.sendPhoneOtp(phoneNumber);
+      setIsFirebaseCarrierActive(true);
+      setOtpSent(true);
+      setSuccessMsg(`Verification SMS sent to +91 ${phoneNumber}. Please check your phone messages.`);
+      setResendTimer(60);
+    } catch (fbErr: any) {
+      console.error('Firebase SMS dispatch error:', fbErr);
+      const code = fbErr?.code || '';
+      let msg = fbErr?.message || 'Failed to send SMS OTP.';
+
+      if (code === 'auth/operation-not-allowed') {
+        msg = 'Phone Auth is disabled in Firebase. In Firebase Console, go to Authentication > Sign-in method and enable "Phone".';
+      } else if (code === 'auth/unauthorized-domain') {
+        msg = 'Domain astravani.in needs to be authorized in Firebase Console (Authentication > Settings > Authorized Domains).';
+      } else if (code === 'auth/quota-exceeded') {
+        msg = 'Daily SMS quota reached on Firebase Spark plan. Please use Google 1-Tap Sign-In.';
+      } else if (code === 'auth/too-many-requests') {
+        msg = 'Too many requests sent to this number. Please wait a few minutes before trying again.';
+      } else if (code === 'auth/invalid-phone-number') {
+        msg = 'Please enter a valid 10-digit Indian mobile number.';
+      } else if (code === 'auth/captcha-check-failed') {
+        msg = 'reCAPTCHA verification failed. Please refresh the page and try again.';
       }
 
-      // 2. High-speed Direct Cloud Auth Dispatch
-      const res = await cloudAuth.requestPhoneOtp(phoneNumber);
-      setOtpSent(true);
-      setSuccessMsg(res.message);
-      setResendTimer(60);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to send OTP. Please check your phone number.');
+      setErrorMsg(msg);
     } finally {
       setIsLoading(false);
     }
@@ -103,35 +102,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
 
     try {
-      // 1. If Firebase carrier session is active, verify via Firebase
-      if (isFirebaseCarrierActive) {
-        try {
-          const fbUser = await firebaseAuthService.verifyOtpCode(otp);
-          const user = await cloudAuth.verifyPhoneOtp(phoneNumber, otp, fullName || fbUser?.displayName);
-          setSuccessMsg(`Welcome, ${user.fullName}! Login successful.`);
-          setTimeout(() => {
-            onSuccess(user);
-            onClose();
-          }, 700);
-          return;
-        } catch (fbVerifyErr: any) {
-          console.warn('Firebase verify check failed:', fbVerifyErr);
-          setErrorMsg(fbVerifyErr.message?.includes('invalid-verification-code') 
-            ? 'Invalid OTP code. Please enter the code received on your phone.' 
-            : (fbVerifyErr.message || 'Verification failed. Please try again.'));
-          return;
-        }
-      }
-
-      // 2. Direct verification
-      const user = await cloudAuth.verifyPhoneOtp(phoneNumber, otp, fullName);
+      const fbUser = await firebaseAuthService.verifyOtpCode(otp);
+      const user = await cloudAuth.verifyPhoneOtp(phoneNumber, otp, fullName || fbUser?.displayName);
       setSuccessMsg(`Welcome, ${user.fullName}! Login successful.`);
       setTimeout(() => {
         onSuccess(user);
         onClose();
       }, 700);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Invalid OTP code. Please check and try again.');
+      console.error('OTP verification error:', err);
+      const code = err?.code || '';
+      let msg = err?.message || 'Invalid verification code. Please check your SMS.';
+      if (code === 'auth/invalid-verification-code' || msg.includes('invalid-verification-code')) {
+        msg = 'Incorrect verification code. Please enter the 6-digit code received on your phone.';
+      } else if (code === 'auth/code-expired') {
+        msg = 'Verification code has expired. Please tap Resend Code.';
+      }
+      setErrorMsg(msg);
     } finally {
       setIsLoading(false);
     }

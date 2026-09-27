@@ -61,6 +61,12 @@ export const firebaseAuthService = {
       try {
         recaptchaVerifierInstance.clear();
       } catch (e) {}
+      recaptchaVerifierInstance = null;
+    }
+
+    const container = document.getElementById(buttonContainerId);
+    if (container) {
+      container.innerHTML = '';
     }
 
     recaptchaVerifierInstance = new RecaptchaVerifier(firebaseAuth, buttonContainerId, {
