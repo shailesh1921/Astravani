@@ -30,7 +30,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
-  const [demoOtpHint, setDemoOtpHint] = useState<string | null>(null);
   const [isFirebaseCarrierActive, setIsFirebaseCarrierActive] = useState(false);
 
   // Email states
@@ -72,18 +71,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         await firebaseAuthService.sendPhoneOtp(phoneNumber);
         setIsFirebaseCarrierActive(true);
         setOtpSent(true);
-        setSuccessMsg(`Official 4-Digit verification SMS dispatched to +91 ${phoneNumber}`);
-        setDemoOtpHint(null);
+        setSuccessMsg(`Official verification SMS dispatched to +91 ${phoneNumber}`);
         setResendTimer(60);
         return;
       } catch (fbErr: any) {
-        console.info('Firebase carrier dispatch switched to high-speed engine:', fbErr?.message);
+        console.warn('Firebase SMS dispatch fallback:', fbErr);
+        if (fbErr?.code === 'auth/unauthorized-domain') {
+          setErrorMsg('Domain astravani.in needs to be added to Firebase Console (Authentication > Settings > Authorized Domains).');
+          return;
+        } else if (fbErr?.code === 'auth/quota-exceeded') {
+          setErrorMsg('Daily SMS limit reached. Please use Google 1-Tap Sign-In.');
+          return;
+        }
       }
 
       // 2. High-speed Direct Cloud Auth Dispatch
       const res = await cloudAuth.requestPhoneOtp(phoneNumber);
       setOtpSent(true);
-      setDemoOtpHint(res.testOtp);
       setSuccessMsg(res.message);
       setResendTimer(60);
     } catch (err: any) {
@@ -111,7 +115,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           }, 700);
           return;
         } catch (fbVerifyErr: any) {
-          console.warn('Firebase verify check, falling back to local verifier:', fbVerifyErr);
+          console.warn('Firebase verify check failed:', fbVerifyErr);
+          setErrorMsg(fbVerifyErr.message?.includes('invalid-verification-code') 
+            ? 'Invalid OTP code. Please enter the code received on your phone.' 
+            : (fbVerifyErr.message || 'Verification failed. Please try again.'));
+          return;
         }
       }
 
@@ -123,7 +131,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onClose();
       }, 700);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Invalid OTP code. Please enter the 4-digit code.');
+      setErrorMsg(err.message || 'Invalid OTP code. Please check and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -267,11 +275,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-600" />
               <div>
                 <p className="font-semibold">{successMsg}</p>
-                {demoOtpHint && (
-                  <p className="text-[11px] text-emerald-700 font-mono mt-0.5">
-                    Fast Demo OTP: <strong>{demoOtpHint}</strong>
-                  </p>
-                )}
               </div>
             </div>
           )}
@@ -301,7 +304,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       />
                     </div>
                     <span className="text-[10px] text-slate-400 block mt-1">
-                      We'll send a 4-digit verification code to confirm your number.
+                      We'll send a verification code to confirm your number.
                     </span>
                   </div>
 
@@ -329,11 +332,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Sending 4-Digit OTP...</span>
+                        <span>Sending Verification Code...</span>
                       </>
                     ) : (
                       <>
-                        <span>Get 4-Digit Verification Code</span>
+                        <span>Get Verification Code</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </>
                     )}
@@ -343,7 +346,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <form onSubmit={handleVerifyOtp} className="space-y-4">
                   <div className="text-center space-y-1">
                     <span className="text-xs font-bold text-slate-800">
-                      Enter 4-Digit OTP sent to +91 {phoneNumber}
+                      Enter Verification Code sent to +91 {phoneNumber}
                     </span>
                     <button
                       type="button"
@@ -358,11 +361,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <input
                       type="text"
                       required
-                      maxLength={4}
+                      maxLength={6}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      placeholder="• • • •"
-                      className="w-36 text-center tracking-[0.6em] font-mono text-2xl font-black bg-white border-2 border-amber-400 rounded-2xl p-2.5 focus:outline-none focus:border-amber-600 text-slate-900 shadow-inner"
+                      placeholder="• • • • • •"
+                      className="w-48 text-center tracking-[0.35em] font-mono text-2xl font-black bg-white border-2 border-amber-400 rounded-2xl p-2.5 focus:outline-none focus:border-amber-600 text-slate-900 shadow-inner"
                       autoFocus
                     />
                   </div>
@@ -377,28 +380,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         className="text-amber-700 font-bold hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         <RefreshCw className="w-3 h-3" />
-                        <span>Resend OTP</span>
+                        <span>Resend Code</span>
                       </button>
-                    )}
-                    {demoOtpHint && (
-                      <span className="text-slate-400 text-[11px]">Demo: {demoOtpHint}</span>
                     )}
                   </div>
 
                   <button
                     type="submit"
-                    disabled={isLoading || otp.length !== 4}
+                    disabled={isLoading || otp.length < 4}
                     className="btn-astrotalk w-full py-2.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Verifying OTP...</span>
+                        <span>Verifying Code...</span>
                       </>
                     ) : (
                       <>
                         <CheckCircle2 className="w-4 h-4" />
-                        <span>Verify 4-Digit OTP &amp; Enter</span>
+                        <span>Verify &amp; Enter</span>
                       </>
                     )}
                   </button>

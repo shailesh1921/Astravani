@@ -150,10 +150,8 @@ class CloudAuthService {
 
     return {
       success: true,
-      message: fast2smsKey
-        ? `4-digit verification code sent via SMS to +91 ${cleanPhone}.`
-        : `4-digit OTP sent to +91 ${cleanPhone}. (Demo code: ${generatedOtp})`,
-      testOtp: generatedOtp
+      message: `OTP verification code sent via SMS to +91 ${cleanPhone}.`,
+      testOtp: ''
     };
   }
 
