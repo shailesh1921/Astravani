@@ -102,7 +102,7 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
                   `✨ *Shubh Muhurat:* ${currentSign.luckyTime}\n` +
                   `🔢 *Lucky Number:* ${currentSign.luckyNumber} | 🎨 *Color:* ${currentSign.luckyColor}\n\n` +
                   `📖 *Bhavishya:* ${currentSign.overview.slice(0, 160)}...\n\n` +
-                  `👉 *Apna Kundli & Rashifal dekhein (1st Chat 100% FREE):* https://www.astravani.in/?utm_source=whatsapp&utm_medium=daily_rashifal`;
+                  `👉 *Apna Kundli & Rashifal dekhein:* https://www.astravani.in/?utm_source=whatsapp&utm_medium=daily_rashifal`;
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
               }}
               className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer"

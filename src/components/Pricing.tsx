@@ -164,7 +164,7 @@ export const Pricing: React.FC<PricingProps> = ({ onOpenChartModal, onOpenChat }
               onClick={onOpenChat}
               className="w-full py-4 bg-[#FF552E] hover:bg-[#E6441D] text-white text-xs font-mono font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 group shadow-lg"
             >
-              <span>START 7-DAY FREE TRIAL</span>
+              <span>START CONSULTATION NOW</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>

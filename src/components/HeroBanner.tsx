@@ -14,7 +14,7 @@ interface HeroBannerProps {
 const LIVE_ACTIVITIES = [
   '⚡ Pooja from Pune just started chat with Pt. Anand Swaroop',
   '⭐ Vikram from Bengaluru rated Dr. Radhika Sharma 5.0 (Accurate career timing)',
-  '⚡ Sneha from Delhi claimed 100% FREE First Consultation',
+  '⚡ Sneha from Delhi started consultation with Acharya Devrat',
   '🔮 Amit from Jaipur generated his Free Janam Kundli',
   '⚡ Ananya from Mumbai connected with Acharya Devrat'
 ];

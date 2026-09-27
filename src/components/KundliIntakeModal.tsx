@@ -302,7 +302,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
         <div className="bg-amber-50 border-b border-amber-200/80 px-4 py-2 flex items-center justify-between text-xs text-amber-950 font-bold flex-shrink-0">
           <span className="flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-            First 1 Minute with {astrologer.name.split(' ')[0]} is 100% FREE!
+            Consult with {astrologer.name.split(' ')[0]} — ₹{astrologer.pricePerMin}/min
           </span>
           <span className="bg-emerald-600 text-white text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full shadow-2xs">
             Verified Pandit

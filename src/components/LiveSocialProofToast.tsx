@@ -9,7 +9,7 @@ interface SocialProofEvent {
   target: string;
   timeAgo: string;
   avatar: string;
-  type: 'consultation' | 'recharge' | 'review' | 'free_trial';
+  type: 'consultation' | 'recharge' | 'review';
   rating?: number;
 }
 
@@ -53,7 +53,7 @@ const LIVE_EVENTS: SocialProofEvent[] = [
     target: 'Tarot Sunita Sen',
     timeAgo: '42s ago',
     avatar: '/astrologers/tarot-sunita.jpg',
-    type: 'free_trial'
+    type: 'consultation'
   },
   {
     id: 'e5',

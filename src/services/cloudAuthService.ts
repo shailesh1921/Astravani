@@ -589,7 +589,10 @@ class CloudAuthService {
     for (const key of Object.keys(vault)) {
       if (vault[key].profile.id === user.id) {
         vault[key].transactions = [tx, ...(vault[key].transactions || [])];
-        vault[key].walletBalance += tx.totalCredited;
+        // SECURITY: Only credit wallet for verified successful payments
+        if (tx.status === 'success') {
+          vault[key].walletBalance += tx.totalCredited;
+        }
       }
     }
     this.saveVault(vault);

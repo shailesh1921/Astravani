@@ -407,7 +407,7 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
 
         </div>
 
-        {/* 1-MINUTE FREE TRIAL ENDED RECHARGE POPUP MODAL */}
+        {/* BALANCE EXHAUSTED - RECHARGE POPUP MODAL */}
         {showRechargePopup && callState !== 'ended' && (
           <div className="absolute inset-0 z-30 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border-2 border-amber-400 overflow-hidden animate-in zoom-in-95 duration-200 text-center">
@@ -418,7 +418,7 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
                   <span className="text-2xl font-black text-amber-700">ॐ</span>
                 </div>
                 <span className="bg-red-600 text-white text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full tracking-wider animate-pulse inline-block mb-1 shadow-xs">
-                  Free 1-Minute Trial Completed
+                  Wallet Balance Exhausted
                 </span>
                 <h3 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-950">
                   Recharge Wallet to Continue Call

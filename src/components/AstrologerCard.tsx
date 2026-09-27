@@ -164,8 +164,8 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
               ₹{astrologer.originalPrice}
             </span>
           </div>
-          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-            1st Min FREE ⚡
+          <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+            {Math.round(((astrologer.originalPrice - astrologer.pricePerMin) / astrologer.originalPrice) * 100)}% OFF ⚡
           </span>
         </div>
 

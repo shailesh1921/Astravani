@@ -43,7 +43,7 @@ export const UserProfileDrawer: React.FC<UserProfileDrawerProps> = ({
   const [newKundliPob, setNewKundliPob] = useState('New Delhi, India');
 
   // Ledger & Consultations
-  const [walletBalance, setWalletBalance] = useState<number>(100);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
   const [consultations, setConsultations] = useState<ConsultationRecord[]>([]);
   const [expandedConsultationId, setExpandedConsultationId] = useState<string | null>(null);

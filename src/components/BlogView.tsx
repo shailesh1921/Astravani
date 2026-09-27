@@ -210,7 +210,7 @@ export const BlogView: React.FC<BlogViewProps> = ({
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-xs sm:text-sm hover:from-amber-400 hover:to-orange-400 transition shadow-md shadow-amber-500/20 flex-shrink-0 cursor-pointer flex items-center gap-1.5"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span>पंडित जी से बात करें (1st Chat Free)</span>
+                  <span>पंडित जी से बात करें ⚡</span>
                 </button>
               </div>
 
