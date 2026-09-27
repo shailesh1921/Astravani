@@ -9,18 +9,37 @@ import {
 } from 'firebase/auth';
 
 export const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ""
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDv8b0tSaIcrDLBgUPED8kIbrPfO2imQhw",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "astravani.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "astravani",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "astravani.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "690100596124",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:690100596124:web:bab17b8ccd6c8c15a0ac59",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-RFGF17M3SE"
 };
 
-// Initialize Firebase singleton
-export const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-export const firebaseAuth = getAuth(firebaseApp);
+// Safely initialize Firebase singleton
+export const firebaseApp = (() => {
+  try {
+    if (firebaseConfig.apiKey) {
+      return getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    }
+  } catch (e) {
+    console.warn('Firebase App init notice:', e);
+  }
+  return null as any;
+})();
+
+export const firebaseAuth = (() => {
+  try {
+    if (firebaseApp) {
+      return getAuth(firebaseApp);
+    }
+  } catch (e) {
+    console.warn('Firebase Auth init notice:', e);
+  }
+  return null as any;
+})();
 
 let confirmationResultTracker: ConfirmationResult | null = null;
 let recaptchaVerifierInstance: RecaptchaVerifier | null = null;
@@ -32,6 +51,10 @@ export const firebaseAuthService = {
   initRecaptcha(buttonContainerId = 'recaptcha-container'): RecaptchaVerifier {
     if (typeof window === 'undefined') {
       throw new Error('Window not available');
+    }
+
+    if (!firebaseAuth) {
+      throw new Error('Firebase Auth not available');
     }
 
     if (recaptchaVerifierInstance) {
@@ -91,6 +114,9 @@ export const firebaseAuthService = {
    * 1-Tap Google Sign-In
    */
   async signInWithGoogle(): Promise<any> {
+    if (!firebaseAuth) {
+      throw new Error('Firebase Auth not available');
+    }
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(firebaseAuth, provider);
     return result.user;
