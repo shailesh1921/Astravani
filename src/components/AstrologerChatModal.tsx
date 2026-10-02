@@ -43,6 +43,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const [hasPaidToContinue, setHasPaidToContinue] = useState(false);
   const [showRechargePopup, setShowRechargePopup] = useState(false);
+  const [isFreeTrial, setIsFreeTrial] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -186,15 +187,26 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
       setSecondsElapsed(0);
       setIsSessionEnded(false);
       setTotalCharged(0);
-      setHasPaidToContinue(walletBalance >= astrologer.pricePerMin);
+      setIsFreeTrial(false);
 
-      // STRICT ZERO-BALANCE CHECK: If balance is less than 1 min price, show recharge popup immediately and DO NOT fire replies!
-      if (walletBalance < astrologer.pricePerMin) {
+      // Check if user qualifies for 1-minute free trial
+      const freeTrialAvailable = !cloudAuth.hasUsedFreeTrial();
+
+      if (walletBalance >= astrologer.pricePerMin) {
+        // User has paid balance — normal paid session
+        setHasPaidToContinue(true);
+        setShowRechargePopup(false);
+      } else if (freeTrialAvailable) {
+        // User has NO balance but FREE TRIAL available — allow 1 min free!
+        setIsFreeTrial(true);
+        setHasPaidToContinue(true);
+        setShowRechargePopup(false);
+      } else {
+        // No balance AND free trial already used — block with recharge popup
+        setHasPaidToContinue(false);
         setShowRechargePopup(true);
         return;
       }
-
-      setShowRechargePopup(false);
 
       // Initial user question if provided in intake form
       const initialUserMsg: ChatMessage[] = intake.question && intake.question.trim().length > 2 ? [

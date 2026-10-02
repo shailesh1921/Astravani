@@ -22,6 +22,7 @@ interface AccountRecord {
   savedKundlis: SavedKundli[];
   consultations: ConsultationRecord[];
   passwordHash?: string;
+  freeTrialUsed?: boolean;
 }
 
 class CloudAuthService {
@@ -599,6 +600,36 @@ class CloudAuthService {
     if (user.phone) {
       this.syncTransactionToCloud(tx, user.phone);
     }
+  }
+
+  /**
+   * Free Trial: Check if current user has already used their 1-minute free consultation
+   */
+  public hasUsedFreeTrial(): boolean {
+    const user = this.getCurrentUser();
+    if (!user) return true; // No user = no free trial
+    const vault = this.getVault();
+    for (const key of Object.keys(vault)) {
+      if (vault[key].profile.id === user.id) {
+        return vault[key].freeTrialUsed === true;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Free Trial: Mark current user's 1-minute free trial as consumed
+   */
+  public markFreeTrialUsed(): void {
+    const user = this.getCurrentUser();
+    if (!user) return;
+    const vault = this.getVault();
+    for (const key of Object.keys(vault)) {
+      if (vault[key].profile.id === user.id) {
+        vault[key].freeTrialUsed = true;
+      }
+    }
+    this.saveVault(vault);
   }
 
   public getTransactions(): PaymentTransaction[] {
