@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { calculateGunaMilan } from '../utils/gunaMilanEngine';
-import { GunaMilanResult, Astrologer } from '../types/astrotalk';
+import { GunaMilanResult, Astrologer, ConsultationIntake } from '../types/astrotalk';
 import { HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, MessageSquare, ShieldCheck, Share2, Printer } from 'lucide-react';
 
 interface KundliMatchingViewProps {
-  onConsultMatch: (astrologer?: Astrologer) => void;
+  onConsultMatch: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => void;
 }
 
 export const KundliMatchingView: React.FC<KundliMatchingViewProps> = ({ onConsultMatch }) => {
@@ -222,6 +222,43 @@ export const KundliMatchingView: React.FC<KundliMatchingViewProps> = ({ onConsul
               <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
               <span>Manglik Analysis:</span>
               <span className="text-slate-900 font-bold">{matchingResult.manglikStatus}</span>
+            </div>
+          </div>
+
+          {/* HIGH-CONVERTING WORKFLOW HOOK: Marriage Dosha & Compatibility Alert */}
+          <div className="bg-gradient-to-r from-rose-500/10 via-amber-500/15 to-orange-500/10 border-2 border-rose-300 rounded-3xl p-5 sm:p-6 shadow-sm my-6 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1.5 max-w-2xl">
+                <div className="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Vivah Milan Alert</span>
+                  <span>•</span>
+                  <span>Score: {matchingResult.totalScore}/36 Gunas ({matchingResult.verdict})</span>
+                </div>
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
+                  {boyData.name} aur {girlData.name} ki patrika me Shani / Mangal aur Nadi dosh ka sanket
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Shaadi ke baad dampatya jeevan, santan sukh, aur parivarik shanti par graho ka asar janne ke liye Vivah Expert se direct baat karein.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onConsultMatch(undefined, {
+                  name: `${boyData.name} & ${girlData.name}`,
+                  gender: 'Male',
+                  dob: boyData.dob,
+                  tob: '12:00',
+                  pob: 'New Delhi, India',
+                  topic: 'Marriage & Kundli',
+                  question: `Pranam Pandit Ji, humara kundli milan score ${matchingResult.totalScore}/36 aaya hai (${matchingResult.verdict}). Manglik aur Nadi dosha ke shanti upay batayein.`
+                })}
+                className="btn-astrotalk px-5 py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg transition-transform active:scale-95 flex-shrink-0 rounded-xl"
+              >
+                <MessageSquare className="w-4 h-4 text-amber-200" />
+                <span>Start 1-Min Free Marriage Chat ⚡</span>
+              </button>
             </div>
           </div>
 

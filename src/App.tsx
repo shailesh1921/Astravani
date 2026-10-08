@@ -322,9 +322,28 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 500, behavior: 'smooth' });
   };
 
-  const handleConsultFromTool = (astrologer?: Astrologer) => {
+  const handleConsultFromTool = (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => {
     const target = astrologer || ASTROLOGERS_DATA[0];
-    handleInitiateChat(target);
+    setSelectedAstrologer(target);
+    setIsCallMode(false);
+
+    if (intakeData && intakeData.name) {
+      // Direct frictionless flow: prefill intake and launch consultation immediately
+      const intake: ConsultationIntake = {
+        name: intakeData.name,
+        gender: intakeData.gender || 'Male',
+        dob: intakeData.dob || '1995-01-01',
+        tob: intakeData.tob || '12:00',
+        pob: intakeData.pob || 'New Delhi, India',
+        topic: intakeData.topic || 'Career & Job',
+        question: intakeData.question || 'Pranam Pandit Ji, kripya meri kundli ka vishleshan karein.'
+      };
+      setCurrentIntake(intake);
+      setIsIntakeOpen(false);
+      setIsChatOpen(true);
+    } else {
+      setIsIntakeOpen(true);
+    }
   };
 
   return (

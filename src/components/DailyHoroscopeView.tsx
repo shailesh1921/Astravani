@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { HOROSCOPES_DATA } from '../data/horoscopesData';
-import { HoroscopeSign, Astrologer } from '../types/astrotalk';
-import { Heart, Briefcase, Activity, Sparkles, MessageSquare, Share2 } from 'lucide-react';
+import { HoroscopeSign, Astrologer, ConsultationIntake } from '../types/astrotalk';
+import { Heart, Briefcase, Activity, Sparkles, MessageSquare, Share2, AlertCircle } from 'lucide-react';
 
 interface DailyHoroscopeViewProps {
-  onConsultSign: (astrologer?: Astrologer) => void;
+  onConsultSign: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => void;
 }
 
 export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsultSign }) => {
@@ -134,6 +134,43 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
           <div className="bg-blue-50/50 border border-blue-200/60 rounded-xl p-3 text-center">
             <span className="text-[10px] uppercase font-bold text-slate-500 block">Auspicious Time (शुभ मुहूर्त)</span>
             <span className="text-xs font-extrabold text-blue-900 mt-0.5 block">{currentSign.luckyTime}</span>
+          </div>
+        </div>
+
+        {/* HIGH-CONVERTING WORKFLOW HOOK: Daily Planetary Influence & Remedies */}
+        <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/15 to-yellow-500/10 border-2 border-amber-300 rounded-3xl p-5 sm:p-6 shadow-sm mb-6 relative overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1.5 max-w-2xl">
+              <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>{currentSign.nameEn} ({currentSign.nameHi}) Grah Gochar</span>
+                <span>•</span>
+                <span>Ruling Planet: {currentSign.ruler}</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
+                Aaj aapki rashi par Shani aur {currentSign.ruler} ke grah sanchar ka vishesh prabhav
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Kariyar me naye avsar, prem sambandh me sthirta, ya dhan labh ke liye Vedic Astrologer se direct paramarsh lein aur aaj ke shubh upay jaanein.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onConsultSign(undefined, {
+                name: `${currentSign.nameEn} Devotee`,
+                gender: 'Male',
+                dob: '1995-01-01',
+                tob: '12:00',
+                pob: 'New Delhi, India',
+                topic: 'Career & Job',
+                question: `Pranam Pandit Ji, meri rashi ${currentSign.nameEn} (${currentSign.nameHi}) hai. Aaj ke grah sanchar, shubh muhurat aur kariyar/finance ke upay batayein.`
+              })}
+              className="btn-astrotalk px-5 py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg transition-transform active:scale-95 flex-shrink-0 rounded-xl"
+            >
+              <MessageSquare className="w-4 h-4 text-amber-200" />
+              <span>Ask Pandit Ji (1st Min Free) ⚡</span>
+            </button>
           </div>
         </div>
 

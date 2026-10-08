@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { calculateKundli } from '../utils/kundliEngine';
 import { NorthIndianKundliChart } from './NorthIndianKundliChart';
-import { KundliData, Astrologer } from '../types/astrotalk';
-import { Sparkles, Calendar, Clock, MapPin, User, ShieldCheck, Gem, MessageSquare, Share2, Printer } from 'lucide-react';
+import { KundliData, Astrologer, ConsultationIntake } from '../types/astrotalk';
+import { Sparkles, Calendar, Clock, MapPin, User, ShieldCheck, Gem, MessageSquare, Share2, Printer, AlertTriangle } from 'lucide-react';
 
 interface FreeKundliViewProps {
-  onConsultKundli: (astrologer?: Astrologer) => void;
+  onConsultKundli: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => void;
 }
 
 export const FreeKundliView: React.FC<FreeKundliViewProps> = ({ onConsultKundli }) => {
@@ -215,6 +215,43 @@ export const FreeKundliView: React.FC<FreeKundliViewProps> = ({ onConsultKundli 
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* HIGH-CONVERTING WORKFLOW HOOK: Shani / Mangal / Mahadasha Dosh Alert Banner */}
+            <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/15 to-red-500/10 border-2 border-amber-300 rounded-3xl p-5 sm:p-6 shadow-sm my-6 relative overflow-hidden">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1.5 max-w-2xl">
+                  <div className="inline-flex items-center gap-1.5 bg-red-100 text-red-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
+                    <span>Vedic Dosh Alert</span>
+                    <span>•</span>
+                    <span>Grah Dosh &amp; Mahadasha Analysis</span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
+                    Aapki Kundli me <span className="text-amber-700">{kundliResult.mahadasha} Mahadasha</span> aur Shani / Mangal ki sthiti ka vishesh prabhav hai
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Kariyar me rukawat, vivah me vilamb, ya health/finance ke sawal par Vedic Acharya se direct paramarsh lein aur shanti upay jaanein.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onConsultKundli(undefined, {
+                    name: kundliResult.name,
+                    gender: kundliResult.gender as any,
+                    dob: formData.dob,
+                    tob: formData.tob,
+                    pob: kundliResult.pob,
+                    topic: 'Marriage & Kundli',
+                    question: `Namaste Pandit Ji, meri Janam Kundli me ${kundliResult.mahadasha} Mahadasha aur Shani/Mangal grah dosha ke prabhav aur upay batayein.`
+                  })}
+                  className="btn-astrotalk px-5 py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg transition-transform active:scale-95 flex-shrink-0 rounded-xl"
+                >
+                  <MessageSquare className="w-4 h-4 text-amber-200" />
+                  <span>Claim 1-Min Free Talk with Pandit Ji ⚡</span>
+                </button>
+              </div>
             </div>
 
             {/* Action Bar: WhatsApp Share, Print PDF, and Consult Astrologer */}
