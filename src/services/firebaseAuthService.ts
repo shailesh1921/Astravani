@@ -117,13 +117,14 @@ export const firebaseAuthService = {
   },
 
   /**
-   * 1-Tap Google Sign-In
+   * 1-Tap Google Sign-In with strict account selection
    */
   async signInWithGoogle(): Promise<any> {
     if (!firebaseAuth) {
-      throw new Error('Firebase Auth not available');
+      throw new Error('Firebase Auth not available. Please verify credentials.');
     }
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
     const result = await signInWithPopup(firebaseAuth, provider);
     return result.user;
   }

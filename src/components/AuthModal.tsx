@@ -47,39 +47,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
 
     try {
-      try {
-        const fbUser = await firebaseAuthService.signInWithGoogle();
-        if (fbUser) {
-          const user = await cloudAuth.syncGoogleUser({
-            id: fbUser.uid,
-            email: fbUser.email || '',
-            name: fbUser.displayName || 'AstraVani User',
-            avatar: fbUser.photoURL || undefined
-          });
-          setSuccessMsg(`Welcome, ${user.fullName}! Login successful.`);
-          setTimeout(() => {
-            onSuccess(user);
-            onClose();
-          }, 600);
-          return;
-        }
-      } catch (fbErr: any) {
-        console.warn('Firebase Google sign-in fallback:', fbErr);
-        if (fbErr?.code === 'auth/popup-closed-by-user') {
-          setIsLoading(false);
-          return; // User intentionally closed popup
-        }
+      const fbUser = await firebaseAuthService.signInWithGoogle();
+      if (!fbUser) {
+        throw new Error('Google Sign-In did not return account details.');
       }
 
-      // High-speed fallback
-      const user = await cloudAuth.loginWithGoogle();
-      setSuccessMsg(`Welcome, ${user.fullName}! Login successful.`);
+      // Strictly sync into the user's personal cloud profile
+      const user = await cloudAuth.syncGoogleUser({
+        id: fbUser.uid,
+        email: fbUser.email || '',
+        name: fbUser.displayName || fbUser.email?.split('@')[0] || 'AstraVani Devotee',
+        avatar: fbUser.photoURL || undefined
+      });
+
+      setSuccessMsg(`Welcome, ${user.fullName}! Personal account connected.`);
       setTimeout(() => {
         onSuccess(user);
         onClose();
       }, 600);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Google Sign-In failed. Please try again.');
+      console.error('Google Sign-In error:', err);
+      if (err?.code === 'auth/popup-closed-by-user') {
+        setIsLoading(false);
+        return; // User closed popup intentionally
+      }
+      if (err?.code === 'auth/popup-blocked') {
+        setErrorMsg('Google sign-in popup was blocked by your browser. Please allow popups for astravani.in and try again.');
+      } else if (err?.code === 'auth/unauthorized-domain') {
+        setErrorMsg('Domain unauthorized in Firebase. Please ensure astravani.in is listed in Firebase Auth settings.');
+      } else if (err?.code === 'auth/network-request-failed') {
+        setErrorMsg('Network connection error. Please check your connection and retry.');
+      } else {
+        setErrorMsg(err.message || 'Google Sign-In failed. Please try again or sign in with Email.');
+      }
     } finally {
       setIsLoading(false);
     }

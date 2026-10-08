@@ -48,6 +48,18 @@ class CloudAuthService {
       if (raw) {
         const session: AuthSession = JSON.parse(raw);
         if (session && session.user && session.expiresAt > Date.now()) {
+          // STRICT PURGE: Clear legacy dummy 'AstraVani Member' demo account immediately
+          if (
+            session.user.email === 'member.astravani@gmail.com' ||
+            session.user.phone === '+919876543210' ||
+            session.user.fullName === 'AstraVani Member'
+          ) {
+            localStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem('astravani_user_profile');
+            this.currentSession = null;
+            return;
+          }
+
           this.currentSession = session;
           return;
         }
@@ -62,7 +74,14 @@ class CloudAuthService {
     try {
       const raw = localStorage.getItem(ACCOUNTS_DB_KEY);
       if (raw) {
-        return JSON.parse(raw);
+        const vault: Record<string, AccountRecord> = JSON.parse(raw);
+        // STRICT PURGE: Remove legacy demo account from vault
+        if (vault['member.astravani@gmail.com'] || vault['+919876543210']) {
+          delete vault['member.astravani@gmail.com'];
+          delete vault['+919876543210'];
+          this.saveVault(vault);
+        }
+        return vault;
       }
     } catch (e) {
       console.error('Failed to read accounts vault:', e);
@@ -287,7 +306,7 @@ class CloudAuthService {
       id: newUserId,
       phone: fullPhone,
       email: cleanEmail,
-      fullName: fullName.trim() || 'AstraVani Member',
+      fullName: fullName.trim() || cleanEmail.split('@')[0] || 'AstraVani Devotee',
       gender: 'Male',
       dob: '1995-08-15',
       tob: '10:15',
@@ -395,65 +414,10 @@ class CloudAuthService {
   }
 
   /**
-   * 1-Tap Google Sign-In Demo
+   * Strictly disabled: Enforces real personal Google authentication via Firebase
    */
   public async loginWithGoogle(): Promise<UserProfile> {
-    const demoEmail = 'member.astravani@gmail.com';
-    const vault = this.getVault();
-    let account = vault[demoEmail];
-
-    if (!account) {
-      const now = new Date().toISOString();
-      const newUserId = `usr_g_${Date.now()}`;
-      const newProfile: UserProfile = {
-        id: newUserId,
-        phone: '+919876543210',
-        email: demoEmail,
-        fullName: 'AstraVani Member',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-        gender: 'Male',
-        dob: '1998-01-01',
-        tob: '08:00',
-        pob: 'New Delhi, India',
-        maritalStatus: 'Single',
-        occupation: 'Professional',
-        preferredLanguage: 'Hindi',
-        createdAt: now,
-        lastLoginAt: now
-      };
-
-      const selfKundli: SavedKundli = {
-        id: `knd_${Date.now()}`,
-        userId: newUserId,
-        name: newProfile.fullName,
-        relation: 'Self',
-        gender: newProfile.gender,
-        dob: newProfile.dob,
-        tob: newProfile.tob,
-        pob: newProfile.pob,
-        createdAt: now
-      };
-
-      account = {
-        profile: newProfile,
-        walletBalance: 0,
-        bonusBalance: 0,
-        transactions: [],
-        savedKundlis: [selfKundli],
-        consultations: []
-      };
-
-      vault[demoEmail] = account;
-      vault[newProfile.phone] = account;
-      this.saveVault(vault);
-    } else {
-      account.profile.lastLoginAt = new Date().toISOString();
-      vault[demoEmail] = account;
-      this.saveVault(vault);
-    }
-
-    this.establishSession(account.profile);
-    return account.profile;
+    throw new Error('Demo login disabled. Please sign in with your personal Google account via Firebase.');
   }
 
   private establishSession(user: UserProfile) {
