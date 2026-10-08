@@ -169,7 +169,7 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
               className="btn-astrotalk px-5 py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg transition-transform active:scale-95 flex-shrink-0 rounded-xl"
             >
               <MessageSquare className="w-4 h-4 text-amber-200" />
-              <span>Ask Pandit Ji (1st Min Free) ⚡</span>
+              <span>⚡ Claim 1-Min Free Talk with Pandit Ji</span>
             </button>
           </div>
         </div>

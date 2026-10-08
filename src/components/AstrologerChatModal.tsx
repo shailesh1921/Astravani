@@ -44,6 +44,10 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
   const [hasPaidToContinue, setHasPaidToContinue] = useState(false);
   const [showRechargePopup, setShowRechargePopup] = useState(false);
   const [isFreeTrial, setIsFreeTrial] = useState(false);
+  const isFreeTrialRef = useRef(false);
+  useEffect(() => {
+    isFreeTrialRef.current = isFreeTrial;
+  }, [isFreeTrial]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -255,16 +259,18 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     }
   }, [isOpen, isSessionEnded, astrologer.id, intake, messages, secondsElapsed, hasPaidToContinue, totalCharged]);
 
-  // Strict Balance Checking: If wallet balance is less than rate per minute, chat is strictly PAUSED
+  // User has active consultation rights if they have paid balance OR are currently in their 1st 60s free trial
+  const isWithinFreeTrial = isFreeTrial && secondsElapsed < 60;
   const hasSufficientBalance = walletBalance >= astrologer.pricePerMin;
-  const isChatPaused = !isSessionEnded && !hasSufficientBalance;
+  const canContinueConsultation = hasSufficientBalance || isWithinFreeTrial;
+  const isChatPaused = !isSessionEnded && !canContinueConsultation;
 
-  // Auto-pop recharge modal whenever chat balance is insufficient
+  // Auto-pop recharge modal whenever consultation cannot proceed
   useEffect(() => {
-    if (isOpen && !isSessionEnded && !hasSufficientBalance) {
+    if (isOpen && !isSessionEnded && !canContinueConsultation) {
       setShowRechargePopup(true);
     }
-  }, [isOpen, isSessionEnded, hasSufficientBalance]);
+  }, [isOpen, isSessionEnded, canContinueConsultation]);
 
   // When user completes wallet recharge during active consultation
   useEffect(() => {
@@ -296,13 +302,28 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
 
     const timer = setInterval(() => {
       setSecondsElapsed((prev) => {
-        // If balance is depleted below astrologer price per min, freeze and prompt recharge
+        const next = prev + 1;
+
+        // Stage 4 Hard Cutoff: Free trial expires at exactly 60 seconds
+        if (isFreeTrialRef.current) {
+          if (next >= 60) {
+            cloudAuth.markFreeTrialUsed();
+            setIsFreeTrial(false);
+            isFreeTrialRef.current = false;
+            // Freeze and trigger recharge popup immediately if user has no paid balance
+            if (chatWalletRef.current < astrologer.pricePerMin) {
+              setShowRechargePopup(true);
+            }
+          }
+          return next;
+        }
+
+        // Paid consultation mode: If balance is depleted below astrologer price per min, freeze and prompt recharge
         if (chatWalletRef.current < astrologer.pricePerMin) {
           setShowRechargePopup(true);
           return prev;
         }
 
-        const next = prev + 1;
         // Deduct rate every 60s of active consultation
         if (next > 0 && next % 60 === 0) {
           if (chatWalletRef.current >= astrologer.pricePerMin) {

@@ -33,6 +33,9 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
   const [speechText, setSpeechText] = useState('');
   const [hasPaidToContinue, setHasPaidToContinue] = useState(false);
   const [showRechargePopup, setShowRechargePopup] = useState(false);
+  const [isFreeTrial, setIsFreeTrial] = useState(false);
+  const isFreeTrialRef = useRef(false);
+  useEffect(() => { isFreeTrialRef.current = isFreeTrial; }, [isFreeTrial]);
 
   const durationTimerRef = useRef<any>(null);
   const billingTimerRef = useRef<any>(null);
@@ -103,15 +106,20 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
     }
 
     setCallDuration(0);
-    setHasPaidToContinue(walletRef.current >= astrologer.pricePerMin);
+    const freeTrialAvailable = !cloudAuth.hasUsedFreeTrial();
+    const canUseTrial = walletRef.current < astrologer.pricePerMin && freeTrialAvailable;
 
-    // STRICT ZERO-BALANCE CHECK: If balance is insufficient, pop recharge immediately and do not connect call
-    if (walletRef.current < astrologer.pricePerMin) {
+    setIsFreeTrial(canUseTrial);
+    isFreeTrialRef.current = canUseTrial;
+
+    // STRICT ZERO-BALANCE CHECK: If balance is insufficient and free trial already used, show recharge popup immediately
+    if (walletRef.current < astrologer.pricePerMin && !freeTrialAvailable) {
       setCallState('ringing');
       setShowRechargePopup(true);
       return;
     }
 
+    setHasPaidToContinue(walletRef.current >= astrologer.pricePerMin || canUseTrial);
     setShowRechargePopup(false);
     setCallState('ringing');
 
@@ -125,9 +133,28 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
       setSpeechText(openingSpeech);
       speakAstrologerVoice(openingSpeech);
 
-      // Start call duration timer: real-time duration and live deduction
+      // Start call duration timer: real-time duration with strict 60s Stage 4 cutoff
       durationTimerRef.current = setInterval(() => {
         setCallDuration((prev) => {
+          const next = prev + 1;
+
+          // Stage 4 Hard Cutoff: Free trial ends at exactly 60 seconds
+          if (isFreeTrialRef.current) {
+            if (next >= 60) {
+              cloudAuth.markFreeTrialUsed();
+              setIsFreeTrial(false);
+              isFreeTrialRef.current = false;
+              if (walletRef.current < astrologer.pricePerMin) {
+                setShowRechargePopup(true);
+                if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                  window.speechSynthesis.cancel();
+                }
+              }
+            }
+            return next;
+          }
+
+          // Paid call check:
           if (walletRef.current < astrologer.pricePerMin) {
             setShowRechargePopup(true);
             if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -136,12 +163,13 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
             return prev;
           }
 
-          return prev + 1;
+          return next;
         });
       }, 1000);
 
-      // Deduct wallet every 60 seconds of active consultation
+      // Deduct wallet every 60 seconds of active consultation (only when not in initial free trial)
       billingTimerRef.current = setInterval(() => {
+        if (isFreeTrialRef.current) return;
         if (walletRef.current >= astrologer.pricePerMin) {
           onDeductWallet(astrologer.pricePerMin);
         } else {
