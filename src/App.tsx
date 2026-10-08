@@ -62,6 +62,64 @@ export const App: React.FC = () => {
     } catch (e) {}
   }, [activeTab]);
 
+  // Dynamic SEO, Canonical & Meta Description Synchronization for Googlebot indexing
+  useEffect(() => {
+    try {
+      const seoConfig: Record<string, { title: string; desc: string; canonical: string }> = {
+        astrologers: {
+          title: "AstraVani — Talk to 4,500+ Top Vedic Astrologers Online | Official Website",
+          desc: "Consult India's most trusted Vedic astrologers 24/7 on AstraVani. Instant chat & call consultation with verified Jyotish Acharyas.",
+          canonical: "https://www.astravani.in/"
+        },
+        kundli: {
+          title: "Free Janam Kundli Online with Detailed Predictions & Dosha Analysis — AstraVani",
+          desc: "Generate your 100% free Janam Kundli report by date of birth. Accurate Vedic birth chart, planetary positions, Lagna, Navamsha & Dasha analysis.",
+          canonical: "https://www.astravani.in/?tab=kundli"
+        },
+        matching: {
+          title: "Free Kundli Matching for Marriage (36 Gunas & Manglik Milan) — AstraVani",
+          desc: "Calculate 36 Guna Ashtakoota compatibility, Manglik Dosha report, and marital harmony based on Vedic Jyotish. Free marriage horoscope matching.",
+          canonical: "https://www.astravani.in/?tab=matching"
+        },
+        horoscope: {
+          title: "Aaj Ka Rashifal 2026 — Daily Horoscope, Shubh Muhurat & Lucky Color — AstraVani",
+          desc: "Read daily horoscope for all 12 zodiac signs (Mesh to Meen). Today's lucky number, auspicious timings, shubh color, and Vedic astrology forecasts.",
+          canonical: "https://www.astravani.in/?tab=horoscope"
+        },
+        blog: {
+          title: "Vedic Astrology Blog & Remedies — Kaal Sarp, Manglik & Sade Sati Upay — AstraVani",
+          desc: "Comprehensive sacred Vedic guides on Kaal Sarp Dosh, Manglik Dosha, Shani Sade Sati, Rahu Mahadasha, and Vastu Shastra remedies for wealth.",
+          canonical: "https://www.astravani.in/?tab=blog"
+        }
+      };
+
+      const currentSeo = seoConfig[activeTab] || seoConfig.astrologers;
+
+      // Update Document Title
+      document.title = currentSeo.title;
+
+      // Update Meta Description
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute('content', currentSeo.desc);
+
+      // Update Canonical Link
+      const canonicalTag = document.querySelector('link[rel="canonical"]');
+      if (canonicalTag) canonicalTag.setAttribute('href', currentSeo.canonical);
+
+      // Update OpenGraph tags
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) ogTitle.setAttribute('content', currentSeo.title);
+
+      const ogDesc = document.querySelector('meta[property="og:description"]');
+      if (ogDesc) ogDesc.setAttribute('content', currentSeo.desc);
+
+      const ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) ogUrl.setAttribute('content', currentSeo.canonical);
+    } catch (e) {
+      console.warn('SEO meta update error:', e);
+    }
+  }, [activeTab]);
+
   // Handle browser back and forward buttons seamlessly
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
