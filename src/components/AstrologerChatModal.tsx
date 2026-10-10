@@ -212,7 +212,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
         return;
       }
 
-      // Initial user question if provided in intake form
+      // Initial user question if provided in intake/hook payload
       const initialUserMsg: ChatMessage[] = intake.question && intake.question.trim().length > 2 ? [
         {
           id: 'user-first',
@@ -223,21 +223,27 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
         }
       ] : [];
 
-      setMessages(initialUserMsg);
-
-      // Human-like opening sequence: Only 2 polite, natural lines
-      const firstName = intake.name.split(' ')[0] || intake.name;
-      const openingLines = [
-        `Pranam ${firstName} ji! Main aapki janam patrika open kar raha hoon.`,
-        `Bataiye, aaj kis vishay par aap vishisht guidance chahte hain?`
-      ];
-
-      // Realistic 2.2s delay before pandit starts typing opening greeting
-      const initTimer = setTimeout(() => {
-        deliverSequentialReplies(openingLines);
-      }, 2200);
-
-      return () => clearTimeout(initTimer);
+      if (initialUserMsg.length > 0) {
+        setMessages(initialUserMsg);
+        const initTimer = setTimeout(() => {
+          deliverSequentialReplies([
+            `Pranam! Main aapka prashna samajh raha hoon.`,
+            `Aapki kundli aur grah gochar ke aadhar par vishleshan shuru karte hain.`
+          ]);
+        }, 1200);
+        return () => clearTimeout(initTimer);
+      } else {
+        // Frictionless 1-Tap Greeting as per Multinational Luxury UI/UX spec:
+        // "Namaste! I am {astrologer.name}. I am reading your cosmic transit right now. What brings you here today?"
+        const greetingMsg: ChatMessage = {
+          id: `astrologer-greeting-${Date.now()}`,
+          sender: 'astrologer',
+          text: `Namaste! I am ${astrologer.name}. I am reading your cosmic transit right now. What brings you here today?`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages([greetingMsg]);
+        setTimeout(() => playChime(), 350);
+      }
     }
   }, [isOpen, astrologer.id]);
 
@@ -350,8 +356,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     const textToSend = customText || inputText;
     if (!textToSend.trim() || isTyping) return;
 
-    // Strict Balance Check: Block sending and open recharge modal immediately
-    if (walletBalance < astrologer.pricePerMin) {
+    // Strict Balance Check: Allow consultation if within 60s free trial or sufficient wallet balance
+    if (!canContinueConsultation) {
       setShowRechargePopup(true);
       onOpenRecharge();
       return;
@@ -657,6 +663,34 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
                 </div>
               );
             })}
+
+            {/* ZERO-FRICTION 4 INSTANT TOPIC QUICK-REPLY PILLS */}
+            {!messages.some((m) => m.sender === 'user') && !isSessionEnded && (
+              <div className="bg-white/95 border border-amber-300/80 rounded-2xl p-3.5 shadow-sm my-2 max-w-md animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-center gap-1.5 text-xs font-black text-amber-950 mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Choose what brings you here today:</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: '💼 Career & Job', prompt: 'Pranam Pandit Ji! Mujhe apne Career aur Job ke baare me guidance chahiye.' },
+                    { label: '💍 Marriage & Love', prompt: 'Pranam Pandit Ji! Meri Marriage aur Love relationship me sthirta kab aayegi?' },
+                    { label: '💰 Wealth & Business', prompt: 'Pranam Pandit Ji! Mujhe Business growth aur Financial wealth ke vishay me paramarsh chahiye.' },
+                    { label: '🩺 Health & Family', prompt: 'Pranam Pandit Ji! Parivar ki shanti aur Health ke yog ke baare me bataiye.' }
+                  ].map((topic) => (
+                    <button
+                      key={topic.label}
+                      onClick={() => handleSendMessage(topic.prompt)}
+                      disabled={isTyping}
+                      className="bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200 text-slate-800 text-xs font-bold px-3 py-2.5 rounded-xl transition-all text-left flex items-center justify-between active:scale-95 shadow-2xs hover:border-amber-400 cursor-pointer"
+                    >
+                      <span>{topic.label}</span>
+                      <span className="text-amber-500 text-xs">➔</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* WHATSAPP-STYLE REALISTIC TYPING INDICATOR BUBBLE */}
             {isTyping && (

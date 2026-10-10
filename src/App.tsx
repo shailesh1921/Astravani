@@ -260,17 +260,39 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Handlers
+  // Frictionless 1-Tap Consultation Handlers (Zero form drop-off barrier)
   const handleInitiateChat = (astrologer: Astrologer) => {
     setSelectedAstrologer(astrologer);
     setIsCallMode(false);
-    setIsIntakeOpen(true);
+    const intake: ConsultationIntake = currentIntake || {
+      name: currentUser?.fullName || 'AstraVani Seeker',
+      gender: 'Male',
+      dob: '1996-01-01',
+      tob: '12:00',
+      pob: 'New Delhi, India',
+      topic: 'Career & Job',
+      question: ''
+    };
+    setCurrentIntake(intake);
+    setIsIntakeOpen(false);
+    setIsChatOpen(true);
   };
 
   const handleInitiateCall = (astrologer: Astrologer) => {
     setSelectedAstrologer(astrologer);
     setIsCallMode(true);
-    setIsIntakeOpen(true);
+    const intake: ConsultationIntake = currentIntake || {
+      name: currentUser?.fullName || 'AstraVani Seeker',
+      gender: 'Male',
+      dob: '1996-01-01',
+      tob: '12:00',
+      pob: 'New Delhi, India',
+      topic: 'Career & Job',
+      question: ''
+    };
+    setCurrentIntake(intake);
+    setIsIntakeOpen(false);
+    setIsCallOpen(true);
   };
 
   const handleIntakeSubmit = (intake: ConsultationIntake) => {
@@ -327,23 +349,19 @@ export const App: React.FC = () => {
     setSelectedAstrologer(target);
     setIsCallMode(false);
 
-    if (intakeData && intakeData.name) {
-      // Direct frictionless flow: prefill intake and launch consultation immediately
-      const intake: ConsultationIntake = {
-        name: intakeData.name,
-        gender: intakeData.gender || 'Male',
-        dob: intakeData.dob || '1995-01-01',
-        tob: intakeData.tob || '12:00',
-        pob: intakeData.pob || 'New Delhi, India',
-        topic: intakeData.topic || 'Career & Job',
-        question: intakeData.question || 'Pranam Pandit Ji, kripya meri kundli ka vishleshan karein.'
-      };
-      setCurrentIntake(intake);
-      setIsIntakeOpen(false);
-      setIsChatOpen(true);
-    } else {
-      setIsIntakeOpen(true);
-    }
+    // Frictionless payload forwarding from Kundli, Matching, or Daily Horoscope tools
+    const intake: ConsultationIntake = {
+      name: intakeData?.name || currentUser?.fullName || 'AstraVani Seeker',
+      gender: intakeData?.gender || 'Male',
+      dob: intakeData?.dob || '1996-01-01',
+      tob: intakeData?.tob || '12:00',
+      pob: intakeData?.pob || 'New Delhi, India',
+      topic: intakeData?.topic || 'Career & Job',
+      question: intakeData?.question || 'Pranam Pandit Ji, kripya meri kundli ka vishleshan karein.'
+    };
+    setCurrentIntake(intake);
+    setIsIntakeOpen(false);
+    setIsChatOpen(true);
   };
 
   return (
