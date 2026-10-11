@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { HOROSCOPES_DATA } from '../data/horoscopesData';
 import { HoroscopeSign, Astrologer, ConsultationIntake } from '../types/astrotalk';
-import { Heart, Briefcase, Activity, Sparkles, MessageSquare, Share2, AlertCircle } from 'lucide-react';
+import { Heart, Briefcase, Activity, Sparkles, MessageSquare, Share2, AlertCircle, Users, Award, Zap, Star } from 'lucide-react';
 import { analytics } from '../services/analytics';
+import { ASTROLOGERS_DATA } from '../data/astrologersData';
 
 interface DailyHoroscopeViewProps {
-  onConsultSign: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => void;
+  onConsultSign: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>, sourceTool?: 'kundli' | 'matching' | 'horoscope' | 'blog' | 'dosh', dosh?: string) => void;
 }
 
 export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsultSign }) => {
@@ -14,6 +15,53 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
 
   const currentSign: HoroscopeSign =
     HOROSCOPES_DATA.find((s) => s.id === selectedSignId) || HOROSCOPES_DATA[0];
+
+  // Find best specialist based on current sign's ruling planet and element
+  const findSignSpecialist = useMemo((): Astrologer | null => {
+    const ruler = currentSign.ruler.toLowerCase();
+    const element = currentSign.element.toLowerCase();
+    
+    // Priority: Career/Wealth for Saturn/Jupiter, Love for Venus, Health for Sun/Moon, General for others
+    if (ruler.includes('shani') || ruler.includes('saturn')) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('career') || s.toLowerCase().includes('shani') || s.toLowerCase().includes('sade sati'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    if (ruler.includes('guru') || ruler.includes('jupiter')) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('wealth') || s.toLowerCase().includes('guru') || s.toLowerCase().includes('prosperity'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    if (ruler.includes('shukra') || ruler.includes('venus')) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('love') || s.toLowerCase().includes('relationship') || s.toLowerCase().includes('marriage'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    if (ruler.includes('surya') || ruler.includes('sun') || ruler.includes('chandra') || ruler.includes('moon')) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('health') || s.toLowerCase().includes('vitality') || s.toLowerCase().includes('wellness'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    if (ruler.includes('mangal') || ruler.includes('mars')) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('manglik') || s.toLowerCase().includes('courage') || s.toLowerCase().includes('energy'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    if (ruler.includes('budh') || ruler.includes('mercury')) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('business') || s.toLowerCase().includes('education') || s.toLowerCase().includes('communication'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    if (ruler.includes('rahu') || ruler.includes('ketu')) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('rahu') || s.toLowerCase().includes('ketu') || s.toLowerCase().includes('remedy'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    // Default to top Vedic expert
+    return ASTROLOGERS_DATA.find(a => a.personaType === 'vedic') || ASTROLOGERS_DATA[0];
+  }, [currentSign]);
+
+  const specialist = findSignSpecialist;
 
   // Track horoscope view when sign or timeframe changes
   useEffect(() => {
@@ -25,7 +73,8 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
 
   const handleConsultClick = (intakeData?: Partial<ConsultationIntake>) => {
     analytics.trackFreeToolToConsult({ tool: 'horoscope' });
-    onConsultSign(undefined, intakeData);
+    const dosh = currentSign.ruler.toLowerCase();
+    onConsultSign(undefined, intakeData, 'horoscope', dosh);
   };
 
   return (
@@ -233,6 +282,98 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
 
           </div>
 
+        </div>
+
+        {/* HIGH-CONVERTING WORKFLOW HOOK: Specialist Match for Sign's Ruling Planet */}
+        {specialist && (
+          <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/15 to-yellow-500/10 border-2 border-amber-300 rounded-3xl p-5 sm:p-6 shadow-sm my-6 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1.5 max-w-2xl">
+                <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>{currentSign.nameEn} ({currentSign.nameHi}) Grah Gochar Alert</span>
+                  <span>•</span>
+                  <span>Ruling Planet: {currentSign.ruler}</span>
+                </div>
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
+                  Aaj aapki rashi {currentSign.nameEn} par {currentSign.ruler} ke grah sanchar ka vishesh prabhav
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Kariyar me naye avsar, prem sambandh me sthirta, ya dhan labh ke liye Vedic Astrologer se direct paramarsh lein aur aaj ke shubh upay jaanein.
+                </p>
+              </div>
+
+              {/* Specialist Match Card */}
+              <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm border border-amber-200 rounded-2xl p-3 shadow-lg flex-shrink-0 min-w-[280px]">
+                <img 
+                  src={specialist.avatarUrl} 
+                  alt={specialist.name} 
+                  className="w-14 h-14 rounded-xl border-2 border-amber-300 object-cover"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Your Matched Specialist</p>
+                  <h4 className="font-extrabold text-slate-900 truncate">{specialist.name}</h4>
+                  <p className="text-xs text-slate-600 truncate">{specialist.title}</p>
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {specialist.expertiseBadges.slice(0, 2).map((badge) => (
+                      <span key={badge} className="text-[9px] font-bold text-amber-900 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded">
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1.5 text-xs">
+                    <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                    <span className="font-bold text-slate-900">{specialist.rating}</span>
+                    <span className="text-slate-500">({(specialist.reviewsCount/1000).toFixed(1)}k+ reviews)</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleConsultClick({
+                  name: `${currentSign.nameEn} Devotee`,
+                  gender: 'Male',
+                  dob: '1995-01-01',
+                  tob: '12:00',
+                  pob: 'New Delhi, India',
+                  topic: 'Career & Job',
+                  question: `Pranam Pandit Ji, meri rashi ${currentSign.nameEn} (${currentSign.nameHi}) hai. Aaj ke grah sanchar, shubh muhurat aur kariyar/finance ke upay batayein.`
+                })}
+                className="btn-astrotalk px-5 py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg transition-transform active:scale-95 flex-shrink-0 rounded-xl"
+              >
+                <MessageSquare className="w-4 h-4 text-amber-200" />
+                <span>⚡ Claim 1-Min Free Talk with {specialist.name.split(' ')[0]}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Social Proof Strip */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 my-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2 text-xs text-slate-600">
+              <Users className="w-3.5 h-3.5 text-amber-500" />
+              <span className="font-bold text-slate-900">3,421</span>
+              <span>{currentSign.nameEn} readers consulted</span>
+              <span className="font-bold text-amber-700">this month</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+              <Award className="w-3.5 h-3.5 text-amber-500" />
+              <span className="font-bold text-slate-900">97%</span>
+              <span>satisfaction rate</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />
+              <span className="font-bold text-emerald-700">\u003c60s</span>
+              <span>avg connect time</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span className="font-bold text-slate-900">4.9★</span>
+              <span>avg rating</span>
+            </div>
+          </div>
         </div>
 
       </div>

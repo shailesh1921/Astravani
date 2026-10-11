@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Astrologer, ConsultationIntake } from '../types/astrotalk';
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, MessageSquare, ShieldCheck, Sparkles, Clock, AlertCircle } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, MessageSquare, ShieldCheck, Sparkles, Clock, AlertCircle, Compass, ScrollText, AlertTriangle, HeartHandshake } from 'lucide-react';
 import { sounds } from '../utils/audioEffects';
 import { cloudAuth } from '../services/cloudAuthService';
 
@@ -13,6 +13,7 @@ interface AstrologerCallModalProps {
   onDeductWallet: (amount: number) => void;
   onOpenRecharge: () => void;
   onSwitchToChat: () => void;
+  onNavigate?: (tab: string) => void;
 }
 
 export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
@@ -24,6 +25,7 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
   onDeductWallet,
   onOpenRecharge,
   onSwitchToChat,
+  onNavigate,
 }) => {
   const [callState, setCallState] = useState<'ringing' | 'connected' | 'ended'>('ringing');
   const [callDuration, setCallDuration] = useState(0); // seconds
@@ -331,8 +333,30 @@ export const AstrologerCallModal: React.FC<AstrologerCallModalProps> = ({
             )}
 
             {callState === 'ended' && (
-              <div className="text-sm font-bold text-red-400">
-                Call Ended
+              <div className="space-y-3">
+                <div className="text-sm font-bold text-red-400">
+                  Call Ended
+                </div>
+                <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-2xl text-xs text-slate-300 text-left">
+                  <span className="text-[10px] font-bold text-amber-400 block mb-1.5">YOUR NEXT CELESTIAL STEP</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: 'Daily Rashifal', icon: Compass, tab: 'horoscope' },
+                      { label: 'Kundli & Dasha', icon: ScrollText, tab: 'kundli' },
+                      { label: 'Dosh & Upay', icon: AlertTriangle, tab: 'dosh' },
+                      { label: '36 Guna Milan', icon: HeartHandshake, tab: 'matching' }
+                    ].map((cta) => (
+                      <button
+                        key={cta.tab}
+                        onClick={() => onNavigate?.(cta.tab)}
+                        className="bg-slate-900/80 border border-slate-700 hover:border-amber-500 rounded-xl p-2 text-left transition cursor-pointer flex items-center gap-2"
+                      >
+                        <cta.icon className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                        <span className="text-[11px] font-bold text-slate-200 truncate">{cta.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>

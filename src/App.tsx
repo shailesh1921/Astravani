@@ -24,6 +24,7 @@ const FreeKundliView = lazy(() => import('./components/FreeKundliView').then(m =
 const KundliMatchingView = lazy(() => import('./components/KundliMatchingView').then(m => ({ default: m.KundliMatchingView })));
 const DailyHoroscopeView = lazy(() => import('./components/DailyHoroscopeView').then(m => ({ default: m.DailyHoroscopeView })));
 const BlogView = lazy(() => import('./components/BlogView').then(m => ({ default: m.BlogView })));
+const DoshEncyclopediaView = lazy(() => import('./components/DoshEncyclopediaView').then(m => ({ default: m.DoshEncyclopediaView })));
 const AstrologerCallModal = lazy(() => import('./components/AstrologerCallModal').then(m => ({ default: m.AstrologerCallModal })));
 const PaymentCheckoutModal = lazy(() => import('./components/PaymentCheckoutModal').then(m => ({ default: m.PaymentCheckoutModal })));
 const CompliancePolicyModal = lazy(() => import('./components/CompliancePolicyModal').then(m => ({ default: m.CompliancePolicyModal })));
@@ -38,19 +39,50 @@ const ViewSuspenseFallback: React.FC = () => (
   </div>
 );
 
+// Smart specialist matching for Dosh Encyclopedia consultations
+function doshKeywordMatch(astrologers: Astrologer[], doshName: string): {
+  specialist: Astrologer | null;
+  name: string;
+  topic: 'Career & Job' | 'Marriage & Kundli' | 'Love & Relationship' | 'Business & Money' | 'Health & Well-being' | 'General';
+} {
+  const q = doshName.toLowerCase();
+  const topic: 'Career & Job' | 'Marriage & Kundli' | 'Love & Relationship' | 'Business & Money' | 'Health & Well-being' | 'General' =
+    q.includes('manglik') || q.includes('marriage') || q.includes('nadi') ? 'Marriage & Kundli'
+    : q.includes('pitra') || q.includes('kaal') || q.includes('shrapit') || q.includes('guru') || q.includes('angarak') ? 'Health & Well-being'
+    : q.includes('sade sati') || q.includes('shani') || q.includes('saturn') ? 'Career & Job'
+    : 'General';
+
+  const specialist = astrologers.find(a => {
+    const specs = a.specialties.map(s => s.toLowerCase()).join(' ');
+    if (q.includes('manglik') || q.includes('marriage')) return specs.includes('manglik') || specs.includes('marriage') || specs.includes('milan');
+    if (q.includes('kaal sarp') || q.includes('rahu') || q.includes('ketu')) return specs.includes('rahu') || specs.includes('ketu') || specs.includes('kaal sarp');
+    if (q.includes('sade sati') || q.includes('shani')) return specs.includes('sade sati') || specs.includes('shani') || specs.includes('shani sade sati');
+    if (q.includes('pitra')) return specs.includes('pitra') || specs.includes('ancestral');
+    if (q.includes('guru')) return specs.includes('guru') || specs.includes('jupiter');
+    if (q.includes('angarak')) return specs.includes('mangal') || specs.includes('manglik');
+    if (q.includes('shrapit')) return specs.includes('shani') || specs.includes('rahu');
+    if (q.includes('gandmool')) return specs.includes('nakshatra') || specs.includes('ketu');
+    return specs.includes('vedic') || specs.includes('dosha');
+  }) || astrologers.find(a => a.personaType === 'vedic') || astrologers[0] || null;
+
+  return { specialist, name: `${doshName} Jatak`, topic };
+}
+
 export const App: React.FC = () => {
   // Navigation & View state - supports direct deep linking
   const [activeTab, setActiveTab] = useState<string>(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog'].includes(tab)) {
+      if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog', 'dosh'].includes(tab)) {
         return tab;
       }
     } catch (e) {}
     return 'astrologers';
   });
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [lastTool, setLastTool] = useState<'kundli' | 'matching' | 'horoscope' | 'blog' | 'dosh' | null>(null);
+  const [detectedDosh, setDetectedDosh] = useState<string | null>(null);
 
   // Synchronize browser history and URL with activeTab
   useEffect(() => {
@@ -91,6 +123,11 @@ export const App: React.FC = () => {
           title: "Vedic Astrology Blog & Remedies — Kaal Sarp, Manglik & Sade Sati Upay — AstraVani",
           desc: "Comprehensive sacred Vedic guides on Kaal Sarp Dosh, Manglik Dosha, Shani Sade Sati, Rahu Mahadasha, and Vastu Shastra remedies for wealth.",
           canonical: "https://www.astravani.in/?tab=blog"
+        },
+        dosh: {
+          title: "Grah Dosh Encyclopedia — Manglik, Kaal Sarp, Sade Sati & Pitra Dosh Upay — AstraVani",
+          desc: "Complete Vedic reference on Manglik Dosha, Kaal Sarp Yog, Shani Sade Sati, Pitra Dosh, Guru Chandal, Angarak & Shrapit Dosh — causes, symptoms and authentic shanti upay.",
+          canonical: "https://www.astravani.in/?tab=dosh"
         }
       };
 
@@ -127,7 +164,7 @@ export const App: React.FC = () => {
       try {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab') || e.state?.tab;
-        if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog'].includes(tab)) {
+        if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog', 'dosh'].includes(tab)) {
           setActiveTab(tab);
         } else {
           setActiveTab('astrologers');
@@ -147,6 +184,7 @@ export const App: React.FC = () => {
       matching: '/matching',
       horoscope: '/horoscope',
       blog: '/blog',
+      dosh: '/dosh',
     };
     const pageTitles: Record<string, string> = {
       astrologers: 'Talk to Astrologers',
@@ -154,6 +192,7 @@ export const App: React.FC = () => {
       matching: 'Kundli Matching (36 Guna Milan)',
       horoscope: 'Daily Horoscope (Rashifal)',
       blog: 'Vedic Astrology Blog',
+      dosh: 'Grah Dosh Encyclopedia',
     };
     
     const path = pagePaths[activeTab] || '/';
@@ -408,7 +447,7 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 500, behavior: 'smooth' });
   };
 
-  const handleConsultFromTool = (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => {
+  const handleConsultFromTool = (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>, sourceTool?: 'kundli' | 'matching' | 'horoscope' | 'blog' | 'dosh', dosh?: string) => {
     const target = astrologer || ASTROLOGERS_DATA[0];
     
     analytics.trackConsultationStart({
@@ -416,6 +455,14 @@ export const App: React.FC = () => {
       mode: 'chat',
       is_free_trial: !cloudAuth.hasUsedFreeTrial(),
     });
+    
+    // Track the source tool for smart matching
+    if (sourceTool) {
+      setLastTool(sourceTool);
+    }
+    if (dosh) {
+      setDetectedDosh(dosh);
+    }
     
     setSelectedAstrologer(target);
     setIsCallMode(false);
@@ -497,6 +544,8 @@ export const App: React.FC = () => {
               searchQuery={searchQuery}
               onInitiateChat={handleInitiateChat}
               onInitiateCall={handleInitiateCall}
+              userTool={lastTool || undefined}
+              userDosh={detectedDosh || undefined}
             />
             <LiveTrustProofSection />
           </>
@@ -528,6 +577,32 @@ export const App: React.FC = () => {
               }}
             />
           )}
+
+          {activeTab === 'dosh' && (
+            <DoshEncyclopediaView
+              onConsultDosh={(doshName, question) => {
+                const matches = doshKeywordMatch(ASTROLOGERS_DATA, doshName);
+                handleConsultFromTool(
+                  matches.specialist || undefined,
+                  {
+                    name: matches.name,
+                    gender: 'Male',
+                    dob: '1995-01-01',
+                    tob: '12:00',
+                    pob: 'New Delhi, India',
+                    topic: matches.topic,
+                    question
+                  },
+                  'dosh',
+                  doshName
+                );
+              }}
+              onOpenKundli={() => {
+                setActiveTab('kundli');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          )}
         </Suspense>
       </main>
 
@@ -554,6 +629,11 @@ export const App: React.FC = () => {
             setWalletTab('wallet');
             setIsWalletOpen(true);
           }}
+          onNavigate={(tab) => {
+            setIsChatOpen(false);
+            setActiveTab(tab);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
           apiConfig={apiConfig}
         />
       )}
@@ -572,11 +652,16 @@ export const App: React.FC = () => {
               setWalletTab('wallet');
               setIsWalletOpen(true);
             }}
-            onSwitchToChat={() => {
-              setIsCallOpen(false);
-              setIsChatOpen(true);
-            }}
-          />
+              onSwitchToChat={() => {
+                setIsCallOpen(false);
+                setIsChatOpen(true);
+              }}
+              onNavigate={(tab) => {
+                setIsCallOpen(false);
+                setActiveTab(tab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
         )}
 
         {/* Real Payment Gateway Checkout Modal (UPI, Cards, Razorpay) */}

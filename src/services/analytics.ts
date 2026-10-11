@@ -254,17 +254,18 @@ class AnalyticsService {
     });
   }
 
-  trackFreeToolToConsult(input: { tool: 'kundli' | 'matching' | 'horoscope' | 'blog'; astrologer_id?: string }) {
+  trackFreeToolToConsult(input: { tool: 'kundli' | 'matching' | 'horoscope' | 'blog' | 'dosh' | (string & {}); astrologer_id?: string }) {
     this.trackEvent('free_tool_to_consult', {
       source_tool: input.tool,
       astrologer_id: input.astrologer_id,
     });
   }
 
-  trackSearch(input: { query: string; results_count: number }) {
+  trackSearch(input: { query: string; results_count: number; source?: string }) {
     this.trackEvent('search', {
       search_term: input.query,
       results_count: input.results_count,
+      search_source: input.source,
     });
   }
 

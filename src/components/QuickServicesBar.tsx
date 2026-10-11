@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, PhoneCall, ScrollText, HeartHandshake, Compass, Sparkles, Sun, ShoppingBag, BookOpen } from 'lucide-react';
+import { MessageSquare, PhoneCall, ScrollText, HeartHandshake, Compass, Sparkles, Sun, ShoppingBag, BookOpen, AlertTriangle } from 'lucide-react';
 
 interface QuickServicesBarProps {
   onSelectService: (serviceId: string) => void;
@@ -59,7 +59,17 @@ export const QuickServicesBar: React.FC<QuickServicesBarProps> = ({
       bgGradient: 'from-purple-600 via-violet-600 to-fuchsia-600',
       shadowColor: 'shadow-purple-500/30',
       badgeBg: 'bg-gradient-to-r from-purple-600 to-violet-600 text-white',
-      ringColor: 'ring-purple-500',
+      ringColor: 'ring-violet-500',
+    },
+    {
+      id: 'dosh',
+      name: 'Dosh Encyclopedia',
+      tag: 'Free Upay',
+      icon: AlertTriangle,
+      bgGradient: 'from-orange-600 via-amber-600 to-yellow-600',
+      shadowColor: 'shadow-orange-500/30',
+      badgeBg: 'bg-gradient-to-r from-orange-600 to-amber-600 text-white',
+      ringColor: 'ring-orange-500',
     },
     {
       id: 'tarot',

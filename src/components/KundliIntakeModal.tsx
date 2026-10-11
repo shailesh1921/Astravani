@@ -2,10 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Astrologer, ConsultationIntake, SavedKundli } from '../types/astrotalk';
 import { calculateKundli } from '../utils/kundliEngine';
 import { cloudAuth } from '../services/cloudAuthService';
+import { analytics } from '../services/analytics';
 import { 
   X, Calendar, Clock, MapPin, Sparkles, User, ShieldCheck, 
   HelpCircle, Compass, CheckCircle2, ChevronRight, BookmarkCheck,
-  Search, Star, Award, Users
+  Search, Star, Award, Users, ChevronLeft, ArrowRight, Lock, Briefcase, MessageSquare
 } from 'lucide-react';
 
 interface KundliIntakeModalProps {
@@ -93,6 +94,11 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
   onSubmit,
   isCallMode = false
 }) => {
+  // Stepper state for progressive disclosure
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 5;
+  const stepLabels = ['Profile', 'Birth Details', 'Topic', 'Question', 'Confirm'];
+  const stepIcons = [User, Calendar, Briefcase, MessageSquare, ShieldCheck];
   // Load saved profile or fallback to defaults
   const [formData, setFormData] = useState<ConsultationIntake>(() => {
     try {
@@ -213,6 +219,26 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
 
   const handleSelectQuestionChip = (q: string) => {
     setFormData(prev => ({ ...prev, question: q }));
+  };
+
+  const handleNextStep = () => {
+    if (currentStep < totalSteps) {
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      try {
+        analytics.trackEvent('intake_step_complete', {
+          step: currentStep,
+          step_name: stepLabels[currentStep - 1],
+          topic: formData.topic,
+        });
+      } catch (e) {}
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -363,12 +389,71 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
           )}
         </div>
 
+        {/* STEPPER PROGRESS BAR */}
+        <div className="bg-white border-b border-slate-200 px-4 py-3 flex-shrink-0">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Step {currentStep} of {totalSteps}: {stepLabels[currentStep - 1]}
+            </span>
+            <span className="text-[11px] font-bold text-amber-700">
+              {Math.round((currentStep / totalSteps) * 100)}% Complete
+            </span>
+          </div>
+
+          {/* Progress Track */}
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: totalSteps }).map((_, idx) => {
+              const stepNum = idx + 1;
+              const StepIcon = stepIcons[idx];
+              const isComplete = stepNum < currentStep;
+              const isCurrent = stepNum === currentStep;
+              return (
+                <React.Fragment key={stepNum}>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(stepNum)}
+                    className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition flex-shrink-0 ${
+                      isCurrent
+                        ? 'bg-amber-500 text-white shadow-sm'
+                        : isComplete
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-slate-100 text-slate-400'
+                    }`}
+                  >
+                    <StepIcon className="w-3 h-3" />
+                    <span className="hidden sm:inline text-[10px] font-bold">
+                      {stepLabels[idx]}
+                    </span>
+                  </button>
+                  {stepNum < totalSteps && (
+                    <div className={`flex-1 h-0.5 rounded-full transition ${
+                      isComplete ? 'bg-emerald-400' : 'bg-slate-200'
+                    }`} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+
         {/* FORM BODY */}
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
           <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-          
-          {/* Full Name & Gender Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+
+          {/* STEP 1: PROFILE */}
+          {currentStep === 1 && (
+            <>
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 mb-1">
+                <p className="text-xs text-amber-900 font-semibold flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-amber-600" />
+                  Who is this consultation for? You can switch profiles above.
+                </p>
+              </div>
+            </>
+          )}
+
+          {currentStep === 1 && (
+            <>
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
                 Full Name *
@@ -396,7 +481,7 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
                     type="button"
                     key={g}
                     onClick={() => setFormData({ ...formData, gender: g })}
-                    className={`py-2 text-xs font-bold rounded-xl border transition cursor-pointer ${
+                    className={`py-2.5 text-xs font-bold rounded-xl border transition cursor-pointer ${
                       formData.gender === g
                         ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -407,8 +492,12 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
                 ))}
               </div>
             </div>
-          </div>
+            </>
+          )}
 
+          {/* STEP 2: BIRTH DETAILS */}
+          {currentStep === 2 && (
+          <>
           {/* Date & Time of Birth */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
@@ -520,26 +609,70 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
               ))}
             </div>
           </div>
+          {/* Live Kundli Signature Badge (Visual Proof of Real Astrological Calculations) */}
+          {calculatedChart && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300/80 rounded-xl p-3 flex items-center justify-between gap-2 shadow-2xs animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-lg bg-amber-400/30 flex items-center justify-center text-amber-800 font-bold text-sm">
+                  🔯
+                </span>
+                <div>
+                  <span className="text-[10px] font-extrabold text-amber-800 uppercase tracking-wider block">
+                    Calculated Kundli Signature
+                  </span>
+                  <p className="text-xs font-bold text-slate-900">
+                    Lagna: {calculatedChart.lagnaSign.split(' ')[0]} • Rashi: {calculatedChart.chandraRashi.split(' ')[0]} • Nakshatra: {calculatedChart.nakshatra}
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex-shrink-0">
+                Ready to Sync
+              </span>
+            </div>
+          )}
+          </>
+          )}
 
-          {/* Primary Consultation Topic */}
+          {/* STEP 3: TOPIC */}
+          {currentStep === 3 && (
+          <>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">
               Primary Consultation Topic
             </label>
-            <select
-              value={formData.topic}
-              onChange={(e) => setFormData({ ...formData, topic: e.target.value as any })}
-              className="w-full px-3 py-2.5 sm:py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 text-slate-900 font-semibold cursor-pointer"
-            >
-              <option value="Career & Job">💼 Career, Job & Promotion Timing</option>
-              <option value="Marriage & Kundli">💍 Marriage Timing & Kundli Milan</option>
-              <option value="Love & Relationship">❤️ Love & Relationship Healing</option>
-              <option value="Business & Money">🪙 Business Growth & Wealth Luck</option>
-              <option value="Health & Well-being">🌿 Health & Energy Remedies</option>
-              <option value="General">✨ General Horoscope & Life Path</option>
-            </select>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {[
+                { value: 'Career & Job', label: '💼 Career & Job', sub: 'Promotion, switch, govt job' },
+                { value: 'Marriage & Kundli', label: '💍 Marriage & Kundli', sub: 'Timing, Milan, dosha' },
+                { value: 'Love & Relationship', label: '❤️ Love & Relations', sub: 'Patch-up, marriage' },
+                { value: 'Business & Money', label: '🪙 Business & Wealth', sub: 'Profit, loans, property' },
+                { value: 'Health & Well-being', label: '🌿 Health & Energy', sub: 'Shanti, vastu, mantra' },
+                { value: 'General', label: '✨ General Life Path', sub: 'Year ahead, destiny' },
+              ].map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, topic: t.value as any })}
+                  className={`p-3 rounded-xl border-2 text-left transition ${
+                    formData.topic === t.value
+                      ? 'bg-amber-50 border-amber-400 shadow-sm'
+                      : 'bg-white border-slate-200 hover:border-amber-300'
+                  }`}
+                >
+                  <p className={`text-xs font-bold ${formData.topic === t.value ? 'text-amber-900' : 'text-slate-800'}`}>
+                    {t.label}
+                  </p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{t.sub}</p>
+                </button>
+              ))}
+            </div>
           </div>
+          </>
+          )}
 
+          {/* STEP 4: QUESTION */}
+          {currentStep === 4 && (
+          <>
           {/* One-Tap Suggested Question Chips */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -567,34 +700,84 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
             </div>
 
             <textarea
-              rows={2}
+              rows={3}
               value={formData.question}
               onChange={(e) => setFormData({ ...formData, question: e.target.value })}
               placeholder="e.g. When will I switch to a higher paying job? Any remedies for peace?"
               className="w-full p-3 sm:p-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:bg-white text-slate-900"
             />
+            <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
+              <Lock className="w-3 h-3" />
+              Your details stay 100% private. Only the astrologer sees your birth chart.
+            </p>
           </div>
+          </>
+          )}
 
-          {/* Live Kundli Signature Badge (Visual Proof of Real Astrological Calculations) */}
-          {calculatedChart && (
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300/80 rounded-xl p-3 flex items-center justify-between gap-2 shadow-2xs animate-in fade-in">
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-lg bg-amber-400/30 flex items-center justify-center text-amber-800 font-bold text-sm">
-                  🔯
-                </span>
-                <div>
-                  <span className="text-[10px] font-extrabold text-amber-800 uppercase tracking-wider block">
-                    Calculated Kundli Signature
-                  </span>
-                  <p className="text-xs font-bold text-slate-900">
-                    Lagna: {calculatedChart.lagnaSign.split(' ')[0]} • Rashi: {calculatedChart.chandraRashi.split(' ')[0]} • Nakshatra: {calculatedChart.nakshatra}
-                  </p>
+          {/* STEP 5: CONFIRMATION */}
+          {currentStep === 5 && (
+          <>
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-4 space-y-3">
+              <h4 className="text-sm font-extrabold text-emerald-900 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                Consultation Summary — Please Verify
+              </h4>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-white rounded-lg p-2.5 border border-emerald-100">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Seeker</span>
+                  <span className="font-bold text-slate-900">{formData.name || 'N/A'}</span>
+                  <span className="text-slate-500"> ({formData.gender})</span>
                 </div>
+                <div className="bg-white rounded-lg p-2.5 border border-emerald-100">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Consultation For</span>
+                  <span className="font-bold text-slate-900 capitalize">{activeProfileTab === 'myself' ? 'Myself' : activeProfileTab === 'partner' ? 'Partner' : 'Family / Child'}</span>
+                </div>
+                <div className="bg-white rounded-lg p-2.5 border border-emerald-100">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Date of Birth</span>
+                  <span className="font-bold text-slate-900">{formData.dob || 'N/A'}</span>
+                </div>
+                <div className="bg-white rounded-lg p-2.5 border border-emerald-100">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Time of Birth</span>
+                  <span className="font-bold text-slate-900">{unknownTime ? 'Unknown (Surya Lagna)' : formData.tob || 'N/A'}</span>
+                </div>
+                <div className="bg-white rounded-lg p-2.5 border border-emerald-100 col-span-2">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Place of Birth</span>
+                  <span className="font-bold text-slate-900">{formData.pob || 'N/A'}</span>
+                </div>
+                <div className="bg-white rounded-lg p-2.5 border border-emerald-100 col-span-2">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Topic</span>
+                  <span className="font-bold text-slate-900">{formData.topic}</span>
+                </div>
+                {formData.question && (
+                  <div className="bg-white rounded-lg p-2.5 border border-emerald-100 col-span-2">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Question</span>
+                    <span className="text-slate-800">{formData.question}</span>
+                  </div>
+                )}
               </div>
-              <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex-shrink-0">
-                Ready to Sync
-              </span>
+
+              {calculatedChart && (
+                <div className="bg-white rounded-lg p-2.5 border border-emerald-100 flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-lg bg-amber-400/30 flex items-center justify-center text-amber-800 font-bold text-sm flex-shrink-0">🔯</span>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-extrabold text-amber-800 uppercase tracking-wider block">Calculated Kundli Signature</span>
+                    <p className="text-xs font-bold text-slate-900 truncate">
+                      Lagna: {calculatedChart.lagnaSign.split(' ')[0]} • Rashi: {calculatedChart.chandraRashi.split(' ')[0]} • Nakshatra: {calculatedChart.nakshatra}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex-shrink-0">Ready to Sync</span>
+                </div>
+              )}
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <p className="text-[11px] text-amber-900 font-semibold">
+                  First minute FREE • Billed at ₹{astrologer.pricePerMin}/min after • Cancel anytime
+                </p>
+              </div>
             </div>
+          </>
           )}
 
           </div>
@@ -602,27 +785,54 @@ export const KundliIntakeModal: React.FC<KundliIntakeModalProps> = ({
           {/* Action Button & Security Sticky Footer */}
           <div className="px-4 py-3 sm:px-6 bg-white border-t border-slate-100 pb-safe flex-shrink-0 shadow-lg space-y-2">
             
+            {/* Navigation Buttons */}
+            <div className="flex items-center gap-2">
+              {currentStep > 1 && (
+                <button
+                  type="button"
+                  onClick={handlePrevStep}
+                  className="px-4 py-3.5 sm:py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 cursor-pointer transition min-h-[48px] flex-shrink-0"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Back</span>
+                </button>
+              )}
+
+              {currentStep < totalSteps ? (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="btn-astrotalk flex-1 py-3.5 sm:py-3 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition transform active:scale-[0.99] min-h-[48px]"
+                >
+                  <span>Continue to {stepLabels[currentStep]}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="btn-astrotalk flex-1 py-3.5 sm:py-3 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition transform active:scale-[0.99] min-h-[48px]"
+                >
+                  <span>{isCallMode ? `📞 Connect Call with ${astrologer.name} (₹${astrologer.pricePerMin}/min)` : `💬 Start Live Consultation (₹${astrologer.pricePerMin}/min)`}</span>
+                </button>
+              )}
+            </div>
+
             {/* Auto-save profile option */}
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={saveToAccount}
-                onChange={(e) => setSaveToAccount(e.target.checked)}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 border-slate-300"
-              />
-              <span className="text-[11px] font-semibold text-slate-700">
-                Save this Kundli profile to my AstraVani account for 1-tap future consultations
-              </span>
-            </label>
+            {currentStep === totalSteps && (
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={saveToAccount}
+                  onChange={(e) => setSaveToAccount(e.target.checked)}
+                  className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 border-slate-300"
+                />
+                <span className="text-[11px] font-semibold text-slate-700">
+                  Save this Kundli profile to my AstraVani account for 1-tap future consultations
+                </span>
+              </label>
+            )}
 
-            <button
-              type="submit"
-              className="btn-astrotalk w-full py-3.5 sm:py-3 text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition transform active:scale-[0.99] min-h-[48px]"
-            >
-              <span>{isCallMode ? `📞 Connect Call with ${astrologer.name} (₹${astrologer.pricePerMin}/min)` : `💬 Start Live Consultation (₹${astrologer.pricePerMin}/min)`}</span>
-            </button>
-
-            <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500 mt-2">
+            <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500 mt-1">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 100% Confidential

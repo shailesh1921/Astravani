@@ -7,7 +7,7 @@ import { analytics } from '../services/analytics';
 import { ASTROLOGERS_DATA } from '../data/astrologersData';
 
 interface FreeKundliViewProps {
-  onConsultKundli: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => void;
+  onConsultKundli: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>, sourceTool?: 'kundli' | 'matching' | 'horoscope' | 'blog' | 'dosh', dosh?: string) => void;
 }
 
 export const FreeKundliView: React.FC<FreeKundliViewProps> = ({ onConsultKundli }) => {
@@ -38,7 +38,11 @@ export const FreeKundliView: React.FC<FreeKundliViewProps> = ({ onConsultKundli 
 
   const handleConsultClick = (intakeData?: Partial<ConsultationIntake>) => {
     analytics.trackFreeToolToConsult({ tool: 'kundli' });
-    onConsultKundli(undefined, intakeData);
+    const dosh = kundliResult?.mahadasha?.toLowerCase().includes('shani') ? 'shani sade sati' :
+                 kundliResult?.mahadasha?.toLowerCase().includes('mangal') ? 'manglik' :
+                 kundliResult?.mahadasha?.toLowerCase().includes('rahu') ? 'rahu mahadasha' :
+                 kundliResult?.mahadasha?.toLowerCase().includes('ketu') ? 'ketu mahadasha' : null;
+    onConsultKundli(undefined, intakeData, 'kundli', dosh || undefined);
   };
 
   // Find best specialist for detected dosh/issues

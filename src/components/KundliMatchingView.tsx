@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { calculateGunaMilan } from '../utils/gunaMilanEngine';
 import { GunaMilanResult, Astrologer, ConsultationIntake } from '../types/astrotalk';
-import { HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, MessageSquare, ShieldCheck, Share2, Printer, Zap, Award, Star, Users } from 'lucide-react';
+import { HeartHandshake, AlertTriangle, MessageSquare, ShieldCheck, Share2, Printer, Users, Award, Star } from 'lucide-react';
 import { analytics } from '../services/analytics';
 import { ASTROLOGERS_DATA } from '../data/astrologersData';
 
 interface KundliMatchingViewProps {
-  onConsultMatch: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => void;
+  onConsultMatch: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>, sourceTool?: 'kundli' | 'matching' | 'horoscope' | 'blog' | 'dosh', dosh?: string) => void;
 }
 
 export const KundliMatchingView: React.FC<KundliMatchingViewProps> = ({ onConsultMatch }) => {
@@ -48,7 +48,10 @@ export const KundliMatchingView: React.FC<KundliMatchingViewProps> = ({ onConsul
 
   const handleConsultClick = (intakeData?: Partial<ConsultationIntake>) => {
     analytics.trackFreeToolToConsult({ tool: 'matching' });
-    onConsultMatch(undefined, intakeData);
+    const dosh = matchingResult?.isManglikBoy || matchingResult?.isManglikGirl ? 'manglik' :
+                 matchingResult?.ashtakoota.find(k => k.attribute.toLowerCase().includes('nadi'))?.obtainedScore === 0 ? 'nadi dosh' :
+                 matchingResult && matchingResult.totalScore < 18 ? 'low guna score' : null;
+    onConsultMatch(undefined, intakeData, 'matching', dosh || undefined);
   };
 
   // Find best marriage specialist based on dosh detected

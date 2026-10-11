@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, ScrollText, HeartHandshake, Compass, User } from 'lucide-react';
+import { MessageSquare, ScrollText, HeartHandshake, Compass, User, AlertTriangle } from 'lucide-react';
 import { UserProfile } from '../types/astrotalk';
 
 interface MobileBottomNavProps {
@@ -33,6 +33,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       id: 'kundli',
       label: 'Kundli',
       icon: ScrollText
+    },
+    {
+      id: 'dosh',
+      label: 'Dosh',
+      icon: AlertTriangle
     },
     {
       id: 'matching',

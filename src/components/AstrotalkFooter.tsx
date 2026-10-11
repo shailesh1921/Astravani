@@ -105,8 +105,13 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav, o
                 </button>
               </li>
               <li>
-                <button onClick={() => onSelectNav('blog')} className="hover:text-amber-400 transition cursor-pointer font-bold text-amber-400">
-                  📖 Vedic Astrology Blog & Upay
+                <button onClick={() => onSelectNav('dosh')} className="hover:text-amber-400 transition cursor-pointer font-bold text-amber-400">
+                  ⚠️ Dosh Encyclopedia (11 Dosh + Upay)
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onSelectNav('blog')} className="hover:text-amber-400 transition cursor-pointer">
+                  📖 Vedic Astrology Blog
                 </button>
               </li>
             </ul>

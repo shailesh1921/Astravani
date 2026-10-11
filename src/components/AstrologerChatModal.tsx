@@ -3,13 +3,14 @@ import { Astrologer, ConsultationIntake, ChatMessage, ApiConfig } from '../types
 import { generateAstrologerResponses } from '../utils/astrotalkAiEngine';
 import { calculateKundli } from '../utils/kundliEngine';
 import { NorthIndianKundliChart } from './NorthIndianKundliChart';
-import { 
-  Send, PhoneOff, ShieldCheck, Clock, Wallet, Star, Sparkles, 
+import {
+  Send, PhoneOff, ShieldCheck, Wallet, Star, Sparkles,
   Check, CheckCheck, ScrollText, Volume2, VolumeX, X, Paperclip, Mic,
-  Share2, Printer, AlertCircle
+  Share2, Printer, AlertCircle, Compass, AlertTriangle, HeartHandshake, Gift
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { cloudAuth } from '../services/cloudAuthService';
+import { analytics } from '../services/analytics';
 
 interface AstrologerChatModalProps {
   astrologer: Astrologer;
@@ -20,6 +21,7 @@ interface AstrologerChatModalProps {
   onDeductWallet: (amount: number) => void;
   onOpenRecharge: () => void;
   apiConfig: ApiConfig;
+  onNavigate?: (tab: string) => void;
 }
 
 export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
@@ -30,7 +32,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
   walletBalance,
   onDeductWallet,
   onOpenRecharge,
-  apiConfig
+  apiConfig,
+  onNavigate
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
@@ -906,7 +909,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
           </div>
         ) : (
           /* CONSULTATION SUMMARY / END REPORT CARD */
-          <div className="p-6 bg-white border-t border-slate-200 text-center space-y-3 animate-in fade-in flex-shrink-0">
+          <div className="p-6 bg-white border-t border-slate-200 text-center space-y-3 animate-in fade-in flex-shrink-0 overflow-y-auto max-h-[60vh]">
             <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
               <Sparkles className="w-6 h-6" />
             </div>
@@ -922,7 +925,17 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
-                  onClick={() => setRating(star)}
+                  onClick={() => {
+                    if (star === rating) return;
+                    setRating(star);
+                    try {
+                      analytics.trackEvent('consultation_rating', {
+                        astrologer_id: astrologer.id,
+                        rating: star,
+                        duration_seconds: secondsElapsed,
+                      });
+                    } catch (e) {}
+                  }}
                   className="cursor-pointer transition hover:scale-110"
                 >
                   <Star
@@ -934,6 +947,69 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
                   />
                 </button>
               ))}
+            </div>
+            <p className="text-[10px] font-bold text-slate-500">
+              {rating >= 4 ? 'Glad this session helped!' : 'We are sorry — a better match is waiting.'}
+            </p>
+
+            {/* RETENTION LOOP: Next-step CTA grid */}
+            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-3 text-left">
+              <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider mb-2 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-600" />
+                Your Next Celestial Step
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  {
+                    label: 'Daily Rashifal',
+                    icon: Compass,
+                    tab: 'horoscope',
+                    desc: 'Track your transit daily'
+                  },
+                  {
+                    label: 'Kundli & Dasha',
+                    icon: ScrollText,
+                    tab: 'kundli',
+                    desc: 'Generate full report'
+                  },
+                  {
+                    label: 'Dosh & Upay',
+                    icon: AlertTriangle,
+                    tab: 'dosh',
+                    desc: 'Check your grah dosh'
+                  },
+                  {
+                    label: '36 Guna Milan',
+                    icon: HeartHandshake,
+                    tab: 'matching',
+                    desc: 'Match compatibility'
+                  }
+                ].map((cta) => (
+                  <button
+                    key={cta.tab}
+                    onClick={() => {
+                      try {
+                        analytics.trackEvent('post_consult_next_step', {
+                          astrologer_id: astrologer.id,
+                          destination: cta.tab,
+                          rating,
+                        });
+                      } catch (e) {}
+                      onNavigate?.(cta.tab);
+                    }}
+                    className="bg-white border border-amber-200 hover:border-amber-400 rounded-xl p-2 text-left transition cursor-pointer flex items-center gap-2"
+                  >
+                    <cta.icon className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black text-slate-900 truncate">{cta.label}</p>
+                      <p className="text-[9px] text-slate-500 truncate">{cta.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[9px] text-slate-500 mt-2 text-center">
+                Your consultation transcript &amp; remedy plan is saved in your account.
+              </p>
             </div>
 
             {/* Action Buttons: WhatsApp Share, Print Slip, Return */}
@@ -962,6 +1038,33 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
                 className="btn-astrotalk px-5 py-2 text-xs font-bold cursor-pointer"
               >
                 Close & Return
+              </button>
+            </div>
+
+            {/* GROWTH LOOP: Referral invite with trackable link */}
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex items-center justify-between gap-2 text-left">
+              <div className="flex items-center gap-2 min-w-0">
+                <Gift className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[11px] font-black text-emerald-900 truncate">Invite a friend — both get 1 free minute</p>
+                  <p className="text-[9px] text-slate-500 truncate">Share your AstraVani consultation link</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  try {
+                    analytics.trackEvent('referral_share', {
+                      astrologer_id: astrologer.id,
+                      channel: 'whatsapp',
+                    });
+                  } catch (e) {}
+                  const text = `🙏 Maine abhi ${astrologer.name} se AstraVani pe Vedic paramarsh liya!\n\n🎁 Aap bhi 1 minute FREE consult karein:\nhttps://www.astravani.in/?tab=kundli&utm_source=referral\n\n✨ Free Janam Kundli, 36 Guna Milan &aj ka rashifal — sab free!`;
+                  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer flex-shrink-0"
+              >
+                <Share2 className="w-3 h-3" />
+                Invite
               </button>
             </div>
           </div>

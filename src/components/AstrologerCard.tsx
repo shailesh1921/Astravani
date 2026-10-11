@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Astrologer } from '../types/astrotalk';
-import { Star, ShieldCheck, MessageSquare, PhoneCall, Award, Globe, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import { Star, ShieldCheck, MessageSquare, PhoneCall, Award, Volume2, VolumeX, Sparkles, Zap } from 'lucide-react';
 import { playPanditVoiceSample, stopPanditVoice } from '../utils/panditVoiceBlessing';
 import { analytics } from '../services/analytics';
 
@@ -8,12 +8,14 @@ interface AstrologerCardProps {
   astrologer: Astrologer;
   onInitiateChat: (astrologer: Astrologer) => void;
   onInitiateCall: (astrologer: Astrologer) => void;
+  smartTags?: string[];
 }
 
 export const AstrologerCard: React.FC<AstrologerCardProps> = ({
   astrologer,
   onInitiateChat,
-  onInitiateCall
+  onInitiateCall,
+  smartTags = []
 }) => {
   const [isPlayingVoice, setIsPlayingVoice] = useState(false);
   const hasTrackedView = useRef(false);
@@ -182,6 +184,21 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
               )}
             </button>
           </div>
+
+          {/* Smart Match Tags */}
+          {smartTags && smartTags.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {smartTags.slice(0, 2).map((tag, i) => (
+                <span
+                  key={i}
+                  className="text-[9px] font-extrabold text-amber-950 bg-amber-200/90 border border-amber-400/60 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs"
+                >
+                  <Zap className="w-2.5 h-2.5 text-amber-600" />
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
 
         </div>
 
