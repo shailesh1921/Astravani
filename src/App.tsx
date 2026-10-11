@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { ASTROLOGERS_DATA } from './data/astrologersData';
 import { Astrologer, ConsultationIntake, ApiConfig, PaymentConfig, PaymentTransaction, UserProfile } from './types/astrotalk';
+import { BLOG_ARTICLES } from './data/blogData';
 import { cloudAuth } from './services/cloudAuthService';
 import { walletSecurity } from './utils/walletSecurity';
 import { analytics } from './services/analytics';
@@ -149,7 +150,25 @@ export const App: React.FC = () => {
         }
       };
 
-      const currentSeo = seoConfig[activeTab] || seoConfig.astrologers;
+      let currentSeo = seoConfig[activeTab] || seoConfig.astrologers;
+
+      // Handle specific blog article deep links (?tab=blog&article=...)
+      if (activeTab === 'blog') {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const articleParam = params.get('article');
+          if (articleParam) {
+            const matchedArticle = BLOG_ARTICLES.find(a => a.id === articleParam || a.slug === articleParam);
+            if (matchedArticle) {
+              currentSeo = {
+                title: `${matchedArticle.hindiTitle} (${matchedArticle.title}) — AstraVani Blog`,
+                desc: matchedArticle.excerpt,
+                canonical: `https://www.astravani.in/?tab=blog&article=${matchedArticle.id}`
+              };
+            }
+          }
+        } catch (e) {}
+      }
 
       // Update Document Title
       document.title = currentSeo.title;
@@ -158,9 +177,14 @@ export const App: React.FC = () => {
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute('content', currentSeo.desc);
 
-      // Update Canonical Link
-      const canonicalTag = document.querySelector('link[rel="canonical"]');
-      if (canonicalTag) canonicalTag.setAttribute('href', currentSeo.canonical);
+      // Update Canonical Link (create if missing)
+      let canonicalTag = document.querySelector('link[rel="canonical"]');
+      if (!canonicalTag) {
+        canonicalTag = document.createElement('link');
+        canonicalTag.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonicalTag);
+      }
+      canonicalTag.setAttribute('href', currentSeo.canonical);
 
       // Update OpenGraph tags
       const ogTitle = document.querySelector('meta[property="og:title"]');
