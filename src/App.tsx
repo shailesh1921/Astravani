@@ -3,6 +3,7 @@ import { ASTROLOGERS_DATA } from './data/astrologersData';
 import { Astrologer, ConsultationIntake, ApiConfig, PaymentConfig, PaymentTransaction, UserProfile } from './types/astrotalk';
 import { cloudAuth } from './services/cloudAuthService';
 import { walletSecurity } from './utils/walletSecurity';
+import { analytics } from './services/analytics';
 import { Header } from './components/Header';
 import { QuickServicesBar } from './components/QuickServicesBar';
 import { HeroBanner } from './components/HeroBanner';
@@ -138,18 +139,62 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Track page views when activeTab changes
+  useEffect(() => {
+    const pagePaths: Record<string, string> = {
+      astrologers: '/',
+      kundli: '/kundli',
+      matching: '/matching',
+      horoscope: '/horoscope',
+      blog: '/blog',
+    };
+    const pageTitles: Record<string, string> = {
+      astrologers: 'Talk to Astrologers',
+      kundli: 'Free Janam Kundli',
+      matching: 'Kundli Matching (36 Guna Milan)',
+      horoscope: 'Daily Horoscope (Rashifal)',
+      blog: 'Vedic Astrology Blog',
+    };
+    
+    const path = pagePaths[activeTab] || '/';
+    const title = pageTitles[activeTab] || 'AstraVani';
+    
+    analytics.trackPageView(path, title);
+  }, [activeTab]);
+
   // Persistent User Authentication & Cloud Synchronization
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => cloudAuth.getCurrentUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
+
+  // Update analytics user properties when user changes
+  useEffect(() => {
+    if (currentUser) {
+      analytics.init(currentUser.id, {
+        user_id: currentUser.id,
+        user_type: 'authenticated',
+        preferred_language: currentUser.preferredLanguage || 'Hindi',
+        has_free_trial: !cloudAuth.hasUsedFreeTrial(),
+        wallet_balance: walletSecurity.getBalance(),
+        total_consultations: cloudAuth.getConsultations().length,
+      });
+    } else {
+      analytics.init(undefined, {
+        user_type: 'guest',
+      });
+    }
+  }, [currentUser]);
 
   // Tamper-proof signed wallet balance: Defaults strictly to 0
   const [walletBalance, setWalletBalance] = useState<number>(() => {
     return walletSecurity.getBalance();
   });
 
+  // Update analytics with wallet balance changes
   useEffect(() => {
-    walletSecurity.setBalance(walletBalance);
+    analytics.setUserProperties({
+      wallet_balance: walletBalance,
+    });
   }, [walletBalance]);
 
   // Payment configuration (Cashfree / Razorpay / Direct)
@@ -262,6 +307,12 @@ export const App: React.FC = () => {
 
   // Frictionless 1-Tap Consultation Handlers (Zero form drop-off barrier)
   const handleInitiateChat = (astrologer: Astrologer) => {
+    analytics.trackConsultationStart({
+      astrologer_id: astrologer.id,
+      mode: 'chat',
+      is_free_trial: !cloudAuth.hasUsedFreeTrial(),
+    });
+    
     setSelectedAstrologer(astrologer);
     setIsCallMode(false);
     const intake: ConsultationIntake = currentIntake || {
@@ -279,6 +330,12 @@ export const App: React.FC = () => {
   };
 
   const handleInitiateCall = (astrologer: Astrologer) => {
+    analytics.trackConsultationStart({
+      astrologer_id: astrologer.id,
+      mode: 'call',
+      is_free_trial: !cloudAuth.hasUsedFreeTrial(),
+    });
+    
     setSelectedAstrologer(astrologer);
     setIsCallMode(true);
     const intake: ConsultationIntake = currentIntake || {
@@ -330,6 +387,13 @@ export const App: React.FC = () => {
       if (cloudAuth.isAuthenticated()) {
         cloudAuth.addTransaction(transaction);
       }
+      
+      // Track wallet recharge
+      analytics.trackWalletRecharge({
+        amount: transaction.amount,
+        bonus: transaction.bonusCredit,
+        method: transaction.method,
+      });
     } else {
       // Pending verification from manual UTR -> do not credit balance
       if (cloudAuth.isAuthenticated()) {
@@ -346,6 +410,13 @@ export const App: React.FC = () => {
 
   const handleConsultFromTool = (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => {
     const target = astrologer || ASTROLOGERS_DATA[0];
+    
+    analytics.trackConsultationStart({
+      astrologer_id: target.id,
+      mode: 'chat',
+      is_free_trial: !cloudAuth.hasUsedFreeTrial(),
+    });
+    
     setSelectedAstrologer(target);
     setIsCallMode(false);
 

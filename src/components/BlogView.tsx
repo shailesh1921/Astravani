@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   BookOpen, Search, Clock, Calendar, User, Share2, 
   CheckCircle2, HelpCircle, ArrowLeft, Sparkles, MessageSquare, 
   ChevronRight, Bookmark, Flame, Star, Compass, ScrollText
 } from 'lucide-react';
 import { BLOG_ARTICLES, BlogArticle } from '../data/blogData';
+import { analytics } from '../services/analytics';
 
 interface BlogViewProps {
   onConsultArticle?: (articleTopic: string) => void;
@@ -38,13 +39,20 @@ export const BlogView: React.FC<BlogViewProps> = ({
     return BLOG_ARTICLES.find(a => a.id === activeArticleId) || null;
   }, [activeArticleId]);
 
-  const categories = [
-    { id: 'all', label: 'सभी लेख (All)', icon: '📚' },
-    { id: 'dosha', label: 'दोष एवं उपाय (Dosha)', icon: '🐍' },
-    { id: 'marriage', label: 'विवाह मिलान (Marriage)', icon: '💍' },
-    { id: 'graha', label: 'ग्रह एवं दशा (Planets)', icon: '🪐' },
-    { id: 'vastu', label: 'वास्तु शास्त्र (Vastu)', icon: '🏡' },
-  ];
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => {
+      if (value.trim().length >= 2) {
+        analytics.trackSearch({
+          query: value.trim(),
+          results_count: filteredArticles.length,
+        });
+      }
+    }, 300);
+  };
 
   const filteredArticles = useMemo(() => {
     return BLOG_ARTICLES.filter(article => {
@@ -59,6 +67,14 @@ export const BlogView: React.FC<BlogViewProps> = ({
       return matchesCategory && matchesSearch;
     });
   }, [selectedCategory, searchQuery]);
+
+  const categories = [
+    { id: 'all', label: 'सभी लेख (All)', icon: '📚' },
+    { id: 'dosha', label: 'दोष एवं उपाय (Dosha)', icon: '🐍' },
+    { id: 'marriage', label: 'विवाह मिलान (Marriage)', icon: '💍' },
+    { id: 'graha', label: 'ग्रह एवं दशा (Planets)', icon: '🪐' },
+    { id: 'vastu', label: 'वास्तु शास्त्र (Vastu)', icon: '🏡' },
+  ];
 
   const handleShareWhatsApp = (article: BlogArticle) => {
     const shareUrl = `https://www.astravani.in/?tab=blog&article=${article.id}&utm_source=whatsapp&utm_medium=blog_share`;
@@ -77,9 +93,12 @@ export const BlogView: React.FC<BlogViewProps> = ({
     }
   };
 
+  const articleReadStartRef = useRef<number>(Date.now());
+
   // Scroll to top when opening an article
   const openArticle = (id: string) => {
     setActiveArticleId(id);
+    articleReadStartRef.current = Date.now();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     try {
       const url = new URL(window.location.href);
@@ -90,6 +109,15 @@ export const BlogView: React.FC<BlogViewProps> = ({
   };
 
   const closeArticle = () => {
+    // Track blog read time when closing
+    if (activeArticle) {
+      const readTimeSeconds = Math.round((Date.now() - articleReadStartRef.current) / 1000);
+      analytics.trackBlogRead({
+        article_id: activeArticle.id,
+        category: activeArticle.category,
+        read_time_seconds: readTimeSeconds,
+      });
+    }
     setActiveArticleId(null);
     try {
       const url = new URL(window.location.href);
@@ -201,6 +229,7 @@ export const BlogView: React.FC<BlogViewProps> = ({
                 </div>
                 <button
                   onClick={() => {
+                    analytics.trackFreeToolToConsult({ tool: 'blog' });
                     if (onConsultArticle) {
                       onConsultArticle(activeArticle.title);
                     } else if (onOpenKundli) {
@@ -386,7 +415,7 @@ export const BlogView: React.FC<BlogViewProps> = ({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="खोजें: काल सर्प दोष, मांगलिक, साढ़े साती, वास्तु..."
               className="w-full bg-white border border-slate-200 rounded-full pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 shadow-xs transition"
             />

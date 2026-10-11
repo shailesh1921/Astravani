@@ -1,7 +1,20 @@
 import React, { Component, ErrorInfo, ReactNode, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { analytics } from './services/analytics';
+import { performanceMonitor } from './services/performance';
 import './index.css';
 import App from './App.tsx';
+
+analytics.init();
+performanceMonitor.init((metric) => {
+  if (metric.name !== 'FCP') {
+    analytics.trackPerformance({
+      metric: metric.name,
+      value: metric.value,
+      rating: metric.rating,
+    });
+  }
+});
 
 interface Props {
   children: ReactNode;

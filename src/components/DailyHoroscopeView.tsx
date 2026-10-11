@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HOROSCOPES_DATA } from '../data/horoscopesData';
 import { HoroscopeSign, Astrologer, ConsultationIntake } from '../types/astrotalk';
 import { Heart, Briefcase, Activity, Sparkles, MessageSquare, Share2, AlertCircle } from 'lucide-react';
+import { analytics } from '../services/analytics';
 
 interface DailyHoroscopeViewProps {
   onConsultSign: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => void;
@@ -13,6 +14,19 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
 
   const currentSign: HoroscopeSign =
     HOROSCOPES_DATA.find((s) => s.id === selectedSignId) || HOROSCOPES_DATA[0];
+
+  // Track horoscope view when sign or timeframe changes
+  useEffect(() => {
+    analytics.trackHoroscopeView({
+      sign: currentSign.nameEn,
+      timeframe,
+    });
+  }, [selectedSignId, timeframe]);
+
+  const handleConsultClick = (intakeData?: Partial<ConsultationIntake>) => {
+    analytics.trackFreeToolToConsult({ tool: 'horoscope' });
+    onConsultSign(undefined, intakeData);
+  };
 
   return (
     <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 w-full overflow-hidden">
@@ -112,7 +126,7 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
             </button>
 
             <button
-              onClick={() => onConsultSign()}
+              onClick={() => handleConsultClick()}
               className="btn-astrotalk px-4 py-2.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md"
             >
               <MessageSquare className="w-4 h-4" />
@@ -157,7 +171,7 @@ export const DailyHoroscopeView: React.FC<DailyHoroscopeViewProps> = ({ onConsul
 
             <button
               type="button"
-              onClick={() => onConsultSign(undefined, {
+              onClick={() => handleConsultClick({
                 name: `${currentSign.nameEn} Devotee`,
                 gender: 'Male',
                 dob: '1995-01-01',

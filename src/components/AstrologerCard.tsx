@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Astrologer } from '../types/astrotalk';
 import { Star, ShieldCheck, MessageSquare, PhoneCall, Award, Globe, Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { playPanditVoiceSample, stopPanditVoice } from '../utils/panditVoiceBlessing';
+import { analytics } from '../services/analytics';
 
 interface AstrologerCardProps {
   astrologer: Astrologer;
@@ -15,12 +16,25 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
   onInitiateCall
 }) => {
   const [isPlayingVoice, setIsPlayingVoice] = useState(false);
+  const hasTrackedView = useRef(false);
 
   useEffect(() => {
     return () => {
       stopPanditVoice();
     };
   }, []);
+
+  // Track astrologer view when card mounts
+  useEffect(() => {
+    if (!hasTrackedView.current) {
+      hasTrackedView.current = true;
+      analytics.trackAstrologerView({
+        astrologer_id: astrologer.id,
+        astrologer_name: astrologer.name,
+        specialization: astrologer.specialties,
+      });
+    }
+  }, [astrologer]);
 
   const handleToggleVoice = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -33,6 +47,24 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
         setIsPlayingVoice(false);
       });
     }
+  };
+
+  const handleInitiateChat = () => {
+    analytics.trackConsultationStart({
+      astrologer_id: astrologer.id,
+      mode: 'chat',
+      is_free_trial: true, // First minute free
+    });
+    onInitiateChat(astrologer);
+  };
+
+  const handleInitiateCall = () => {
+    analytics.trackConsultationStart({
+      astrologer_id: astrologer.id,
+      mode: 'call',
+      is_free_trial: true,
+    });
+    onInitiateCall(astrologer);
   };
 
   return (
@@ -189,7 +221,7 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
         {/* High-Contrast Action Buttons */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
-            onClick={() => onInitiateCall(astrologer)}
+            onClick={handleInitiateCall}
             className="px-3 py-2 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[42px] active:scale-95 flex-shrink-0 shadow-2xs"
             title="Start Audio Consultation"
           >
@@ -198,7 +230,7 @@ export const AstrologerCard: React.FC<AstrologerCardProps> = ({
           </button>
 
           <button
-            onClick={() => onInitiateChat(astrologer)}
+            onClick={handleInitiateChat}
             className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer min-h-[42px] active:scale-95 shadow-sm shadow-amber-500/25 flex-shrink-0"
             title="Start 1-Tap Live Chat Consultation"
           >

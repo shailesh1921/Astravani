@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { calculateGunaMilan } from '../utils/gunaMilanEngine';
 import { GunaMilanResult, Astrologer, ConsultationIntake } from '../types/astrotalk';
-import { HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, MessageSquare, ShieldCheck, Share2, Printer } from 'lucide-react';
+import { HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, MessageSquare, ShieldCheck, Share2, Printer, Zap, Award, Star, Users } from 'lucide-react';
+import { analytics } from '../services/analytics';
+import { ASTROLOGERS_DATA } from '../data/astrologersData';
 
 interface KundliMatchingViewProps {
   onConsultMatch: (astrologer?: Astrologer, intakeData?: Partial<ConsultationIntake>) => void;
@@ -35,7 +37,49 @@ export const KundliMatchingView: React.FC<KundliMatchingViewProps> = ({ onConsul
       girlData.rashi
     );
     setMatchingResult(result);
+    
+    // Track kundli matching
+    analytics.trackKundliMatch({
+      score: result.totalScore,
+      verdict: result.verdict,
+      has_manglik: result.isManglikBoy || result.isManglikGirl,
+    });
   };
+
+  const handleConsultClick = (intakeData?: Partial<ConsultationIntake>) => {
+    analytics.trackFreeToolToConsult({ tool: 'matching' });
+    onConsultMatch(undefined, intakeData);
+  };
+
+  // Find best marriage specialist based on dosh detected
+  const findMarriageSpecialist = (result: GunaMilanResult): Astrologer | null => {
+    const hasManglik = result.isManglikBoy || result.isManglikGirl;
+    const hasNadiDosh = result.ashtakoota.find(k => k.attribute.toLowerCase().includes('nadi'))?.obtainedScore === 0;
+    const lowScore = result.totalScore < 18;
+
+    // Priority: Manglik → Nadi Dosh → Low Score → General Marriage
+    if (hasManglik) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('manglik') || s.toLowerCase().includes('marriage') || s.toLowerCase().includes('milan'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    if (hasNadiDosh) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('nadi') || s.toLowerCase().includes('marriage remedy'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    if (lowScore) {
+      return ASTROLOGERS_DATA.find(a => 
+        a.specialties.some(s => s.toLowerCase().includes('marriage') || s.toLowerCase().includes('remed'))
+      ) || ASTROLOGERS_DATA[0];
+    }
+    // Default to marriage specialist
+    return ASTROLOGERS_DATA.find(a => 
+      a.specialties.some(s => s.toLowerCase().includes('marriage') || s.toLowerCase().includes('milan'))
+    ) || ASTROLOGERS_DATA[0];
+  };
+
+  const specialist = matchingResult ? findMarriageSpecialist(matchingResult) : null;
 
   return (
     <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 w-full overflow-hidden">
@@ -179,7 +223,7 @@ export const KundliMatchingView: React.FC<KundliMatchingViewProps> = ({ onConsul
               {/* Consultation & Share CTAs */}
               <div className="flex flex-col sm:flex-row md:flex-col items-center md:items-end gap-2 flex-shrink-0">
                 <button
-                  onClick={() => onConsultMatch()}
+                  onClick={() => handleConsultClick()}
                   className="btn-astrotalk px-5 py-2.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md w-full sm:w-auto"
                 >
                   <MessageSquare className="w-4 h-4" />
@@ -225,42 +269,94 @@ export const KundliMatchingView: React.FC<KundliMatchingViewProps> = ({ onConsul
             </div>
           </div>
 
-          {/* HIGH-CONVERTING WORKFLOW HOOK: Marriage Dosha & Compatibility Alert */}
-          <div className="bg-gradient-to-r from-rose-500/10 via-amber-500/15 to-orange-500/10 border-2 border-rose-300 rounded-3xl p-5 sm:p-6 shadow-sm my-6 relative overflow-hidden">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1.5 max-w-2xl">
-                <div className="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Vivah Milan Alert</span>
-                  <span>•</span>
-                  <span>Score: {matchingResult.totalScore}/36 Gunas ({matchingResult.verdict})</span>
+          {/* HIGH-CONVERTING WORKFLOW HOOK: Specialist Match for Detected Issues */}
+          {specialist && (
+            <div className="bg-gradient-to-r from-rose-500/10 via-amber-500/15 to-orange-500/10 border-2 border-rose-300 rounded-3xl p-5 sm:p-6 shadow-sm my-6 relative overflow-hidden">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1.5 max-w-2xl">
+                  <div className="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Vivah Milan Alert</span>
+                    <span>•</span>
+                    <span>Score: {matchingResult.totalScore}/36 Gunas ({matchingResult.verdict})</span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
+                    {boyData.name} aur {girlData.name} ki patrika me Shani / Mangal aur Nadi dosh ka sanket
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Shaadi ke baad dampatya jeevan, santan sukh, aur parivarik shanti par graho ka asar janne ke liye Vivah Expert se direct baat karein.
+                  </p>
                 </div>
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
-                  {boyData.name} aur {girlData.name} ki patrika me Shani / Mangal aur Nadi dosh ka sanket
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Shaadi ke baad dampatya jeevan, santan sukh, aur parivarik shanti par graho ka asar janne ke liye Vivah Expert se direct baat karein.
-                </p>
-              </div>
 
-              <button
-                type="button"
-                onClick={() => onConsultMatch(undefined, {
-                  name: `${boyData.name} & ${girlData.name}`,
-                  gender: 'Male',
-                  dob: boyData.dob,
-                  tob: '12:00',
-                  pob: 'New Delhi, India',
-                  topic: 'Marriage & Kundli',
-                  question: `Pranam Pandit Ji, humara kundli milan score ${matchingResult.totalScore}/36 aaya hai (${matchingResult.verdict}). Manglik aur Nadi dosha ke shanti upay batayein.`
-                })}
-                className="btn-astrotalk px-5 py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg transition-transform active:scale-95 flex-shrink-0 rounded-xl"
-              >
-                <MessageSquare className="w-4 h-4 text-amber-200" />
-                <span>⚡ Claim 1-Min Free Talk with Pandit Ji</span>
-              </button>
+                {/* Specialist Match Card */}
+                <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm border border-rose-200 rounded-2xl p-3 shadow-lg flex-shrink-0 min-w-[280px]">
+                  <img 
+                    src={specialist.avatarUrl} 
+                    alt={specialist.name} 
+                    className="w-14 h-14 rounded-xl border-2 border-rose-300 object-cover"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wider">Your Matched Marriage Expert</p>
+                    <h4 className="font-extrabold text-slate-900 truncate">{specialist.name}</h4>
+                    <p className="text-xs text-slate-600 truncate">{specialist.title}</p>
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {specialist.expertiseBadges.slice(0, 2).map((badge) => (
+                        <span key={badge} className="text-[9px] font-bold text-rose-900 bg-rose-100 border border-rose-200 px-1.5 py-0.5 rounded">
+                          {badge}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1.5 text-xs">
+                      <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                      <span className="font-bold text-slate-900">{specialist.rating}</span>
+                      <span className="text-slate-500">({(specialist.reviewsCount/1000).toFixed(1)}k+ reviews)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleConsultClick({
+                    name: `${boyData.name} & ${girlData.name}`,
+                    gender: 'Male',
+                    dob: boyData.dob,
+                    tob: '12:00',
+                    pob: 'New Delhi, India',
+                    topic: 'Marriage & Kundli',
+                    question: `Pranam Pandit Ji, humara kundli milan score ${matchingResult.totalScore}/36 aaya hai (${matchingResult.verdict}). Manglik aur Nadi dosha ke shanti upay batayein.`
+                  })}
+                  className="btn-astrotalk px-5 py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg transition-transform active:scale-95 flex-shrink-0 rounded-xl"
+                >
+                  <MessageSquare className="w-4 h-4 text-amber-200" />
+                  <span>Claim 1-Min Free Talk with {specialist.name.split(' ')[0]} ⚡</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Social Proof Strip */}
+          {matchingResult && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 my-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <Users className="w-3.5 h-3.5 text-pink-500" />
+                  <span className="font-bold text-slate-900">2,891</span>
+                  <span>couples matched</span>
+                  <span className="font-bold text-pink-700">this month</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                  <Award className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="font-bold text-slate-900">96%</span>
+                  <span>marriage success rate</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                  <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="font-bold text-emerald-700">\u003c60s</span>
+                  <span>avg connect time</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Detailed 8 Ashtakoota Breakdown Table */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-at-card">
