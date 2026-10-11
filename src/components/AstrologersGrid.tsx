@@ -11,6 +11,8 @@ interface AstrologersGridProps {
   onInitiateCall: (astrologer: Astrologer) => void;
   userTool?: 'kundli' | 'matching' | 'horoscope' | 'blog' | 'dosh';
   userDosh?: string;
+  /** Growth experiment: initial sort mode. */
+  initialSort?: string;
 }
 
 export const AstrologersGrid: React.FC<AstrologersGridProps> = ({
@@ -19,10 +21,11 @@ export const AstrologersGrid: React.FC<AstrologersGridProps> = ({
   onInitiateChat,
   onInitiateCall,
   userTool,
-  userDosh
+  userDosh,
+  initialSort = 'popular'
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('popular');
+  const [sortBy, setSortBy] = useState<string>(initialSort);
   const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);

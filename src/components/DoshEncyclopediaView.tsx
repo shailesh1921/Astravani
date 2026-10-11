@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { DOSH_ENCYCLOPEDIA, DOSH_CATEGORY_LABELS, DoshEntry } from '../data/doshEncyclopedia';
 import { analytics } from '../services/analytics';
+import { isVariant } from '../services/growthExperiments';
 
 interface DoshEncyclopediaViewProps {
   onConsultDosh: (doshName: string, question: string) => void;
@@ -54,8 +55,7 @@ export const DoshEncyclopediaView: React.FC<DoshEncyclopediaViewProps> = ({
     analytics.trackFreeToolToConsult({
       tool: `dosh_${dosh.id}`
     });
-    onConsultDosh(
-      dosh.nameEn,
+    onConsultDosh(      dosh.nameEn,
       `Namaste Pandit Ji, meri kundli me ${dosh.nameEn} (${dosh.nameHi}) ka prabhav hai. Kya iski sthiti bani hui hai, aur iske shanti ke liye kaunsa upay sabse prabhavi rahega?`
     );
     setSelectedDosh(null);

@@ -40,6 +40,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
   // Processing & Verification state
   const [isProcessing, setIsProcessing] = useState(false);
   const [completedTxn, setCompletedTxn] = useState<PaymentTransaction | null>(null);
+  const [pendingTxn, setPendingTxn] = useState<PaymentTransaction | null>(null);
 
   if (!isOpen) return null;
 
@@ -82,8 +83,6 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
       }
     });
   };
-
-  const [pendingTxn, setPendingTxn] = useState<PaymentTransaction | null>(null);
 
   // Handle manual UPI/UTR submission: NEVER auto-credit wallet. Move to pending verification.
   const handleManualUtrSubmit = () => {

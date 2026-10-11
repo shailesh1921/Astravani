@@ -36,6 +36,8 @@ export interface UserProperties {
   has_free_trial?: boolean;
   wallet_balance?: number;
   total_consultations?: number;
+  /** Extra dimensions for growth experiments (exp_*) and custom segmentation. */
+  [key: string]: unknown;
 }
 
 class AnalyticsService {

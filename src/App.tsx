@@ -4,6 +4,7 @@ import { Astrologer, ConsultationIntake, ApiConfig, PaymentConfig, PaymentTransa
 import { cloudAuth } from './services/cloudAuthService';
 import { walletSecurity } from './utils/walletSecurity';
 import { analytics } from './services/analytics';
+import { getVariantLabel, getExperimentContext, syncExperimentContext } from './services/growthExperiments';
 import { Header } from './components/Header';
 import { QuickServicesBar } from './components/QuickServicesBar';
 import { HeroBanner } from './components/HeroBanner';
@@ -83,6 +84,23 @@ export const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [lastTool, setLastTool] = useState<'kundli' | 'matching' | 'horoscope' | 'blog' | 'dosh' | null>(null);
   const [detectedDosh, setDetectedDosh] = useState<string | null>(null);
+  // Growth experiment: hero CTA framing (deterministic per visitor)
+  const [heroCtaVariant] = useState<string | undefined>(() => {
+    try {
+      const v = getVariantLabel('hero_cta_copy_v1');
+      return v || undefined;
+    } catch (e) {
+      return undefined;
+    }
+  });
+  // Growth experiment: astrologer grid default sort (Smart Match vs Most Popular)
+  const [gridDefaultSort] = useState<string>(() => {
+    try {
+      return getVariantLabel('astrologer_grid_sort_v1') === 'Smart Match' ? 'smart' : 'popular';
+    } catch (e) {
+      return 'popular';
+    }
+  });
 
   // Synchronize browser history and URL with activeTab
   useEffect(() => {
@@ -156,6 +174,47 @@ export const App: React.FC = () => {
     } catch (e) {
       console.warn('SEO meta update error:', e);
     }
+  }, [activeTab]);
+
+  // Experiment assignment + context sync (deterministic, sticky per visitor)
+  useEffect(() => {
+    syncExperimentContext();
+  }, []);
+
+  // Scroll-depth engagement tracking (25/50/75/100% milestones, once per page view)
+  useEffect(() => {
+    const milestones = [25, 50, 75, 100];
+    const reached = new Set<number>();
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        if (scrollable > 0) {
+          const pct = Math.round((window.scrollY / scrollable) * 100);
+          for (const m of milestones) {
+            if (pct >= m && !reached.has(m)) {
+              reached.add(m);
+              try {
+                analytics.trackEvent('scroll_depth', {
+                  percent_scrolled: m,
+                  page_path: window.location.search,
+                  ...getExperimentContext(),
+                });
+              } catch (e) {
+                // ignore
+              }
+            }
+          }
+        }
+        ticking = false;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [activeTab]);
 
   // Handle browser back and forward buttons seamlessly
@@ -538,6 +597,7 @@ export const App: React.FC = () => {
               onInitiateChat={handleInitiateChat}
               onSelectTab={(tab) => setActiveTab(tab)}
               topAstrologer={ASTROLOGERS_DATA[0]}
+              ctaLabel={heroCtaVariant}
             />
             <AstrologersGrid
               astrologers={ASTROLOGERS_DATA}
@@ -546,6 +606,7 @@ export const App: React.FC = () => {
               onInitiateCall={handleInitiateCall}
               userTool={lastTool || undefined}
               userDosh={detectedDosh || undefined}
+              initialSort={gridDefaultSort}
             />
             <LiveTrustProofSection />
           </>

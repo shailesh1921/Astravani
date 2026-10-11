@@ -9,6 +9,8 @@ interface HeroBannerProps {
   onInitiateChat?: (astrologer: Astrologer) => void;
   onSelectTab?: (tab: string) => void;
   topAstrologer?: Astrologer;
+  /** Growth experiment variant label for the primary CTA button. */
+  ctaLabel?: string;
 }
 
 const LIVE_ACTIVITIES = [
@@ -24,7 +26,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   onExploreAstrologers,
   onInitiateChat,
   onSelectTab,
-  topAstrologer
+  topAstrologer,
+  ctaLabel
 }) => {
   const featuredPandit = topAstrologer || ASTROLOGERS_DATA[0];
   const [activeActivityIndex, setActiveActivityIndex] = useState(0);
@@ -93,7 +96,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white text-base sm:text-lg font-black rounded-2xl shadow-[0_10px_25px_rgba(245,158,11,0.35)] hover:shadow-[0_15px_35px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-3 cursor-pointer min-h-[56px]"
               >
                 <Zap className="w-5 h-5 fill-amber-200 text-amber-200 animate-pulse" />
-                <span>⚡ Connect with Astrologer (1st Min 100% Free)</span>
+                <span>⚡ {ctaLabel || 'Connect with Astrologer (1st Min 100% Free)'}</span>
               </button>
 
               {/* Sub-text micro assurance */}
