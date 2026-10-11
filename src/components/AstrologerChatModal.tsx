@@ -867,7 +867,7 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
                   if (isChatPaused) {
                     setShowRechargePopup(true);
                     onOpenRecharge();
-                  } else {
+                  } else if (!isTyping) {
                     handleSendMessage();
                   }
                 }
@@ -875,9 +875,11 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
               placeholder={
                 isChatPaused
                   ? `🔒 Low Balance: Recharge min ₹${astrologer.pricePerMin} to chat...`
+                  : isTyping
+                  ? `Type your reply here... (send unlocks when Pandit Ji finishes)`
                   : `Type your query to ${astrologer.name.split(' ')[0]}...`
               }
-              disabled={isTyping || isChatPaused}
+              disabled={isChatPaused}
               className="flex-1 bg-white border border-slate-300 rounded-full px-4 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:border-amber-500 text-slate-900 placeholder-slate-400 min-h-[44px] disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
             />
 
@@ -893,9 +895,32 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
             <button
               onClick={() => handleSendMessage()}
               disabled={!inputText.trim() || isTyping || isChatPaused}
-              className="w-11 h-11 sm:w-10 sm:h-10 min-w-[44px] min-h-[44px] sm:min-w-[40px] sm:min-h-[40px] rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition disabled:opacity-40 cursor-pointer shadow-sm flex-shrink-0 active:scale-95 disabled:cursor-not-allowed"
+              className={`w-11 h-11 sm:w-10 sm:h-10 min-w-[44px] min-h-[44px] sm:min-w-[40px] sm:min-h-[40px] rounded-full text-white flex items-center justify-center transition shadow-sm flex-shrink-0 active:scale-95 disabled:cursor-not-allowed ${
+                isChatPaused
+                  ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                  : isTyping
+                  ? 'bg-amber-500/90 cursor-wait'
+                  : !inputText.trim()
+                  ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
+              }`}
+              title={
+                isChatPaused
+                  ? 'Recharge to continue'
+                  : isTyping
+                  ? `${astrologer.name.split(' ')[0]} is speaking... Send unlocks once done`
+                  : 'Send message'
+              }
             >
-              <Send className="w-4 h-4 ml-0.5" />
+              {isTyping ? (
+                <span className="flex items-center gap-0.5" title="Pandit Ji is speaking...">
+                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0ms]" />
+                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:150ms]" />
+                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:300ms]" />
+                </span>
+              ) : (
+                <Send className="w-4 h-4 ml-0.5" />
+              )}
             </button>
 
           </div>
