@@ -226,22 +226,24 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
         }
       ] : [];
 
+      const cleanName = intake.name.trim();
+      const firstName = cleanName.split(' ')[0] || cleanName;
+
       if (initialUserMsg.length > 0) {
         setMessages(initialUserMsg);
         const initTimer = setTimeout(() => {
           deliverSequentialReplies([
-            `Pranam! Main aapka prashna samajh raha hoon.`,
-            `Aapki kundli aur grah gochar ke aadhar par vishleshan shuru karte hain.`
+            `Pranam ${firstName} ji! 🙏 Maine aapka prashna aur janam patrika (${intake.dob}, ${intake.pob}) dekh li hai.`,
+            `Aapka Lagna ${userKundli.lagnaSign.split(' ')[0]} aur Chandra Rashi ${userKundli.chandraRashi.split(' ')[0]} hai. Grah sthiti ke anusaar vishleshan shuru karte hain.`
           ]);
         }, 1200);
         return () => clearTimeout(initTimer);
       } else {
-        // Frictionless 1-Tap Greeting as per Multinational Luxury UI/UX spec:
-        // "Namaste! I am {astrologer.name}. I am reading your cosmic transit right now. What brings you here today?"
+        // Authentic Real Vedic Greeting addressing user by real name and chart coordinates
         const greetingMsg: ChatMessage = {
           id: `astrologer-greeting-${Date.now()}`,
           sender: 'astrologer',
-          text: `Namaste! I am ${astrologer.name}. I am reading your cosmic transit right now. What brings you here today?`,
+          text: `Pranam ${firstName} ji! 🙏 Main ${astrologer.name} bol raha hoon. Maine aapki janam patrika (${intake.dob}, ${intake.pob}) calculate kar li hai. Aapka Lagna ${userKundli.lagnaSign.split(' ')[0]} aur Chandra Rashi ${userKundli.chandraRashi.split(' ')[0]} hai. Bataiye ${firstName} ji, aaj aap kis vishay (Career, Vivah, Dhan ya Swasthya) par margdarshan chahte hain?`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         setMessages([greetingMsg]);
@@ -286,18 +288,8 @@ export const AstrologerChatModal: React.FC<AstrologerChatModalProps> = ({
     if (isOpen && hasSufficientBalance) {
       setShowRechargePopup(false);
       setHasPaidToContinue(true);
-
-      // If no messages were sent yet because balance was 0, trigger opening greeting now!
-      if (messages.length === 0) {
-        const firstName = intake.name.split(' ')[0] || intake.name;
-        const openingLines = [
-          `Pranam ${firstName} ji! Main aapki janam patrika open kar raha hoon.`,
-          `Bataiye, aaj kis vishay par aap vishisht guidance chahte hain?`
-        ];
-        deliverSequentialReplies(openingLines);
-      }
     }
-  }, [isOpen, hasSufficientBalance, messages.length, intake.name]);
+  }, [isOpen, hasSufficientBalance]);
 
   // Track latest wallet balance in ref to avoid resetting interval on every minute deduction
   const chatWalletRef = useRef(walletBalance);

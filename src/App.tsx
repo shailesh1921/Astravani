@@ -403,7 +403,7 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Frictionless 1-Tap Consultation Handlers (Zero form drop-off barrier)
+  // Birth Details & Consultation Handlers (Simple Details Intake -> Instant Real Kundli Chat)
   const handleInitiateChat = (astrologer: Astrologer) => {
     analytics.trackConsultationStart({
       astrologer_id: astrologer.id,
@@ -413,18 +413,27 @@ export const App: React.FC = () => {
     
     setSelectedAstrologer(astrologer);
     setIsCallMode(false);
-    const intake: ConsultationIntake = currentIntake || {
-      name: currentUser?.fullName || 'AstraVani Seeker',
-      gender: 'Male',
-      dob: '1996-01-01',
-      tob: '12:00',
-      pob: 'New Delhi, India',
-      topic: 'Career & Job',
-      question: ''
-    };
-    setCurrentIntake(intake);
-    setIsIntakeOpen(false);
-    setIsChatOpen(true);
+    
+    // Check if user has already entered their real birth details previously
+    const saved = localStorage.getItem('astravani_user_profile');
+    let validIntake = currentIntake;
+    if (!validIntake && saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.name && parsed.name.trim().length > 1 && parsed.name !== 'AstraVani Seeker') {
+          validIntake = parsed;
+        }
+      } catch (e) {}
+    }
+
+    if (validIntake && validIntake.name && validIntake.name.trim().length > 1 && validIntake.name !== 'AstraVani Seeker') {
+      setCurrentIntake(validIntake);
+      setIsIntakeOpen(false);
+      setIsChatOpen(true);
+    } else {
+      // Prompt user for simple details (Name, Gender, DOB, Time, All-India Place) to build genuine trust
+      setIsIntakeOpen(true);
+    }
   };
 
   const handleInitiateCall = (astrologer: Astrologer) => {
@@ -436,18 +445,25 @@ export const App: React.FC = () => {
     
     setSelectedAstrologer(astrologer);
     setIsCallMode(true);
-    const intake: ConsultationIntake = currentIntake || {
-      name: currentUser?.fullName || 'AstraVani Seeker',
-      gender: 'Male',
-      dob: '1996-01-01',
-      tob: '12:00',
-      pob: 'New Delhi, India',
-      topic: 'Career & Job',
-      question: ''
-    };
-    setCurrentIntake(intake);
-    setIsIntakeOpen(false);
-    setIsCallOpen(true);
+    
+    const saved = localStorage.getItem('astravani_user_profile');
+    let validIntake = currentIntake;
+    if (!validIntake && saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.name && parsed.name.trim().length > 1 && parsed.name !== 'AstraVani Seeker') {
+          validIntake = parsed;
+        }
+      } catch (e) {}
+    }
+
+    if (validIntake && validIntake.name && validIntake.name.trim().length > 1 && validIntake.name !== 'AstraVani Seeker') {
+      setCurrentIntake(validIntake);
+      setIsIntakeOpen(false);
+      setIsCallOpen(true);
+    } else {
+      setIsIntakeOpen(true);
+    }
   };
 
   const handleIntakeSubmit = (intake: ConsultationIntake) => {
