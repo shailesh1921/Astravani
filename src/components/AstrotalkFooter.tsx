@@ -61,9 +61,7 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav, o
           {/* Col 1: About */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white font-bold">
-                ॐ
-              </div>
+              <img src="/astravani-logo.png" alt="AstraVani" className="w-8 h-8 rounded-full object-cover shadow-sm" />
               <span className="text-lg font-black text-white tracking-tight">
                 Astra<span className="text-amber-400">Vani</span>
               </span>

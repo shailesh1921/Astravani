@@ -46,9 +46,11 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setActiveTab('astrologers')}
             className="flex items-center gap-2 sm:gap-2.5 cursor-pointer select-none group flex-shrink-0"
           >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform flex-shrink-0">
-              <span className="text-white text-lg sm:text-xl font-bold">ॐ</span>
-            </div>
+            <img 
+              src="/astravani-logo.png" 
+              alt="AstraVani Logo" 
+              className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform flex-shrink-0" 
+            />
             <div>
               <div className="flex items-center gap-1">
                 <span className="text-lg sm:text-2xl font-extrabold tracking-tight text-slate-900">
