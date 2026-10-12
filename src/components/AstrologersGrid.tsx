@@ -39,14 +39,14 @@ export const AstrologersGrid: React.FC<AstrologersGridProps> = ({
   }, [astrologers]);
 
   const categories = [
-    { id: 'all', label: 'सभी (All)', icon: '🌟' },
-    { id: 'vedic', label: 'वैदिक (Vedic)', icon: '🕉️' },
-    { id: 'tarot', label: 'टैरो (Tarot)', icon: '🔮' },
-    { id: 'numerology', label: 'अंक ज्योतिष (Numerology)', icon: '🔢' },
-    { id: 'lal_kitab', label: 'लाल किताब (Lal Kitab)', icon: '📖' },
-    { id: 'nadi', label: 'नाड़ी (Nadi)', icon: '📜' },
-    { id: 'marriage', label: 'विवाह (Marriage)', icon: '💍' },
-    { id: 'career', label: 'करियर (Career)', icon: '💼' },
+    { id: 'all', label: 'All Astrologers', icon: '🌟' },
+    { id: 'love', label: 'Love & Relationship', icon: '💛' },
+    { id: 'career', label: 'Career & Job', icon: '💼' },
+    { id: 'marriage', label: 'Marriage & Kundli', icon: '💍' },
+    { id: 'wealth', label: 'Wealth & Finance', icon: '🪙' },
+    { id: 'health', label: 'Health & Remedies', icon: '🌿' },
+    { id: 'vedic', label: 'Vedic Acharyas', icon: '🕉️' },
+    { id: 'tarot', label: 'Tarot Readers', icon: '🔮' },
   ];
 
   // Compute smart match tags for each astrologer
@@ -83,18 +83,31 @@ export const AstrologersGrid: React.FC<AstrologersGridProps> = ({
 
     // Filter by category
     if (activeCategory !== 'all') {
-      if (activeCategory === 'marriage') {
+      if (activeCategory === 'love') {
         result = result.filter(a => a.specialties.some(s => {
           const l = s.toLowerCase();
-          return l.includes('milan') || l.includes('relationship') || l.includes('love') || l.includes('marriage');
+          return l.includes('love') || l.includes('relationship') || l.includes('breakup') || l.includes('milan');
+        }));
+      } else if (activeCategory === 'marriage') {
+        result = result.filter(a => a.specialties.some(s => {
+          const l = s.toLowerCase();
+          return l.includes('milan') || l.includes('marriage') || l.includes('manglik') || l.includes('kundli');
         }));
       } else if (activeCategory === 'career') {
         result = result.filter(a => a.specialties.some(s => {
           const l = s.toLowerCase();
-          return l.includes('career') || l.includes('prashna') || l.includes('wealth') || l.includes('job') || l.includes('business') || l.includes('money');
+          return l.includes('career') || l.includes('job') || l.includes('business') || l.includes('prashna');
         }));
-      } else if (activeCategory === 'lal_kitab') {
-        result = result.filter(a => a.personaType === 'lal_kitab' || a.specialties.some(s => s.toLowerCase().includes('lal kitab')));
+      } else if (activeCategory === 'wealth') {
+        result = result.filter(a => a.specialties.some(s => {
+          const l = s.toLowerCase();
+          return l.includes('wealth') || l.includes('money') || l.includes('finance') || l.includes('business') || l.includes('vastu');
+        }));
+      } else if (activeCategory === 'health') {
+        result = result.filter(a => a.specialties.some(s => {
+          const l = s.toLowerCase();
+          return l.includes('health') || l.includes('vitality') || l.includes('remedy') || l.includes('dosha') || l.includes('sade sati');
+        }));
       } else {
         result = result.filter(a => a.personaType === activeCategory || a.specialties.some(s => s.toLowerCase().includes(activeCategory)));
       }
@@ -179,22 +192,31 @@ export const AstrologersGrid: React.FC<AstrologersGridProps> = ({
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       
-      {/* Title & Stats */}
+      {/* Section Header: Top Online Astrologers (Astroyogi Style) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <span>Talk to Astrologers Online</span>
-            <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
-              {filteredAndSorted.length} Available
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              Top Online Astrologers
+            </h2>
+            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 pulsing-online" />
+            <span className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold px-2.5 py-0.5 rounded-full">
+              {filteredAndSorted.length} Live
             </span>
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Connect within 60 seconds with verified scholars in Vedic Jyotish, Tarot, and Numerology.
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+            Available right now for instant consultation • First minute 100% Free
           </p>
         </div>
 
-        {/* Filter & Sort */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 self-start sm:self-auto">
+        {/* View All & Filter & Sort Controls */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setActiveCategory('all')}
+            className="px-4 py-2 rounded-full border border-amber-300 hover:border-amber-500 bg-amber-50/60 hover:bg-amber-100 text-amber-900 text-xs font-extrabold transition cursor-pointer shadow-2xs"
+          >
+            View All (4,500+) ➔
+          </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${

@@ -8,6 +8,7 @@ import { analytics } from './services/analytics';
 import { getVariantLabel, getExperimentContext, syncExperimentContext } from './services/growthExperiments';
 import { Header } from './components/Header';
 import { QuickServicesBar } from './components/QuickServicesBar';
+import { QuickActionTiles } from './components/QuickActionTiles';
 import { HeroBanner } from './components/HeroBanner';
 import { AstrologersGrid } from './components/AstrologersGrid';
 import { KundliIntakeModal } from './components/KundliIntakeModal';
@@ -632,12 +633,29 @@ export const App: React.FC = () => {
             <HeroBanner
               onQuickTopicSelect={handleQuickTopicSelect}
               onExploreAstrologers={() => {
-                window.scrollTo({ top: 450, behavior: 'smooth' });
+                window.scrollTo({ top: 520, behavior: 'smooth' });
               }}
               onInitiateChat={handleInitiateChat}
               onSelectTab={(tab) => setActiveTab(tab)}
               topAstrologer={ASTROLOGERS_DATA[0]}
               ctaLabel={heroCtaVariant}
+            />
+            <QuickActionTiles
+              onSelectAction={(actionId) => {
+                if (actionId === 'talk') {
+                  const astro = ASTROLOGERS_DATA[0];
+                  if (astro) handleInitiateCall(astro);
+                } else if (actionId === 'love') {
+                  handleQuickTopicSelect('Love & Relationship');
+                  window.scrollTo({ top: 520, behavior: 'smooth' });
+                } else if (actionId === 'horoscope') {
+                  setActiveTab('horoscope');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else if (actionId === 'kundli') {
+                  setActiveTab('kundli');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
             />
             <AstrologersGrid
               astrologers={ASTROLOGERS_DATA}
