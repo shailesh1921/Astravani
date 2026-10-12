@@ -23,30 +23,25 @@
     <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
     <meta name="google-site-verification" content="googlec65e68d68ec501ce" />
     <meta name="theme-color" content="#F59E0B" />
-    <!-- Dynamic Canonical URL: prevents Google Search Console duplicate alternate-canonical flags -->
+    <!-- Canonical URL: Default static fallback with instant dynamic synchronization -->
+    <link rel="canonical" href="https://www.astravani.in/" id="canonical-url" />
     <script>
       (function() {
         try {
           var params = new URLSearchParams(window.location.search);
           var tab = params.get('tab');
           var article = params.get('article');
-          var canonicalUrl = 'https://www.astravani.in/';
           if (tab && tab !== 'astrologers') {
-            canonicalUrl = 'https://www.astravani.in/?tab=' + encodeURIComponent(tab);
+            var canonicalUrl = 'https://www.astravani.in/?tab=' + encodeURIComponent(tab);
             if (article) {
               canonicalUrl += '&article=' + encodeURIComponent(article);
             }
+            var link = document.getElementById('canonical-url');
+            if (link) {
+              link.setAttribute('href', canonicalUrl);
+            }
           }
-          var link = document.createElement('link');
-          link.rel = 'canonical';
-          link.href = canonicalUrl;
-          document.head.appendChild(link);
-        } catch (e) {
-          var fallback = document.createElement('link');
-          fallback.rel = 'canonical';
-          fallback.href = 'https://www.astravani.in/';
-          document.head.appendChild(fallback);
-        }
+        } catch (e) {}
       })();
     </script>
 
