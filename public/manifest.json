@@ -4,9 +4,21 @@
   "description": "Consult 4,500+ verified Vedic Astrologers, Tarot Readers & Numerologists. First consultation 100% FREE!",
   "icons": [
     {
+      "src": "/favicon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/favicon.svg",
       "type": "image/svg+xml",
-      "sizes": "192x192 512x512",
+      "sizes": "any",
       "purpose": "any maskable"
     }
   ],

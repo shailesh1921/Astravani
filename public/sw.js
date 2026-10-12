@@ -1,10 +1,17 @@
 // AstraVani Service Worker for PWA Offline & Install Support
-const CACHE_NAME = 'astravani-cache-v1';
+const CACHE_NAME = 'astravani-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.svg'
+  '/favicon.ico',
+  '/favicon.svg',
+  '/favicon-48x48.png',
+  '/favicon-96x96.png',
+  '/favicon-144x144.png',
+  '/favicon-192x192.png',
+  '/apple-touch-icon.png',
+  '/icon-512x512.png'
 ];
 
 self.addEventListener('install', (event) => {

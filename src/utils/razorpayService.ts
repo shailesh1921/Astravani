@@ -47,7 +47,7 @@ export async function launchRazorpayCheckout(options: RazorpayPaymentOptions): P
       currency: 'INR',
       name: 'AstraVani India',
       description: `AstraVani Astrology Wallet Recharge (₹${options.amountRupees})`,
-      image: 'https://www.astravani.in/favicon.svg',
+      image: 'https://www.astravani.in/icon-512x512.png',
       handler: function (response: any) {
         if (response && response.razorpay_payment_id) {
           options.onSuccess(response.razorpay_payment_id);
