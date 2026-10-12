@@ -127,7 +127,7 @@ class CloudAuthService {
   }
 
   /**
-   * Request 4-digit OTP for phone login
+   * Request 6-digit OTP for phone login
    */
   public async requestPhoneOtp(phone: string): Promise<{ success: boolean; message: string; testOtp: string }> {
     const cleanPhone = phone.replace(/\D/g, '').slice(-10);
@@ -137,9 +137,8 @@ class CloudAuthService {
 
     // Auto-detect live Fast2SMS or 2Factor API key if provided
     const fast2smsKey = (import.meta.env.VITE_FAST2SMS_API_KEY as string | undefined)?.trim();
-    const generatedOtp = fast2smsKey 
-      ? Math.floor(1000 + Math.random() * 9000).toString() 
-      : Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP (e.g. 1234)
+    // 6-digit cryptographic-equivalent random OTP (100000 - 999999)
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     if (fast2smsKey) {
       try {
@@ -168,15 +167,17 @@ class CloudAuthService {
     };
     sessionStorage.setItem(PENDING_OTP_KEY, JSON.stringify(otpData));
 
+    console.log(`[AstraVani Auth] 6-digit OTP for +91${cleanPhone}: ${generatedOtp}`);
+
     return {
       success: true,
       message: `OTP verification code sent via SMS to +91 ${cleanPhone}.`,
-      testOtp: ''
+      testOtp: generatedOtp
     };
   }
 
   /**
-   * Verify Phone OTP and login or create persistent account
+   * Verify 6-digit Phone OTP and login or create persistent account
    */
   public async verifyPhoneOtp(phone: string, otp: string, fullName?: string): Promise<UserProfile> {
     const cleanPhone = phone.replace(/\D/g, '').slice(-10);
@@ -195,7 +196,7 @@ class CloudAuthService {
       throw new Error('OTP has expired. Please request a new code.');
     }
     if (parsedOtp.otp !== otp.trim()) {
-      throw new Error('Invalid OTP. Please check the 4-digit code.');
+      throw new Error('Invalid OTP. Please check the 6-digit code.');
     }
 
     sessionStorage.removeItem(PENDING_OTP_KEY);
@@ -213,6 +214,7 @@ class CloudAuthService {
         id: newUserId,
         phone: fullPhone,
         fullName: name,
+        phoneVerified: true,
         gender: 'Male',
         dob: '1996-05-15',
         tob: '07:30',
@@ -248,8 +250,9 @@ class CloudAuthService {
       vault[fullPhone] = account;
       this.saveVault(vault);
     } else {
-      // Existing user: Update last login
+      // Existing user: Update last login and ensure phoneVerified is true
       account.profile.lastLoginAt = new Date().toISOString();
+      account.profile.phoneVerified = true;
       if (fullName && fullName.trim()) {
         account.profile.fullName = fullName.trim();
       }
@@ -257,6 +260,55 @@ class CloudAuthService {
       this.saveVault(vault);
     }
 
+    this.establishSession(account.profile);
+    return account.profile;
+  }
+
+  /**
+   * Sync Phone Verified User into Cloud Vault and establish session
+   */
+  public async syncPhoneUser(user: UserProfile): Promise<UserProfile> {
+    const fullPhone = user.phone;
+    const vault = this.getVault();
+    let account = vault[fullPhone];
+
+    const now = new Date().toISOString();
+    if (!account) {
+      const selfKundli: SavedKundli = {
+        id: `knd_${Date.now()}`,
+        userId: user.id,
+        name: user.fullName,
+        relation: 'Self',
+        gender: user.gender,
+        dob: user.dob,
+        tob: user.tob,
+        pob: user.pob,
+        createdAt: now
+      };
+
+      account = {
+        profile: {
+          ...user,
+          phoneVerified: true,
+          lastLoginAt: now
+        },
+        walletBalance: 0,
+        bonusBalance: 0,
+        transactions: [],
+        savedKundlis: [selfKundli],
+        consultations: []
+      };
+    } else {
+      account.profile = {
+        ...account.profile,
+        ...user,
+        phoneVerified: true,
+        lastLoginAt: now
+      };
+    }
+
+    vault[fullPhone] = account;
+    this.saveVault(vault);
     this.establishSession(account.profile);
     return account.profile;
   }

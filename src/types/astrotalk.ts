@@ -176,6 +176,8 @@ export interface UserProfile {
   email?: string;
   fullName: string;
   avatarUrl?: string;
+  phoneVerified?: boolean;
+  emailVerified?: boolean;
   gender: 'Male' | 'Female' | 'Other';
   dob: string;
   tob: string;
