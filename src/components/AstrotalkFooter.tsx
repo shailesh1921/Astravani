@@ -112,6 +112,11 @@ export const AstrotalkFooter: React.FC<AstrotalkFooterProps> = ({ onSelectNav, o
                   📖 Vedic Astrology Blog
                 </button>
               </li>
+              <li>
+                <button onClick={() => onSelectNav('campaign')} className="hover:text-emerald-400 transition cursor-pointer font-bold text-emerald-400">
+                  💬 WhatsApp Campaign Tool (Admin)
+                </button>
+              </li>
             </ul>
           </div>
 

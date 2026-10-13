@@ -32,6 +32,7 @@ const AstrologerCallModal = lazy(() => import('./components/AstrologerCallModal'
 const PaymentCheckoutModal = lazy(() => import('./components/PaymentCheckoutModal').then(m => ({ default: m.PaymentCheckoutModal })));
 const CompliancePolicyModal = lazy(() => import('./components/CompliancePolicyModal').then(m => ({ default: m.CompliancePolicyModal })));
 const UserProfileDrawer = lazy(() => import('./components/UserProfileDrawer').then(m => ({ default: m.UserProfileDrawer })));
+const WhatsAppCampaignDispatcher = lazy(() => import('./components/WhatsAppCampaignDispatcher').then(m => ({ default: m.WhatsAppCampaignDispatcher })));
 
 const ViewSuspenseFallback: React.FC = () => (
   <div className="flex items-center justify-center p-12 min-h-[300px]">
@@ -77,7 +78,7 @@ export const App: React.FC = () => {
     try {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog', 'dosh'].includes(tab)) {
+      if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog', 'dosh', 'campaign'].includes(tab)) {
         return tab;
       }
     } catch (e) {}
@@ -248,7 +249,7 @@ export const App: React.FC = () => {
       try {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab') || e.state?.tab;
-        if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog', 'dosh'].includes(tab)) {
+        if (tab && ['astrologers', 'kundli', 'matching', 'horoscope', 'blog', 'dosh', 'campaign'].includes(tab)) {
           setActiveTab(tab);
         } else {
           setActiveTab('astrologers');
@@ -269,6 +270,7 @@ export const App: React.FC = () => {
       horoscope: '/horoscope',
       blog: '/blog',
       dosh: '/dosh',
+      campaign: '/campaign',
     };
     const pageTitles: Record<string, string> = {
       astrologers: 'Talk to Astrologers',
@@ -277,6 +279,7 @@ export const App: React.FC = () => {
       horoscope: 'Daily Horoscope (Rashifal)',
       blog: 'Vedic Astrology Blog',
       dosh: 'Grah Dosh Encyclopedia',
+      campaign: 'WhatsApp Campaign Dispatcher — AstraVani',
     };
     
     const path = pagePaths[activeTab] || '/';
@@ -721,6 +724,10 @@ export const App: React.FC = () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
             />
+          )}
+
+          {activeTab === 'campaign' && (
+            <WhatsAppCampaignDispatcher />
           )}
         </Suspense>
       </main>

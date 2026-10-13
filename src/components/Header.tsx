@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Search, ShieldCheck, User, Bell, ChevronDown, Phone, 
   MessageSquare, Compass, ScrollText, HeartHandshake, AlertTriangle, 
-  BookOpen, Menu, X, Wallet, Sparkles, ExternalLink
+  BookOpen, Menu, X, Wallet, Sparkles, ExternalLink, Send
 } from 'lucide-react';
 import { UserProfile } from '../types/astrotalk';
 
@@ -380,6 +380,7 @@ export const Header: React.FC<HeaderProps> = ({
                 { id: 'horoscope', label: 'Daily Horoscope 2026', icon: Compass, badge: 'Rashifal' },
                 { id: 'dosh', label: 'Dosh & Upay Encyclopedia', icon: AlertTriangle, badge: 'Remedies' },
                 { id: 'blog', label: 'Vedic Knowledge Blog', icon: BookOpen },
+                { id: 'campaign', label: 'WhatsApp Campaign Tool', icon: Send, badge: '1-Click' },
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
