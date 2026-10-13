@@ -583,7 +583,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-800 font-sans selection:bg-amber-100 selection:text-amber-900 w-full overflow-x-hidden">
+    <div className="min-h-dvh flex flex-col bg-[#F8FAFC] text-slate-800 font-sans selection:bg-amber-100 selection:text-amber-900 w-full max-w-full overflow-x-hidden pb-28 sm:pb-0">
       
       {/* Header */}
       <Header
@@ -866,6 +866,14 @@ export const App: React.FC = () => {
         currentUser={currentUser}
         onOpenProfile={() => setIsProfileDrawerOpen(true)}
         onOpenAuth={() => setIsAuthModalOpen(true)}
+        onQuickCall={() => {
+          const featured = ASTROLOGERS_DATA[0];
+          handleInitiateCall(featured);
+        }}
+        onBookConsultation={() => {
+          const featured = ASTROLOGERS_DATA[0];
+          handleInitiateChat(featured);
+        }}
       />
 
       {/* Floating Live Social Proof Activity Toast */}
