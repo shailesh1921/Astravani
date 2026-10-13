@@ -1,0 +1,17 @@
+{
+  "name": "astravani-whatsapp-agent",
+  "version": "1.0.0",
+  "description": "Standalone Terminal WhatsApp Agent for AstraVani campaigns",
+  "main": "send-campaign.js",
+  "type": "module",
+  "scripts": {
+    "start": "node send-campaign.js",
+    "send": "node send-campaign.js",
+    "test-single": "node send-campaign.js --test"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.13",
+    "qrcode-terminal": "^0.12.0",
+    "pino": "^9.6.0"
+  }
+}
